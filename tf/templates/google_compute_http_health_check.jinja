@@ -1,0 +1,19 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set resource_name = resource.get('name') -%}
+#tfimport-terraform import google_compute_http_health_check.{{ macros.get_name(resource, properties) }}  __project__/{{ resource_name }}
+resource "google_compute_http_health_check" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  name = "{{ resource_name }}"
+  {{- macros.fields(properties, {
+    'checkIntervalSec': 'check_interval_sec',
+    'description': 'description',
+    'healthyThreshold': 'healthy_threshold',
+    'host': 'host',
+    'port': 'port',
+    'requestPath': 'request_path',
+    'timeoutSec': 'timeout_sec',
+    'unhealthyThreshold': 'unhealthy_threshold',
+    'project': 'project',
+  }, ' ' * 2) }}
+}

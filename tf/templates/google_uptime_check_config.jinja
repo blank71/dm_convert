@@ -1,0 +1,53 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set resource_name = resource.get('name') -%}
+#tfimport-terraform import google_monitoring_uptime_check_config.{{ macros.get_name(resource, properties) }}  {{macros.import_project(properties['project'])}}/{{properties['region']}}/{{ resource_name }}
+resource "google_monitoring_uptime_check_config" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.write_labels(properties) }}
+  {{- macros.fields(properties, {
+    'description': 'description',
+    'location': 'location',
+    'displayName': 'display_name',
+    'timeout': 'timeout',
+    'userLabels': 'user_labels',
+    'selectedRegions': 'selected_regions',
+    'project': 'project',
+    'period': 'period',
+    'checkerType': 'checker_type',
+  }, ' ' * 2) }}
+  {%- if 'contentMatchers' in properties %}
+  content_matchers{
+    content = "{{properties.contentMatchers.content}}"
+    matcher = "{{properties.contentMatchers.matcher}}"
+  }
+  {%- endif %}
+  {%- if 'httpCheck' in properties %}
+  http_check{
+    path = "{{properties.httpCheck.path}}"
+    port = "{{properties.httpCheck.port}}"
+    request_method = "{{properties.httpCheck.requestMethod}}"
+    content_type = "{{properties.httpCheck.contentType}}"
+    custom_content_type = "{{properties.httpCheck.customContentType}}"
+    body = "{{properties.httpCheck.body}}"
+    {%- if 'pingConfig' in properties.httpCheck %}
+    ping_config {
+      pings_count = "{{properties.httpCheck.pingConfig.pingCount}}"
+    }
+    {%- endif %}
+  }
+  {%- if 'monitoredResource' in properties %}
+  monitored_resource {
+    type = "{{properties.monitoredResource.type}}"
+    {%- if 'labels' in properties.monitoredResource %}
+    labels = {
+      {%- for key, value in properties.monitoredResource.labels.items() %}
+      "{{key}}": "{{value}}",
+      {%- endfor %}
+    }
+    {%- endif %}
+  }
+  {%- endif %}
+  {%- endif %}
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}

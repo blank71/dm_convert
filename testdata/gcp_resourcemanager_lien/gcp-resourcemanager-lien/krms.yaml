@@ -1,0 +1,23 @@
+apiVersion: resourcemanager.cnrm.cloud.google.com/v1beta1
+kind: Project
+metadata:
+  annotations:
+    cnrm.cloud.google.com/organization-id: '128653134652'
+  name: rm-project
+spec:
+  name: rm-project
+  resourceID: rm-project
+---
+apiVersion: resourcemanager.cnrm.cloud.google.com/v1beta1
+kind: ResourceManagerLien
+metadata:
+  name: rm-lien
+spec:
+  origin: project-deletion-prohibited
+  parent:
+    projectRef:
+      external: projects/rm-project
+  reason: This project is protected from deletion, for reasons which can be explained
+    in this field.
+  restrictions:
+  - resourcemanager.projects.delete

@@ -1,0 +1,24 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+resource "google_monitoring_notification_channel" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.write_labels(properties) }}
+  {{- macros.write_labels(properties, 2, 'user_labels', 'userLabels')}}
+  {{- macros.fields(properties, {
+    'type': 'type',
+    'displayName': 'display_name',
+    'description': 'description',
+    'enabled': 'enabled',
+    'project': 'project',
+    'forceDelete': 'force_delete',
+  }, ' ' * 2) }}
+
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}
+
+{#-
+1. name is readonly
+2. [TF] no properties - creationRecord and mutationRecords
+3. [TF] terraform import requires name, which is read only (computed CHANNEL_ID
+        is needed for its creation)
+#}

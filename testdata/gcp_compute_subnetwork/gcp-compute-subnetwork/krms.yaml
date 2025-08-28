@@ -1,0 +1,94 @@
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeNetwork
+metadata:
+  name: compute-network
+spec:
+  autoCreateSubnetworks: false
+  routingMode: REGIONAL
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeSubnetwork
+metadata:
+  labels:
+    label-one: value-one
+  name: compute-subnetwork
+spec:
+  description: My subnet
+  ipCidrRange: 192.168.0.0/24
+  logConfig:
+    aggregationInterval: INTERVAL_10_MIN
+    filterExpr: 'true'
+    flowSampling: 0.5
+    metadata: INCLUDE_ALL_METADATA
+  networkRef:
+    name: compute-network
+  privateIpGoogleAccess: false
+  region: us-west1
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeSubnetwork
+metadata:
+  labels:
+    label-one: value-one
+  name: compute-subnetwork-1
+spec:
+  description: My subnet
+  ipCidrRange: 192.168.1.0/24
+  logConfig:
+    aggregationInterval: INTERVAL_10_MIN
+    filterExpr: 'false'
+    flowSampling: 0.5
+    metadata: CUSTOM_METADATA
+    metadataFields:
+    - src_instance
+    - dest_instance
+  networkRef:
+    name: compute-network
+  privateIpGoogleAccess: false
+  region: us-west1
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeSubnetwork
+metadata:
+  labels:
+    label-one: value-one
+  name: compute-subnetwork-2
+spec:
+  description: My subnet
+  ipCidrRange: 192.168.2.0/24
+  networkRef:
+    name: compute-network
+  purpose: REGIONAL_MANAGED_PROXY
+  region: us-west1
+  role: ACTIVE
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeSubnetwork
+metadata:
+  name: compute-subnetwork-3
+spec:
+  ipCidrRange: 192.168.3.0/24
+  networkRef:
+    external: default
+  region: us-west1
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeNetwork
+metadata:
+  name: compute-network-2
+spec:
+  autoCreateSubnetworks: false
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeSubnetwork
+metadata:
+  name: compute-subnetwork-4
+spec:
+  ipCidrRange: 10.10.10.0/24
+  networkRef:
+    name: compute-network-2
+  privateIpGoogleAccess: false
+  region: us-central1
+  secondaryIpRange:
+  - ipCidrRange: 172.16.0.0/12
+    rangeName: my-secondary-range

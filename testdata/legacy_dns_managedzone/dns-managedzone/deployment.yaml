@@ -1,0 +1,21 @@
+resources:
+- name: compute-network
+  properties:
+    autoCreateSubnetworks: false
+  type: compute.v1.network
+- metadata:
+    dependsOn:
+    - compute-network
+  name: dns-managedzone
+  properties:
+    description: Example DNS zone
+    dnsName: tjr-dm-test-1-dns.com.
+    labels:
+      label-one: value-one
+    privateVisibilityConfig:
+      kind: dns#managedZonePrivateVisibilityConfig
+      networks:
+      - kind: dns#managedZonePrivateVisibilityConfigNetwork
+        networkUrl: https://www.googleapis.com/compute/v1/projects/tjr-dm-test-1/global/networks/compute-network
+    visibility: private
+  type: dns.v1.managedZone

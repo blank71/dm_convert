@@ -1,0 +1,193 @@
+resources:
+- name: resource-container-cluster
+  properties:
+    cluster:
+      name: cluster-name
+      description: this is descriptoin for testing
+      masterAuth:
+        clientCertificateConfig:
+          issueClientCertificate: false
+      loggingService: logging.googleapis.com/kubernetes
+      monitoringService: monitoring.googleapis.com/kubernetes
+      network: container-cluster-network
+      clusterIpv4Cidr: 10.96.0.0/14
+      addonsConfig:
+        httpLoadBalancing:
+          disabled: false
+        horizontalPodAutoscaling:
+          disabled: false
+        kubernetesDashboard:
+          disabled: false
+        networkPolicyConfig:
+          disabled: false
+        cloudRunConfig:
+          disabled: false
+          loadBalancerType: LOAD_BALANCER_TYPE_INTERNAL
+      subnetwork: container-cluster-subnetwork
+      locations:
+      - us-central1
+      - us-central2
+      enableKubernetesAlpha: false
+      resourceLabels:
+        resource-label-one: resource-value-one
+        resource-label-two: resource-value-two
+      legacyAbac:
+        enabled: false
+      networkPolicy:
+        provider: CALICO
+        enabled: false
+      masterAuthorizedNetworksConfig:
+        enabled: true
+        cidrBlocks:
+        - displayName: cidr_block_1
+          cidrBlock: 10.0.0.0/8
+        - displayName: cidr_block_2
+          cidrBlock: 10.0.0.0/28
+      maintenancePolicy:
+        resourceVersion: 1
+        window:
+          maintenanceExclusions:
+          - maintenance-exclusion-1:
+            - startTime: '2014-10-02T15:01:23Z'
+              endTime: '2014-10-02T15:01:23.045123456Z'
+          - maintenance-exclusion-2:
+            - startTime: '2014-10-02T15:01:23Z'
+              endTime: '2014-10-02T15:01:23.045123456Z'
+          recurringWindow:
+            window:
+              startTime: '2014-10-02T15:01:23Z'
+              endTime: '2014-10-02T15:01:23.045123456Z'
+            recurrence: FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR
+      binaryAuthorization:
+        enabled: false
+      autoscaling:
+        enableNodeAutoprovisioning: false
+        resourceLimits:
+        - resourceType: cpu
+          minimum: 1000
+          maximum: 2000
+        - resourceType: ram
+          minimum: 16
+          maximum: 32
+        autoprovisioningNodePoolDefaults:
+          oauthScopes:
+          - https://www.googleapis.com/auth/devstorage.read_only
+          - https://www.googleapis.com/auth/logging.write
+          minCpuPlatform: Intel Sandy Bridge
+          serviceAccount: node-pool-defaults@developer.gserviceaccount.com
+      networkConfig:
+        enableIntraNodeVisibility: false
+        defaultSnatStatus:
+          disabled: false
+        datapathProvider: LEGACY_DATAPATH
+        privateIpv6GoogleAccess: PRIVATE_IPV6_GOOGLE_ACCESS_TO_GOOGLE
+      defaultMaxPodsConstraint:
+        maxPodsPerNode: 4
+      resourceUsageExportConfig:
+        bigqueryDestination:
+          datasetId: resourceUsageExportConfig-bq-dataset-id
+        enableNetworkEgressMetering: false
+        consumptionMeteringConfig:
+          enabled: false
+      authenticatorGroupsConfig:
+        enabled: false
+        securityGroup: authenticator-security-group
+      privateClusterConfig:
+        enablePrivateNodes: false
+        enablePrivateEndpoint: false
+        masterIpv4CidrBlock: 10.0.0.0/28
+        masterGlobalAccessConfig:
+          enabled: false
+      databaseEncryption:
+        state: ENCRYPTED
+        keyName: db-encryption-key-name
+      verticalPodAutoscaling:
+        enabled: false
+      shieldedNodes:
+        enabled: false
+      releaseChannel:
+        channel: REGULAR
+      initialClusterVersion: 123
+      initialNodeCount: 1
+      location: us-central1-a
+      enableTpu: false
+      nodePools:
+      - name: node-pool-1
+        initialNodeCount: 2
+        locations: ['us-central1', 'us-central2']
+        version: 123
+        autoscaling:
+          enabled: true
+          minNodeCount: 10
+          maxNodeCount: 20
+          autoprovisioned: false
+        management:
+          autoUpgrade: true
+          autoRepair: true
+        maxPodsConstraint:
+          maxPodsPerNode: 4
+        upgradeSettings:
+          maxSurge: 4
+          maxUnavailable: 1
+        config:
+          oauthScopes:
+          - https://www.googleapis.com/auth/devstorage.read_only
+          - https://www.googleapis.com/auth/logging.write
+          - https://www.googleapis.com/auth/monitoring
+          - https://www.googleapis.com/auth/service.management.readonly
+          - https://www.googleapis.com/auth/servicecontrol
+          - https://www.googleapis.com/auth/trace.append
+          diskSizeGb: 100
+          machineType: n1-standard-1
+          localSsdCount: 2
+          serviceAccount: 1234-compute@developer.gserviceaccount.com
+          metadata:
+            metadata-field-1: metadata-value-1
+            metadata-field-2: 'metadata-value-2'
+          labels:
+            label-one: value-one
+            label-two: value-two
+          tags:
+          - tag1
+          - tag2
+          - tag3
+          preemptible: true
+          accelerators:
+          - acceleratorCount: 1
+            acceleratorType: nvidia-tesla-k80
+          - acceleratorCount: 1
+            acceleratorType: a2-highgpu-1g
+          diskType: pd-balanced
+          minCpuPlatform: Intel Haswell
+          workloadMetadataConfig:
+            mode: GCE_METADATA
+          taints:
+          - key: taints-key1
+            value: taints-value1
+            effect: NO_SCHEDULE
+          - key: taints-key2
+            value: taints-value2
+            effect: NO_EXECUTE
+          nodeGroup: node-group-test-1
+          reservationAffinity:
+            consumeReservationType: ANY_RESERVATION
+            key: reservation-affinity-key-1
+            values:
+            - reservation-affinity-value-1
+            - reservation-affinity-value-2
+            - reservation-affinity-value-3
+          shieldedInstanceConfig:
+            enableSecureBoot: false
+            enableIntegrityMonitoring: true
+      - name: node-pool-2
+        config:
+          diskSizeGb: 100
+          machineType: n1-standard-1
+          metadata:
+            VmDnsSetting: ZonalPreferred
+            serial-port-logging-enable: 'false'
+          oauthScopes:
+          - https://www.googleapis.com/auth/cloud-platform
+          serviceAccount: 1234-compute@developer.gserviceaccount.com
+        initialNodeCount: 3
+  type: container.v1.cluster

@@ -1,0 +1,39 @@
+{%- import 'macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) %}
+{%- set records = properties['records'] if 'records' in properties else [properties] %}
+{%- for record in records %}
+  {%- if loop.index > 1 %}
+---
+  {%- endif %}
+apiVersion: dns.cnrm.cloud.google.com/v1beta1
+kind: DNSRecordSet
+metadata:
+  {{- macros.fields(properties, {'labels': 'labels'}, ' ' * 2) }}
+  {%- if 'name' in resource %}
+  name: {{ resource['name'] | arbitrary_reference + ('-' + loop.index | string if records | length > 1 else '') }}
+  {%- endif %}
+  {%- if properties | set_difference(['labels']) %}
+  {# At least one field of record was not converted to metadata and will be converted to spec. #}
+spec:
+  {{- macros.fields(properties, {
+    'managedZone': 'managedZoneRef',
+  }, ' ' * 2) }}
+  {%- if 'name' in record %}
+  name: {{ record['name'] | arbitrary_reference }}
+  {%- elif 'name' in properties %}
+  name: {{ properties['name'] | arbitrary_reference }}
+  {%- endif %}
+  {{- macros.fields(record, {
+    'rrdatas': 'rrdatas',
+    'ttl': 'ttl',
+    'type': 'type',
+  }, ' ' * 2) }}
+  {%- endif %}
+  {%- set unconvertable = record | missing_fields((
+    'signatureRrdatas',
+  )) %}
+  {%- if unconvertable %}
+# Unconvertable fields found:
+# {{ unconvertable | join('\n# ') }}
+  {%- endif %}
+{%- endfor %}

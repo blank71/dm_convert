@@ -1,0 +1,13 @@
+resources:
+- name: compute-regiondisk
+  properties:
+    description: A 600GB regional disk.
+    labels:
+      extra-gb: '100'
+    physicalBlockSizeBytes: 16384
+    region: us-west1
+    replicaZones:
+    - zones/us-west1-a
+    - zones/us-west1-b
+    sizeGb: 600
+  type: gcp-types/compute-v1:regionDisks

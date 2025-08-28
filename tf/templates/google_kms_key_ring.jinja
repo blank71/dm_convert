@@ -1,0 +1,19 @@
+{%- import 'tf_macros.jinja' as macros -%}
+{%- set properties = resource.get('properties', {}) -%}
+{%- if 'keyRingId' in properties %}
+{%- set name_value = properties['keyRingId'] -%}
+{%- else %}
+{%- set name_value = properties['name'] -%}
+{%- endif %}
+{%- if 'parent' in properties %}
+{%- set location_value = properties['parent'].rpartition('/')[-1] -%}
+{%- endif %}
+resource "google_kms_key_ring" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.write_labels(properties) }}
+  name = "{{ name_value }}"
+  {%- if location_value %}
+  location = "{{ location_value }}"
+  {%- endif %}
+}
+#tfimport-terraform import google_kms_key_ring.{{ macros.get_name(resource, properties) }} __project__/{{ location_value }}/{{ name_value }}

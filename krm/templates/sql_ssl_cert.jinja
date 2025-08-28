@@ -1,0 +1,17 @@
+apiVersion: sql.cnrm.cloud.google.com/v1beta1
+kind: SQLSSLCert
+metadata:
+{%- if resource['properties']['labels'] is defined %}
+  labels: {{ resource['properties']['labels'] }}
+{%- endif %}
+{%- if resource['name'] is defined %}
+  name: {{ resource['name'] }}
+{%- endif %}
+spec:
+{%- if resource['properties']['commonName'] is defined %}
+  commonName: {{ resource['properties']['commonName'].split('/')[-1] }}
+{%- endif %}
+{%- if resource['properties']['instance'] is defined %}
+  instanceRef:
+    name: {{ resource['properties']['instance'] }}
+{%- endif %}

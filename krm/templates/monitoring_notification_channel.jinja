@@ -1,0 +1,38 @@
+apiVersion: monitoring.cnrm.cloud.google.com/v1beta1
+kind: MonitoringNotificationChannel
+metadata:
+{%- if resource['properties']['userLabels'] is defined %}
+  labels: {{ resource['properties']['userLabels'] }}
+{%- endif %}
+{%- if resource['properties']['name'] is defined %}
+  name: {{ resource['properties']['name'] }}
+{%- else %}
+  name: {{ resource['name'] }}
+{%- endif %}
+spec:
+{%- if resource['properties']['description'] is defined %}
+  description: {{ resource['properties']['description'] }}
+{%- endif %}
+{%- if resource['properties']['enabled'] is defined %}
+  enabled: {{ resource['properties']['enabled'] }}
+{%- endif %}
+{%- if resource['properties']['labels'] is defined %}
+  {%- set labels = resource['properties']['labels'].copy() %}
+  {%- set sensitiveLabels = {} %}
+  {%- for field in ['authToken', 'password', 'serviceKey'] %}
+    {%- if field in labels %}
+      {%- set _ = sensitiveLabels.__setitem__(field, {'value': labels.pop(field)}) %}
+    {%- endif %}
+  {%- endfor %}
+  {%- if labels %}
+  labels: {{ labels }}
+  {%- endif %}
+  {%- if sensitiveLabels %}
+  sensitiveLabels: {{ sensitiveLabels }}
+  {%- endif %}
+{%- endif %}
+{%- if resource['properties']['type'] is defined %}
+  type: {{ resource['properties']['type'] }}
+{%- endif %}
+# DM fields not present in KCC:
+# displayName

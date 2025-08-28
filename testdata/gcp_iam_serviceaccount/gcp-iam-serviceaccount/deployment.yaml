@@ -1,0 +1,6 @@
+resources:
+- name: iam-serviceaccount
+  properties:
+    accountId: iam-serviceaccount
+    displayName: Example Service Account
+  type: gcp-types/iam-v1:projects.serviceAccounts

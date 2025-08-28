@@ -1,0 +1,29 @@
+{%- import 'macros.jinja' as macros %}
+apiVersion: resourcemanager.cnrm.cloud.google.com/v1beta1
+kind: ResourceManagerLien
+metadata:
+{%- set properties = resource.get('properties', {}) %}
+{{- macros.fields(properties, {'labels': 'labels'}, ' ' * 2) }}
+{%- if 'name' in properties %}
+  name: {{ properties['name'] | arbitrary_reference }}
+{%- else %}
+  name: {{ resource['name'] | arbitrary_reference }}
+{%- endif %}
+{%- if properties | set_difference(['labels', 'name', 'project']) %}
+{# At least one field of properties was not converted to metadata and will be converted to spec. #}
+spec:
+  {{- macros.fields(properties, {
+    'origin': 'origin',
+    'reason': 'reason',
+    'restrictions': 'restrictions',
+  }, ' ' * 2) }}
+  parent:
+    {{- macros.fields(properties, {'parent': 'projectRef'}, ' ' * 4) }}
+{%- endif %}
+{%- set unconvertable = properties | missing_fields((
+  'createTime',
+)) %}
+{%- if unconvertable %}
+# Unconvertable fields found:
+{{ unconvertable | join('\n# ') }}
+{%- endif %}

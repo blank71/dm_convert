@@ -1,0 +1,108 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set glob = {} -%}
+resource "google_monitoring_alert_policy" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.fields(properties, {
+    'displayName': 'display_name',
+    'combiner': 'combiner',
+    'enabled': 'enabled',
+    'notificationChannels': 'notification_channels',
+    'severity': 'severity',
+    'project': 'project',
+  }, ' ' * 2) }}
+
+  {{- macros.write_labels(properties, 2, 'user_labels', 'userLabels')}}
+
+  {{- macros.dict(properties, {
+    'documentation': {
+      'content': 'content',
+      'mimeType': 'mime_type'
+    }
+  }) | indent(2) }}
+
+  {%- if 'conditions' in properties %}
+  conditions {
+    {%- for condition in properties['conditions'] %}
+    {%- if 'displayName' in condition %}
+      {%- set _ = glob.update({'condition_display_name': condition['displayName'] }) %}
+    {%- endif %}
+    {%- if 'conditionThreshold' in condition %}
+    condition_threshold {
+    {%- set threshold = condition['conditionThreshold'] %}
+      {{- macros.fields(threshold, {
+        'filter': 'filter',
+        'denominatorFilter': 'denominator_filter',
+        'comparison': 'comparison',
+        'thresholdValue': 'threshold_value',
+        'duration': 'duration'
+      }, ' ' * 6) }}
+      {{- macros.dict(threshold, {
+        'trigger': {
+          'count': 'count',
+          'percent': 'percent'
+        }
+      }) | indent(6) }}
+      {{- macros.unroll_dict(threshold.get('denominatorAggregations'), 'denominator_aggregations', {
+        'alignmentPeriod': 'alignment_period',
+        'perSeriesAligner': 'per_series_aligner',
+        'crossSeriesReducer': 'cross_series_reducer',
+        'groupByFields': 'group_by_fields',
+      }) | indent(4) }}
+      {{- macros.unroll_dict(threshold.get('aggregations'), 'aggregations', {
+        'alignmentPeriod': 'alignment_period',
+        'perSeriesAligner': 'per_series_aligner',
+        'crossSeriesReducer': 'cross_series_reducer',
+        'groupByFields': 'group_by_fields',
+      }) | indent(4) }}
+    }
+    {%- endif %}
+    {%- if 'conditionAbsent' in condition %}
+    condition_absent {
+    {%- set absent = condition['conditionAbsent'] %}
+      {{- macros.fields(absent, {
+        'filter': 'filter',
+        'duration': 'duration'
+      }, ' ' * 6) }}
+      {{- macros.dict(absent, {
+        'trigger': {
+          'count': 'count',
+          'percent': 'percent'
+        }
+      }) | indent(6) }}
+
+      {{- macros.unroll_dict(absent.get('aggregations'), 'aggregations', {
+        'alignmentPeriod': 'alignment_period',
+        'perSeriesAligner': 'per_series_aligner',
+        'crossSeriesReducer': 'cross_series_reducer',
+        'groupByFields': 'group_by_fields',
+      }) | indent(4) }}
+    }
+    {%- endif %}
+    {%- if 'conditionMonitoringQueryLanguage' in condition %}
+    condition_monitoring_query_language {
+    {%- set query = condition['conditionMonitoringQueryLanguage'] %}
+      {{- macros.fields(query, {
+        'query': 'query',
+        'duration': 'duration'
+      }, ' ' * 6) }}
+      {{- macros.dict(query, {
+        'trigger': {
+          'count': 'count',
+          'percent': 'percent'
+        }
+      }) | indent(6) }}
+    }
+    {%- endif %}
+    {%- endfor %}
+    display_name = "{{ glob['condition_display_name'] }}"
+  }
+  {%- endif %}
+}
+
+{#-
+1. [TF] name is computed field
+2. [TF] conditions[].name is computed field
+3. [TF] terraform import requires name, which is read only (computed
+        ALERT_POLICY_ID is needed for its creation)
+#}

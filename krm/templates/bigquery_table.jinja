@@ -1,0 +1,134 @@
+{%- import 'macros.jinja' as macros %}
+apiVersion: bigquery.cnrm.cloud.google.com/v1beta1
+kind: BigQueryTable
+metadata:
+{%- set properties = resource.get('properties', {}) %}
+{{- macros.fields(properties, {'labels': 'labels'}, ' ' * 2) }}
+{%- if 'name' in resource %}
+  {%- set name = resource['name'] | arbitrary_reference | replace('_', '-') %}
+  name: {{ name }}
+{%- endif %}
+{%- if properties | set_difference(['labels', 'name', 'project']) %}
+{# At least one field of properties was not converted to metadata and will be converted to spec. #}
+spec:
+  {{- macros.fields(properties, {
+    'datasetId': 'datasetRef',
+    'description': 'description',
+    'expirationTime': 'expirationTime',
+    'friendlyName': 'friendlyName',
+  }, ' ' * 2) }}
+  {%- set table_reference = properties['tableReference'] %}
+  {{- macros.fields(table_reference, {
+    'tableId': 'resourceID',
+  }, ' ' * 2) }}
+  {%- if 'encryptionConfiguration' in properties %}
+  encryptionConfiguration:
+    {%- set encryption_configuration = properties['encryptionConfiguration'] %}
+    {{- macros.fields(encryption_configuration, {
+      'kmsKeyName': 'kmsKeyRef',
+    }, ' ' * 4) }}
+  {%- endif %}
+  {%- if 'externalDataConfiguration' in properties %}
+  externalDataConfiguration:
+    {%- set external_data_configuration = properties['externalDataConfiguration'] %}
+    {{- macros.fields(external_data_configuration, {
+      'autodetect': 'autodetect',
+      'compression': 'compression',
+      'ignoreUnknownValues': 'ignoreUnknownValues',
+      'maxBadRecords': 'maxBadRecords',
+      'sourceFormat': 'sourceFormat',
+      'sourceUris': 'sourceUris',
+    }, ' ' * 4) }}
+    {%- if 'csvOptions' in externalDataConfiguration %}
+    csvOptions:
+      {%- set csv_options = externalDataConfiguration['csvOptions'] %}
+      {{- macros.fields(csv_options, {
+        'allowJaggedRows': 'allowJaggedRows',
+        'allowQuotedNewlines': 'allowQuotedNewlines',
+        'encoding': 'encoding',
+        'fieldDelimiter': 'fieldDelimiter',
+        'quote': 'quote',
+        'skipLeadingRows': 'skipLeadingRows',
+      }, ' ' * 6) }}
+    {%- endif %}
+    {%- if 'googleSheetsOptions' in externalDataConfiguration %}
+    googleSheetsOptions:
+      {%- set google_sheets_options = externalDataConfiguration['googleSheetsOptions'] %}
+      {{- macros.fields(google_sheets_options, {
+        'range': 'range',
+        'skipLeadingRows': 'skipLeadingRows',
+      }, ' ' * 6) }}
+    {%- endif %}
+    {%- if 'hivePartitioningOptions' in externalDataConfiguration %}
+    hivePartitioningOptions:
+      {%- set hive_partitioning_options = externalDataConfiguration['hivePartitioningOptions'] %}
+      {{- macros.fields(hive_partitioning_options, {
+        'mode': 'mode',
+        'sourceUriPrefix': 'sourceUriPrefix',
+      }, ' ' * 6) }}
+    {%- endif %}
+  {%- endif %}
+  {%- if 'materializedView' in properties %}
+  materializedView:
+    {%- set materialized_view = properties['materializedView'] %}
+    {{- macros.fields(materialized_view, {
+      'enableRefresh': 'enableRefresh',
+      'query': 'query',
+      'refreshIntervalMs': 'refreshIntervalMs',
+    }, ' ' * 4) }}
+  {%- endif %}
+  {%- if 'rangePartitioning' in properties %}
+  rangePartitioning:
+    {%- set range_partitioning = properties['rangePartitioning'] %}
+    {{- macros.fields(range_partitioning, {
+      'field': 'field',
+    }, ' ' * 4) }}
+    {%- if 'range' in rangePartitioning %}
+    range:
+      {%- set range = rangePartitioning['range'] %}
+      {{- macros.fields(range, {
+        'end': 'end',
+        'interval': 'interval',
+        'start': 'start',
+      }, ' ' * 6) }}
+    {%- endif %}
+  {%- endif %}
+  {%- if 'schema' in properties %}
+  schema: |
+    {%- set schema = properties['schema']['fields'] | dump_json %}
+    {%- for line in schema.split('\n') %}
+      {{ line }}
+    {%- endfor %}
+    {{- '\n' }}
+  {%- endif %}
+  {%- if 'timePartitioning' in properties %}
+  timePartitioning:
+    {%- set time_partitioning = properties['timePartitioning'] %}
+    {{- macros.fields(time_partitioning, {
+      'expirationMs': 'expirationMs',
+      'field': 'field',
+      'requirePartitionFilter': 'requirePartitionFilter',
+      'type': 'type',
+    }, ' ' * 4) }}
+  {%- endif %}
+  {%- if 'view' in properties %}
+  view:
+    {%- set view = properties['view'] %}
+    {{- macros.fields(view, {
+      'query': 'query',
+      'useLegacySql': 'useLegacySql',
+    }, ' ' * 4) }}
+  {%- endif %}
+{%- endif %}
+{%- set unconvertable = properties | missing_fields((
+  'externalDataConfiguration.hivePartitioningOptions.requirePartitionFilter',
+  'view.userDefinedFunctionResources',
+  'requirePartitionFilter',
+  'externalDataConfiguration.bigtableOptions',
+  'externalDataConfiguration.connectionId',
+)) %}
+{%- if unconvertable %}
+# Unconvertable fields found:
+{{ unconvertable | join('\n# ') }}
+{%- endif %}
+{{- macros.access_control(resource, 'bigquery', 'BigQueryTable', name) }}

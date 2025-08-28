@@ -1,0 +1,113 @@
+resources:
+- name: compute-network
+  properties:
+    autoCreateSubnetworks: false
+  type: gcp-types/compute-v1:networks
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-subnetwork
+  properties:
+    ipCidrRange: 10.2.0.0/16
+    logConfig:
+      enable: false
+    network: $(ref.compute-network.selfLink)
+    region: us-west1
+  type: gcp-types/compute-v1:subnetworks
+- metadata:
+    dependsOn:
+    - compute-network
+    - compute-subnetwork
+  name: compute-instancetemplate
+  properties:
+    properties:
+      disks:
+      - autoDelete: false
+        boot: true
+        initializeParams:
+          diskType: pd-standard
+          sourceImage: projects/debian-cloud/global/images/family/debian-11
+        interface: SCSI
+      labels:
+        label-one: value-one
+      machineType: n1-standard-1
+      networkInterfaces:
+      - network: $(ref.compute-network.selfLink)
+        subnetwork: $(ref.compute-subnetwork.selfLink)
+      scheduling:
+        automaticRestart: true
+        onHostMaintenance: MIGRATE
+        preemptible: false
+      tags: {}
+  type: gcp-types/compute-v1:instanceTemplates
+- metadata:
+    dependsOn:
+    - compute-instancetemplate
+  name: compute-instance-1
+  properties:
+    labels:
+      label-one: value-one
+    sourceInstanceTemplate: $(ref.compute-instancetemplate.selfLink)
+    zone: us-west1-a
+  type: gcp-types/compute-v1:instances
+- metadata:
+    dependsOn:
+    - compute-instancetemplate
+  name: compute-instance-2
+  properties:
+    labels:
+      label-one: value-one
+    sourceInstanceTemplate: $(ref.compute-instancetemplate.selfLink)
+    zone: us-west1-b
+  type: gcp-types/compute-v1:instances
+- metadata:
+    dependsOn:
+    - compute-instance-1
+    - compute-instance-2
+  name: compute-targetpool-1
+  properties:
+    instances:
+    - $(ref.compute-instance-1.selfLink)
+    - $(ref.compute-instance-2.selfLink)
+    region: us-west1
+  type: gcp-types/compute-v1:targetPools
+- metadata:
+    dependsOn:
+    - compute-instancetemplate
+  name: compute-instance-3
+  properties:
+    labels:
+      label-one: value-one
+    sourceInstanceTemplate: $(ref.compute-instancetemplate.selfLink)
+    zone: us-west1-a
+  type: gcp-types/compute-v1:instances
+- metadata:
+    dependsOn:
+    - compute-instancetemplate
+  name: compute-instance-4
+  properties:
+    labels:
+      label-one: value-one
+    sourceInstanceTemplate: $(ref.compute-instancetemplate.selfLink)
+    zone: us-west1-b
+  type: gcp-types/compute-v1:instances
+- metadata:
+    dependsOn:
+    - compute-targetpool-1
+    - compute-instance-3
+    - compute-instance-4
+  name: compute-targetpool-2
+  properties:
+    backupPool: $(ref.compute-targetpool-1.selfLink)
+    description: A pool of compute instances to use as a backend to a load balancer,
+      with health check and backup pool. A hash of requester's IP is used to determine
+      session affinity to instances.
+    failoverRatio: 0.5
+    healthChecks:
+    - compute-httphealthcheck-1
+    instances:
+    - $(ref.compute-instance-3.selfLink)
+    - $(ref.compute-instance-4.selfLink)
+    region: us-west1
+    sessionAffinity: CLIENT_IP
+  type: gcp-types/compute-v1:targetPools

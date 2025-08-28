@@ -1,0 +1,30 @@
+resources:
+- name: bigtable-instance
+  properties:
+    clusters:
+      bigtable-cluster-1:
+        location: projects/tjr-dm-test-1/locations/us-central1-a
+        serveNodes: 3
+      bigtable-cluster-2:
+        location: projects/tjr-dm-test-1/locations/us-west1-a
+        serveNodes: 3
+    instance:
+      displayName: BigtableSample
+      labels:
+        label-one: value-one
+      type: PRODUCTION
+    instanceId: bigtable-instance
+    parent: projects/tjr-dm-test-1
+  type: bigtableadmin.v2.instance
+- metadata:
+    dependsOn:
+    - bigtable-instance
+  name: bigtable-table
+  properties:
+    parent: projects/tjr-dm-test-1/instances/bigtable-instance
+    table:
+      columnFamilies:
+        family1: {}
+        family2: {}
+    tableId: $(ref.bigtable-table.name)
+  type: bigtableadmin.v2.instance.table

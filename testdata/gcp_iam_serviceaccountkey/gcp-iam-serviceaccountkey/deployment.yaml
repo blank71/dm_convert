@@ -1,0 +1,15 @@
+resources:
+- name: iam-serviceaccount
+  properties:
+    accountId: iam-serviceaccount
+    displayName: iam-serviceaccount
+  type: gcp-types/iam-v1:projects.serviceAccounts
+- metadata:
+    dependsOn:
+    - iam-serviceaccount
+  name: iam-key
+  properties:
+    keyAlgorithm: KEY_ALG_RSA_2048
+    parent: $(ref.iam-serviceaccount.name)
+    privateKeyType: TYPE_GOOGLE_CREDENTIALS_FILE
+  type: gcp-types/iam-v1:projects.serviceAccounts.keys

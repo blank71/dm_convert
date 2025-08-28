@@ -1,0 +1,87 @@
+{%- import 'macros.jinja' as macros %}
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeBackendService
+metadata:
+{%- set properties = resource.get('properties', {}) %}
+{{- macros.fields(properties, {'labels': 'labels'}, ' ' * 2) }}
+{%- if 'name' in properties %}
+  name: {{ properties['name'] | arbitrary_reference }}
+{%- else %}
+  name: {{ resource['name'] | arbitrary_reference }}
+{%- endif %}
+{%- if properties | set_difference(['labels', 'name', 'project']) %}
+{# At least one field of properties was not converted to metadata and will be converted to spec. #}
+spec:
+  {{- macros.fields(properties, {
+    'affinityCookieTtlSec': 'affinityCookieTtlSec',
+    'cdnPolicy': 'cdnPolicy',
+    'circuitBreakers': 'circuitBreakers',
+    'consistentHash': 'consistentHash',
+    'customRequestHeaders': 'customRequestHeaders',
+    'customResponseHeaders': 'customResponseHeaders',
+    'description': 'description',
+    'enableCDN': 'enableCdn',
+    'failoverPolicy': 'failoverPolicy',
+    'loadBalancingScheme': 'loadBalancingScheme',
+    'localityLbPolicy': 'localityLbPolicy',
+    'location': 'location',
+    'logConfig': 'logConfig',
+    'networkRef': 'networkRef',
+    'outlierDetection': 'outlierDetection',
+    'portName': 'portName',
+    'protocol': 'protocol',
+    'securityPolicy': 'securityPolicyRef',
+    'sessionAffinity': 'sessionAffinity',
+    'timeoutSec': 'timeoutSec',
+  }, ' ' * 2) }}
+  {%- if 'backends' in properties %}
+  backend:
+    {%- for backend in properties['backends'] %}
+      {%- set matching_fields = {
+        'balancingMode': 'balancingMode',
+        'capacityScaler': 'capacityScaler',
+        'description': 'description',
+        'maxConnections': 'maxConnections',
+        'maxConnectionsPerEndpoint': 'maxConnectionsPerEndpoint',
+        'maxConnectionsPerInstance': 'maxConnectionsPerInstance',
+        'maxRate': 'maxRate',
+        'maxRatePerEndpoint': 'maxRatePerEndpoint',
+        'maxRatePerInstance': 'maxRatePerInstance',
+        'maxUtilization': 'maxUtilization',
+      } %}
+      {{- macros.fields(backend, matching_fields, ' ' * 2 + '- ') }}
+      {%- if backend.keys() | set_intersection(matching_fields) %}
+        {%- set hyphen = ' ' %}
+      {%- else %}
+        {# No matching field in this backend, include hyphen before group. #}
+        {%- set hyphen = '-'%}
+      {%- endif %}
+      {%- if 'group' in backend %}
+  {{ hyphen }} group:
+        {%- set group = backend['group'] %}
+      {{ group | reference_type }}: {{ group | typed_reference }}
+      {%- endif %}
+    {%- endfor %}
+  {%- endif %}
+  {%- if 'connectionDraining' in properties %}
+  connectionDrainingTimeoutSec: {{ properties['connectionDraining']['drainingTimeoutSec'] | arbitrary_reference }}
+  {%- endif %}
+  {%- if 'healthChecks' in properties %}
+  healthChecks:
+    {%- for health_check in properties['healthChecks'] %}
+  - {{ health_check | reference_type }}: {{ health_check | typed_reference }}
+    {%- endfor %}
+  {%- endif %}
+  {%- if 'region' in properties %}
+  location: {{ properties['region'] }}
+  {%- else %}
+  location: global
+  {%- endif %}
+{%- endif %}
+{%- set unconvertable = properties | missing_fields((
+  'securitySettings',
+)) %}
+{%- if unconvertable %}
+# Unconvertable fields found:
+{{ unconvertable | join('\n# ') }}
+{%- endif %}

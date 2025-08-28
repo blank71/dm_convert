@@ -1,0 +1,50 @@
+resources:
+- name: dns-managed-zone
+  properties:
+    description: A sample managed zone.
+    dnsName: tjr-dm-test-1-dns.com.
+  type: gcp-types/dns-v1beta2:managedZones
+- metadata:
+    dependsOn:
+    - dns-managed-zone
+  name: dns-record-set
+  properties:
+    managedZone: $(ref.dns-managed-zone.name)
+    records:
+    - name: 'cname.tjr-dm-test-1-dns.com.'
+      rrdatas:
+      - www.tjr-dm-test-1-dns.com.
+      ttl: 300
+      type: CNAME
+    - name: www.tjr-dm-test-1-dns.com.
+      rrdatas:
+      - '8888:8888:8888:8888::'
+      ttl: 300
+      type: AAAA
+    - name: mail.tjr-dm-test-1-dns.com.
+      rrdatas:
+      - 5 gmr-stmp-in.l.google.com.
+      - 10 alt1.gmr-stmp-in.l.google.com.
+      - 10 alt2.gmr-stmp-in.l.google.com.
+      - 10 alt3.gmr-stmp-in.l.google.com.
+      - 10 alt4.gmr-stmp-in.l.google.com.
+      ttl: 300
+      type: MX
+    - name: www.tjr-dm-test-1-dns.com.
+      rrdatas:
+      - 8.8.8.8
+      ttl: 300
+      type: A
+    - name: tjr-dm-test-1-dns.com.
+      rrdatas:
+      - '"This is a sample DNS text record string"'
+      - Text records are normally split on spaces
+      - To prevent this, "quote your text like this"
+      ttl: 300
+      type: TXT
+    - name: tjr-dm-test-1-dns.tcp.tjr-dm-test-1-dns.com.
+      rrdatas:
+      - 0 0 9 tcpserver.cnrm-dns-tjr-dm-test-1-dns.com.
+      ttl: 300
+      type: SRV
+  type: gcp-types/dns-v1:resourceRecordSets

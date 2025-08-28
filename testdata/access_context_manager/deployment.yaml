@@ -1,0 +1,18 @@
+resources:
+- name: my-access-level
+  type: ucaip-vpc-sc-test-2/accesscontextmanager-staging:accessPolicies.accessLevels
+  properties:
+    title: My Access Level
+    description: My access level
+    accessLevel: google_access_context_manager_access_level.access-level-service-account.name
+    negate: false
+    ipSubnetworks: ["192.0.4.0/24"]
+    members: ["user:test@google.com", "user:test2@google.com", "serviceAccount:sa-test@google.com"]
+    regions: [
+      "IT",
+      "US",
+    ]
+    devicePolicy:
+      require_screen_lock: false
+      require_admin_approval: false
+      require_corp_owned: true

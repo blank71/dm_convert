@@ -1,0 +1,14 @@
+{%- import 'action_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{% set counter = {'val': 0} %}
+{%- for binding in properties.get('gcpIamPolicyPatch', {}).get('add', []) %}
+  {%- for member in binding.get('members', []) %}
+- name: {{ resource.get('name') }}-{{ counter.val }}
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: {{ properties['resource'] }}
+    member: {{ member }}
+    role: {{ binding['role'] }}
+    {%- if counter.update({'val': counter.val + 1}) %} {% endif -%}
+  {%- endfor %}
+{%- endfor %}

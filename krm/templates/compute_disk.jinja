@@ -1,0 +1,85 @@
+{%- import 'macros.jinja' as macros %}
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeDisk
+metadata:
+{%- set properties = resource.get('properties', {}) %}
+{{- macros.fields(properties, {'labels': 'labels'}, ' ' * 2) }}
+{%- if 'name' in properties %}
+  {%- set name = properties['name'] | arbitrary_reference %}
+{%- else %}
+  {%- set name = resource['name'] | arbitrary_reference %}
+{%- endif %}
+  name: {{ name }}
+{%- if properties | set_difference(['name', 'labels', 'project']) %}
+{# At least one field of properties was not converted to metadata and will be converted to spec. #}
+spec:
+  {{- macros.fields(properties, {
+    'description': 'description',
+    'sourceImage': 'imageRef',
+    'sourceSnapshot': 'snapshotRef',
+    'physicalBlockSizeBytes': 'physicalBlockSizeBytes',
+    'replicaZones': 'replicaZones',
+    'sizeGb': 'size',
+  }, ' ' * 2) }}
+  {%- if 'diskEncryptionKey' in properties %}
+    {%- set disk_encryption_key = properties['diskEncryptionKey'] %}
+  diskEncryptionKey:
+    {{- macros.fields(disk_encryption_key, {
+      'kmsKeyName': 'kmsKeyRef',
+      'kmsKeyServiceAccount': 'kmsKeyServiceAccountRef',
+    }, ' ' * 4) }}
+    {%- if 'rawKey' in disk_encryption_key %}
+    rawKey:
+      value: {{ disk_encryption_key['rawKey'] }}
+    {%- endif %}
+  {%- endif %}
+  {%- if 'zone' in properties %}
+  location: {{ properties['zone'] }}
+  {%- elif 'region' in properties %}
+  location: {{ properties['region'] }}
+  {%- endif %}
+  {%- if 'replicaZones' in properties %}
+  replicaZones:
+    {%- for replica_zone in properties['replicaZones'] %}
+  - {{ replica_zone.rpartition('/')[2] }}
+    {%- endfor %}
+  {%- endif %}
+  {%- if 'sourceImageEncryptionKey' in properties %}
+    {%- set source_image_encryption_key = properties['sourceImageEncryptionKey'] %}
+  sourceImageEncryptionKey:
+    {{- macros.fields(source_image_encryption_key, {
+      'kmsKeyName': 'kmsKeyRef',
+      'kmsKeyServiceAccount': 'kmsKeyServiceAccountRef',
+      'rawKey': 'rawKey',
+      'sha256': 'sha256',
+    }, ' ' * 4) }}
+  {%- endif %}
+  {%- if 'sourceSnapshotEncryptionKey' in properties %}
+    {%- set source_snapshot_encryption_key = properties['sourceSnapshotEncryptionKey'] %}
+  sourceSnapshotEncryptionKey:
+    {{- macros.fields(source_snapshot_encryption_key, {
+      'kmsKeyName': 'kmsKeyRef',
+      'kmsKeyServiceAccount': 'kmsKeyServiceAccountRef',
+      'rawKey': 'rawKey',
+      'sha256': 'sha256',
+    }, ' ' * 4) }}
+  {%- endif %}
+  {%- if 'type' in properties %}
+  type: {{ properties['type'].rpartition('/')[2] }}
+  {%- endif %}
+{%- endif %}
+{%- set unconvertable = properties | missing_fields((
+  'sourceDisk',
+  'locationHint',
+  'licenseCodes',
+  'licenses',
+  'options',
+  'labelFingerprint',
+  'sourceStorageObject',
+  'guestOsFeatures',
+)) %}
+{%- if unconvertable %}
+# Unconvertable fields found:
+{{ unconvertable | join('\n# ') }}
+{%- endif %}
+{{- macros.access_control(resource, 'compute', 'ComputeDisk', name) }}

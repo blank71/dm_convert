@@ -1,0 +1,49 @@
+apiVersion: redis.cnrm.cloud.google.com/v1beta1
+kind: RedisInstance
+metadata:
+{%- if resource['properties']['labels'] is defined %}
+  labels: {{ resource['properties']['labels'] }}
+{%- endif %}
+{%- if resource['properties']['instanceId'] is defined %}
+  name: {{ resource['properties']['instanceId'] }}
+{%- else %}
+  name: {{ resource['name'] }}
+{%- endif %}
+spec:
+{%- if resource['properties']['alternativeLocationId'] is defined %}
+  alternativeLocationId: {{ resource['properties']['alternativeLocationId'] }}
+{%- endif %}
+{%- if resource['properties']['authEnabled'] is defined %}
+  authEnabled: {{ resource['properties']['authEnabled'] }}
+{%- endif %}
+{%- if resource['properties']['authorizedNetwork'] is defined %}
+  authorizedNetworkRef:
+    external: {{ resource['properties']['authorizedNetwork'] }}
+{%- endif %}
+{%- if resource['properties']['connectMode'] is defined %}
+  connectMode: {{ resource['properties']['connectMode'] }}
+{%- endif %}
+{%- if resource['properties']['displayName'] is defined %}
+  displayName: {{ resource['properties']['displayName'] }}
+{%- endif %}
+{%- if resource['properties']['locationId'] is defined %}
+  locationId: {{ resource['properties']['locationId'] }}
+{%- endif %}
+{%- if resource['properties']['memorySizeGb'] is defined %}
+  memorySizeGb: {{ resource['properties']['memorySizeGb'] }}
+{%- endif %}
+{%- if resource['properties']['redisConfigs'] is defined %}
+  redisConfigs: {{ resource['properties']['redisConfigs'] }}
+{%- endif %}
+{%- if resource['properties']['redisVersion'] is defined %}
+  redisVersion: {{ resource['properties']['redisVersion'] }}
+{%- endif %}
+{%- if resource['properties']['parent'] is defined %}
+  region: {{ resource['properties']['parent'].split('/')[-1] }}
+{%- endif %}
+{%- if resource['properties']['reservedIpRange'] is defined %}
+  reservedIpRange: {{ resource['properties']['reservedIpRange'] }}
+{%- endif %}
+{%- if resource['properties']['tier'] is defined %}
+  tier: {{ resource['properties']['tier'] }}
+{%- endif %}

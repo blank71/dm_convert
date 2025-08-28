@@ -1,0 +1,49 @@
+{%- import 'macros.jinja' as macros %}
+apiVersion: dns.cnrm.cloud.google.com/v1beta1
+kind: DNSManagedZone
+metadata:
+{%- set properties = resource.get('properties', {}) %}
+{{- macros.fields(properties, {'labels': 'labels'}, ' ' * 2) }}
+{%- if 'name' in properties %}
+  name: {{ properties['name'] | arbitrary_reference }}
+{%- else %}
+  name: {{ resource['name'] | arbitrary_reference }}
+{%- endif %}
+{%- if properties | set_difference(['name', 'labels', 'project']) %}
+{# At least one field of properties was not converted to metadata and will be converted to spec. #}
+spec:
+  {{- macros.fields(properties, {
+    'description': 'description',
+    'dnsName': 'dnsName',
+    'dnssecConfig': 'dnssecConfig',
+    'visibility': 'visibility',
+  }, ' ' * 2) }}
+  {%- if 'forwardingConfig' in properties %}
+    {%- set forwarding_config = properties['forwardingConfig'] %}
+  forwardingConfig:
+  {%- endif %}
+  {%- if 'peeringConfig' in properties %}
+    {%- set peering_config = properties['peeringConfig'] %}
+  peeringConfig:
+    {%- if 'targetNetwork' in peering_config %}
+      {%- set target_network = peering_config['targetNetwork'] %}
+    targetNetwork:
+      {{- macros.fields(target_network, {'networkUrl': 'networkRef'}, ' ' * 4) }}
+    {%- endif %}
+  {%- endif %}
+  {%- if 'privateVisibilityConfig' in properties %}
+    {%- set private_visibility_config = properties['privateVisibilityConfig'] %}
+  privateVisibilityConfig:
+    {{- macros.lists(private_visibility_config, {'networks': {
+      'networkUrl': 'networkRef',
+    }}, ' ' * 4) }}
+  {%- endif %}
+  {%- if 'reverseLookupConfig' in properties %}
+  reverseLookup: true
+  {%- endif %}
+  {%- if 'serviceDirectoryConfig' in properties %}
+    {%- set service_directory_config = properties['serviceDirectoryConfig'] %}
+  serviceDirectoryConfig:
+    {{- macros.fields(service_directory_config, {'namespace': 'namespace'}, ' ' * 4) }}
+  {%- endif %}
+{%- endif %}

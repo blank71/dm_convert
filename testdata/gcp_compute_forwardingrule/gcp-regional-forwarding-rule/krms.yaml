@@ -1,0 +1,39 @@
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeAddress
+metadata:
+  name: compute-address
+spec:
+  location: us-west1
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeNetwork
+metadata:
+  name: compute-network
+spec:
+  autoCreateSubnetworks: false
+  routingMode: REGIONAL
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeTargetVPNGateway
+metadata:
+  name: compute-targetvpngateway
+spec:
+  description: a regional target vpn gateway
+  networkRef:
+    name: compute-network
+  region: us-west1
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeForwardingRule
+metadata:
+  name: compute-forwardingrule
+spec:
+  description: A regional forwarding rule
+  ipAddress:
+    addressRef:
+      name: compute-address
+  ipProtocol: ESP
+  location: us-west1
+  target:
+    targetVPNGatewayRef:
+      name: compute-targetvpngateway

@@ -1,0 +1,27 @@
+apiVersion: bigtable.cnrm.cloud.google.com/v1beta1
+kind: BigtableInstance
+metadata:
+  name: bigtable-instance
+spec:
+  cluster:
+  - clusterId: bigtable-cluster-1
+    numNodes: 3
+    zone: us-central1-a
+  - clusterId: bigtable-cluster-2
+    numNodes: 3
+    zone: us-west1-a
+  displayName: BigtableSample
+  instanceType: PRODUCTION
+---
+apiVersion: bigtable.cnrm.cloud.google.com/v1beta1
+kind: BigtableAppProfile
+metadata:
+  name: bigtable-appprofile
+spec:
+  description: Routes all requests to a single cluster. If that cluster becomes unavailable,
+    you must manually fail over to another cluster.
+  instanceRef:
+    name: bigtable-instance
+  singleClusterRouting:
+    allowTransactionalWrites: true
+    clusterId: bigtable-cluster-1

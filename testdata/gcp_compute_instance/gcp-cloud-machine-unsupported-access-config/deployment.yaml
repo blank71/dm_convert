@@ -1,0 +1,32 @@
+resources:
+- name: datadisk-dm-custom
+  properties:
+    sizeGb: 10
+    type: https://www.googleapis.com/compute/v1/projects/ipriadka-dm/zones/us-central1-c/diskTypes/pd-standard
+    zone: us-central1-c
+  type: compute.v1.disk
+- name: vm-dm-custom
+  properties:
+    disks:
+    - autoDelete: true
+      boot: true
+      deviceName: boot
+      initializeParams:
+        diskName: disk-dm-custom
+        sourceImage: projects/debian-cloud/global/images/family/debian-11
+      type: PERSISTENT
+    - autoDelete: true
+      deviceName: datadisk
+      source: $(ref.datadisk-dm-custom.selfLink)
+      type: PERSISTENT
+    machineType: f1-micro
+    networkInterfaces:
+    - accessConfigs:
+      - name: External NAT
+        type: ONE_TO_ONE_NAT
+      network: default
+    zone: us-central1-c
+  type: compute.v1.instance
+  metadata:
+    dependsOn:
+    - datadisk-dm-custom

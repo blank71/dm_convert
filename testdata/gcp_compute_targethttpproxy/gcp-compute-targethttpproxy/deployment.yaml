@@ -1,0 +1,34 @@
+resources:
+- name: compute-healthcheck
+  properties:
+    checkIntervalSec: 10
+    httpHealthCheck:
+      port: 80
+      requestPath: /
+    type: HTTP
+  type: gcp-types/compute-v1:healthChecks
+- metadata:
+    dependsOn:
+    - compute-healthcheck
+  name: compute-backendservice
+  properties:
+    connectionDraining:
+      drainingTimeoutSec: 0
+    healthChecks:
+    - $(ref.compute-healthcheck.selfLink)
+  type: gcp-types/compute-v1:backendServices
+- metadata:
+    dependsOn:
+    - compute-backendservice
+  name: compute-urlmap
+  properties:
+    defaultService: $(ref.compute-backendservice.selfLink)
+  type: gcp-types/compute-v1:urlMaps
+- metadata:
+    dependsOn:
+    - compute-urlmap
+  name: compute-targethttpproxy
+  properties:
+    description: A sample proxy
+    urlMap: $(ref.compute-urlmap.name)
+  type: gcp-types/compute-v1:targetHttpProxies

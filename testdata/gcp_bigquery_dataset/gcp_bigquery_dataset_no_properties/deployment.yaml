@@ -1,0 +1,6 @@
+resources:
+- name: bigquerydataset
+  properties:
+    datasetReference:
+      datasetId: bigquerydataset
+  type: gcp-types/bigquery-v2:datasets

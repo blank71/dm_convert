@@ -1,0 +1,30 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set name_value = macros.if_null('name', properties, resource) -%}
+#tfimport-terraform import google_compute_route.{{ macros.get_name(resource, properties) }}  __project__/{{ name_value | replace("\"", "") }}
+resource "google_compute_route" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.write_labels(properties) }}
+  name = {{ name_value }}
+  {{- macros.fields(properties, {
+    'description': 'description',
+    'network': 'network',
+    'tags': 'tags',
+    'destRange': 'dest_range',
+    'priority': 'priority',
+    'nextHopInstance': 'next_hop_instance',
+    'nextHopIp': 'next_hop_ip',
+    'nextHopNetwork': 'next_hop_network',
+    'nextHopGateway': 'next_hop_gateway',
+    'nextHopIlb': 'next_hop_ilb',
+    'nextHopVpnTunnel': 'next_hop_vpn_tunnel',
+    'project': 'project',
+    'nextHopInstanceZone': 'next_hop_instance_zone',
+  }, ' ' * 2) }}
+
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}
+
+{#-
+2. [TF] next_hop_instance_zone - ignored, nextHopInstance always has zone in the value.
+#}

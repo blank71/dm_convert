@@ -1,0 +1,21 @@
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeNetwork
+metadata:
+  name: compute-network
+spec:
+  autoCreateSubnetworks: false
+  routingMode: REGIONAL
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeFirewall
+metadata:
+  labels:
+    label-one: value-one
+  name: compute-firewall
+spec:
+  deny:
+  - protocol: icmp
+  logConfig:
+    metadata: EXCLUDE_ALL_METADATA
+  networkRef:
+    name: compute-network

@@ -1,0 +1,25 @@
+resources:
+- name: gcp-storage-bucket-access-control-test
+  type: gcp-types/storage-v1:buckets
+  properties:
+    location: US
+    storageClass: STANDARD
+    name: gcp-storage-bucket-access-control-test
+    lifecycle:
+      rule:
+      - action:
+          type: Delete
+        condition:
+          age: 7
+  accessControl:
+    gcpIamPolicy:
+      bindings:
+      - members:
+        - user:user1@google.com
+        role: roles/storage.objectCreator
+      - members:
+        - user:user1@google.com
+        - user:user2@google.com
+        role: roles/storage.objectViewer
+      - members: []
+        role: roles/storage.objectAdmin

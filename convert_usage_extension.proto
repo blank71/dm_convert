@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+import "convert_usage.proto";
+
+message ConvertUsageExtension {
+  // Unique identifier of the conversion execution, represented using UUID.
+  string run_id = 1;
+
+  ConvertUsage convert_usage = 2;
+}

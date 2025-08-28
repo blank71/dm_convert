@@ -1,0 +1,26 @@
+resources:
+- name: compute-network
+  properties:
+    autoCreateSubnetworks: false
+    labels:
+      label-one: value-one
+    routingConfig:
+      routingMode: REGIONAL
+  type: gcp-types/compute-v1:networks
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-router
+  properties:
+    bgp:
+      advertiseMode: CUSTOM
+      advertisedGroups:
+      - ALL_SUBNETS
+      advertisedIpRanges:
+      - description: ''
+        range: 1.2.3.4
+      asn: 64514
+    description: example router description
+    network: $(ref.compute-network.selfLink)
+    region: us-west1
+  type: gcp-types/compute-v1:routers

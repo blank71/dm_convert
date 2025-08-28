@@ -1,0 +1,11 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+#tfimport-terraform import google_folder_iam_member.{{ macros.get_name(resource, properties) }} "{{ macros.get_name(resource, properties) }} {{ properties['role'] }} {{ properties['member'] }}"
+resource "google_folder_iam_member" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.fields(properties, {
+    'resource': 'folder',
+    'role': 'role',
+    'member': 'member',
+  }, ' ' * 2) }}
+}

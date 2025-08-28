@@ -1,0 +1,7 @@
+resources:
+- name: virtual-iam-member-binding-project
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: my-test-project
+    member: user:user1@google.com
+    role: roles/artifactregistry.admin

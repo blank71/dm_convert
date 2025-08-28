@@ -1,0 +1,128 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) %}
+#tfimport-terraform import google_container_node_pool.{{ macros.get_name(resource, properties) }} __project__/{{ properties['locations'] }}/{{ properties['clusterId'] }}/{{ properties['name'] }}
+resource "google_container_node_pool" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.fields(properties, {
+    'name': 'name',
+    'initialNodeCount': 'initial_node_count',
+    'locations': 'node_locations',
+    'version': 'version',
+    'instanceGroupUrls': 'instance_group_urls',
+    'clusterId': 'cluster',
+    'project': 'project',
+    'nodeLocations': 'node_locations',
+    'nodeCount': 'node_count',
+    'namePrefix': 'name_prefix',
+    'location': 'location',
+  }, ' ' * 2) }}
+
+  {%- if 'maxPodsConstraint' in properties and 'maxPodsPerNode' in properties['maxPodsConstraint'] %}
+  max_pods_per_node = "{{ properties['maxPodsConstraint']['maxPodsPerNode'] }}"
+  {%- endif %}
+
+  {%- if 'config' in properties %}
+  {%- set node_config = properties['config'] %}
+  node_config {
+    {{- macros.fields(node_config, {
+      'machineType': 'machine_type',
+      'diskSizeGb': 'disk_size_gb',
+      'oauthScopes': 'oauth_scopes',
+      'serviceAccount': 'service_account',
+      'imageType': 'image_type',
+      'localSsdCount': 'local_ssd_count',
+      'tags': 'tags',
+      'preemptible': 'preemptible',
+      'diskType': 'disk_type',
+      'minCpuPlatform': 'min_cpu_platform',
+      'bootDiskKmsKey': 'boot_disk_kms_key',
+    }, ' ' * 4) }}
+
+    {{- macros.unroll_dict(node_config.get('accelerators'), 'guest_accelerator', {
+      'acceleratorCount': 'count',
+      'acceleratorType': 'type'
+    }) | indent(4) }}
+
+    {{- macros.dict(node_config, {
+      'shieldedInstanceConfig': {
+        'dict_name': 'shielded_instance_config',
+        'enableSecureBoot': 'enable_secure_boot',
+        'enableIntegrityMonitoring': 'enable_integrity_monitoring'
+        }
+    }) | indent(6) }}
+
+    {{- macros.unroll_dict(node_config.get('taints'), 'taint', {
+      'key': 'key',
+      'value': 'value',
+      'effect': 'effect'
+    }) | indent(4) }}
+
+    {{- macros.dict(node_config, {
+      'workloadMetadataConfig': {
+        'dict_name': 'workload_metadata_config',
+        'nodeMetadata': 'node_metadata'
+        }
+    }) | indent(6) }}
+
+    {{- macros.dict(node_config, {
+      'sandboxConfig': {
+        'dict_name': 'sandbox_config',
+        'type': 'sandbox_type'
+        }
+    }) | indent(6) }}
+
+    {%- if 'linuxNodeConfig' in node_config %}
+    linux_node_config {
+      {{- macros.map(node_config['linuxNodeConfig'].get('sysctls'), 'sysctls') | indent(8) }}
+    }
+    {%- endif %}
+
+    {{- macros.dict(node_config, {
+      'kubeletConfig': {
+        'dict_name': 'kubelet_config',
+        'cpuManagerPolicy': 'cpu_manager_policy',
+        'cpuCfsQuota': 'cpu_cfs_quota',
+        'cpuCfsQuotaPeriod': 'cpu_cfs_quota_period'
+        }
+    }) | indent(6) }}
+
+    {{- macros.map(node_config.get('metadata'), 'metadata') | indent(6) }}
+    {{- macros.write_labels(node_config, 6) }}
+  }
+  {%- endif %}
+
+  {%- if 'networkConfig' in properties %}
+  {{- macros.dict(properties, {
+    'networkConfig': {
+      'dict_name': 'network_config',
+      'createPodRange': 'create_pod_range',
+      'podRange': 'pod_range',
+      'podIpv4CidrBlock': 'pod_ipv4_cidr_block',
+    }
+  }) | indent(4) }}
+  {%- endif %}
+
+  {%- if 'autoscaling' in properties and properties['autoscaling'].get('enabled') %}
+  {{- macros.dict(properties, {
+    'autoscaling': {
+      'minNodeCount': 'min_node_count',
+      'maxNodeCount': 'max_node_count'
+    }
+  }) | indent(4) }}
+  {%- endif %}
+
+  {{- macros.dict(properties, {
+    'management': {
+      'autoUpgrade': 'auto_upgrade',
+      'autoRepair': 'auto_repair'
+    }
+  }) | indent(4) }}
+
+  {{- macros.dict(properties, {
+    'upgradeSettings': {
+      'dict_name': 'upgrade_settings',
+      'maxSurge': 'max_surge',
+      'maxUnavailable': 'max_unavailable'
+    }
+  }) | indent(4) }}
+}

@@ -1,0 +1,11 @@
+apiVersion: pubsub.cnrm.cloud.google.com/v1beta1
+kind: PubSubTopic
+metadata:
+  labels:
+    label-one: value-one
+  name: pubsub-topic
+spec:
+  messageStoragePolicy:
+    allowedPersistenceRegions:
+    - us-west1
+  resourceID: pubsub-topic

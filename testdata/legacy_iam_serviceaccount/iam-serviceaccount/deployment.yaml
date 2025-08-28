@@ -1,0 +1,7 @@
+resources:
+- name: iam-serviceaccount
+  properties:
+    accountId: iam-serviceaccount
+    displayName: Example Service Account
+    projectId: test-project
+  type: iam.v1.serviceAccount

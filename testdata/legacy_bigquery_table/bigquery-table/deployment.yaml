@@ -1,0 +1,25 @@
+resources:
+- name: bigquerydataset
+  properties:
+    access:
+    - role: OWNER
+      userByEmail: thomasrodgers@google.com
+    datasetReference:
+      datasetId: bigquerydataset
+      projectId: tjr-dm-test-1
+    defaultTableExpirationMs: 3600000
+    location: us-west1
+  type: bigquery.v2.dataset
+- metadata:
+    dependsOn:
+    - bigquerydataset
+  name: bigquerytable
+  properties:
+    datasetId: bigquerydataset
+    labels:
+      data-source: external
+      schema-type: auto-junk
+    tableReference:
+      projectId: tjr-dm-test-1
+      tableId: bigquerytable
+  type: bigquery.v2.table

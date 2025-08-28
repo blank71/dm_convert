@@ -1,0 +1,31 @@
+{%- import 'macros.jinja' as macros %}
+apiVersion: bigtable.cnrm.cloud.google.com/v1beta1
+kind: BigtableAppProfile
+metadata:
+{%- set properties = resource.get('properties', {}) %}
+{%- if 'project' in properties %}
+  annotations:
+    cnrm.cloud.google.com/project-id: {{ properties['project'] | arbitrary_reference }}
+{%- endif %}
+{{- macros.fields(properties, {'labels': 'labels'}, ' ' * 2) }}
+{%- if 'appProfileId' in properties %}
+  name: {{ properties['appProfileId'] }}
+{%- else %}
+  name: {{ resource['name'] }}
+{%- endif %}
+spec:
+{{- macros.fields(properties, {
+  'description': 'description',
+  'parent': 'instanceRef',
+  'singleClusterRouting': 'singleClusterRouting',
+}, ' ' * 2) }}
+{%- if 'multiClusterRoutingUseAny' in properties %}
+  multiClusterRoutingUseAny: true
+{%- endif %}
+{%- set unconvertable = properties | missing_fields((
+  'etag',
+)) %}
+{%- if unconvertable %}
+# Unconvertable fields found:
+{{ unconvertable | join('\n# ') }}
+{%- endif %}

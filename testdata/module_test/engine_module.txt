@@ -1,0 +1,12 @@
+module "network_1"{
+    name = "network-1"
+    source = "../network_template"
+}
+
+
+module "vm_1"{
+    network = module.network_1.network_template_ID
+    property = "${var.some_property}"
+    name = "vm-1"
+    source = "../vm_template"
+}

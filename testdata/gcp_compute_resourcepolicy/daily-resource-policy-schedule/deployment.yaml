@@ -1,0 +1,22 @@
+resources:
+- name: compute-resource-policy
+  properties:
+    name: compute-resource-policy
+    region: us-central1
+    description: this is description field
+    snapshotSchedulePolicy:
+      retentionPolicy:
+        maxRetentionDays: 8
+        onSourceDiskDelete: KEEP_AUTO_SNAPSHOTS
+      schedule:
+        dailySchedule:
+          daysInCycle: 1
+          startTime: 00:00
+      snapshotProperties:
+        guestFlush: true
+        labels:
+          autodeleted: 'false'
+          interval: daily
+        storageLocations:
+        - us-central1
+  type: gcp-types/compute-v1:resourcePolicies

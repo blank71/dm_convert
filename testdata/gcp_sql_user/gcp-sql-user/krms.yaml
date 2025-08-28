@@ -1,0 +1,72 @@
+apiVersion: sql.cnrm.cloud.google.com/v1beta1
+kind: SQLInstance
+metadata:
+  labels:
+    label-one: value-one
+  name: sql-instance
+spec:
+  databaseVersion: MYSQL_5_7
+  region: us-central1
+  settings:
+    backupConfiguration:
+      binaryLogEnabled: false
+      pointInTimeRecoveryEnabled: false
+    ipConfiguration:
+      ipv4Enabled: true
+    locationPreference:
+      zone: us-central1-a
+    tier: db-n1-standard-1
+---
+apiVersion: sql.cnrm.cloud.google.com/v1beta1
+kind: SQLUser
+metadata:
+  name: sql-user
+spec:
+  host: '%'
+  instanceRef:
+    name: sql-instance
+  password:
+    value: cGFzc3dvcmQ=
+---
+apiVersion: sql.cnrm.cloud.google.com/v1beta1
+kind: SQLInstance
+metadata:
+  labels:
+    label-one: value-one
+  name: sql-instance-1
+spec:
+  databaseVersion: MYSQL_8_0_31
+  region: us-central1
+  settings:
+    backupConfiguration:
+      binaryLogEnabled: false
+      pointInTimeRecoveryEnabled: false
+    ipConfiguration:
+      ipv4Enabled: true
+    locationPreference:
+      zone: us-central1-a
+    tier: db-n1-standard-1
+---
+apiVersion: sql.cnrm.cloud.google.com/v1beta1
+kind: SQLUser
+metadata:
+  annotations:
+    cnrm.cloud.google.com/project-id: test-project-id
+  name: sql-user-1
+spec:
+  host: '%'
+  instanceRef:
+    name: sql-instance-1
+  password:
+    value: cGFzc3dvcmQ=
+---
+apiVersion: sql.cnrm.cloud.google.com/v1beta1
+kind: SQLUser
+metadata:
+  name: sql-user-2
+spec:
+  host: '%'
+  instanceRef:
+    name: sql-instance
+  password:
+    value: cGFzc3dvcmQ=

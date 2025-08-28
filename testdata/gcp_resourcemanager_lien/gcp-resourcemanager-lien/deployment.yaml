@@ -1,0 +1,21 @@
+resources:
+- name: rm-project
+  properties:
+    name: rm-project
+    projectId: rm-project
+    parent:
+      id: '128653134652'
+      type: organization
+  type: gcp-types/cloudresourcemanager-v1:projects
+- metadata:
+    dependsOn:
+    - rm-project
+  name: rm-lien
+  properties:
+    origin: project-deletion-prohibited
+    parent: projects/rm-project
+    reason: This project is protected from deletion, for reasons which can be explained
+      in this field.
+    restrictions:
+    - resourcemanager.projects.delete
+  type: gcp-types/cloudresourcemanager-v1:liens

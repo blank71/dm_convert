@@ -1,0 +1,36 @@
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeSnapshot
+metadata:
+{%- if resource['properties']['labels'] is defined %}
+  labels: {{ resource['properties']['labels'] }}
+{%- endif %}
+{%- if resource['properties']['name'] is defined %}
+  name: {{ resource['properties']['name'] }}
+{%- else %}
+  name: {{ resource['name'] }}
+{%- endif %}
+spec:
+{%- if resource['properties']['description'] is defined %}
+  description: {{ resource['properties']['description'] }}
+{%- endif %}
+{%- if resource['properties']['snapshotEncryptionKey'] is defined %}
+  snapshotEncryptionKey:
+    rawKey:
+      value: {{ resource['properties']['snapshotEncryptionKey']['rawKey'] }}
+{%- endif %}
+{%- if resource['properties']['sourceDisk'] is defined %}
+  sourceDiskRef:
+    name: {{ resource['properties']['sourceDisk'] }}
+{%- endif %}
+{%- if resource['properties']['sourceDiskEncryptionKey'] is defined %}
+  sourceDiskEncryptionKey:
+    rawKey:
+      value: {{ resource['properties']['sourceDiskEncryptionKey']['rawKey'] }}
+{%- endif %}
+{%- if resource['properties']['storageLocations'] is defined %}
+  storageLocations: {{ resource['properties']['storageLocations'] }}
+{%- endif %}
+# Required KCC fields not present in DM: zone
+# DM fields not present in KCC:
+# chainName
+# guestFlush

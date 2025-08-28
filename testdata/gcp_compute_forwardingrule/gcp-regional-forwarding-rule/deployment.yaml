@@ -1,0 +1,32 @@
+resources:
+- name: compute-address
+  properties:
+    region: us-west1
+  type: gcp-types/compute-v1:addresses
+- name: compute-network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+  type: gcp-types/compute-v1:networks
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-targetvpngateway
+  properties:
+    description: a regional target vpn gateway
+    network: $(ref.compute-network.selfLink)
+    region: us-west1
+  type: gcp-types/compute-v1:targetVpnGateways
+- metadata:
+    dependsOn:
+    - compute-targetvpngateway
+    - compute-address
+  name: compute-forwardingrule
+  properties:
+    IPAddress: $(ref.compute-address.selfLink)
+    IPProtocol: ESP
+    description: A regional forwarding rule
+    region: us-west1
+    target: $(ref.compute-targetvpngateway.name)
+  type: gcp-types/compute-v1:forwardingRules

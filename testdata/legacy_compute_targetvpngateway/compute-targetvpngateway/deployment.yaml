@@ -1,0 +1,16 @@
+resources:
+- name: compute-network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+  type: compute.v1.network
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-targetvpngateway
+  properties:
+    description: a test target vpn gateway
+    network: $(ref.compute-network.selfLink)
+    region: us-central1
+  type: compute.v1.targetVpnGateway

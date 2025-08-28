@@ -1,0 +1,24 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set resource_name = resource.get('name') -%}
+#tfimport-terraform import google_compute_target_https_proxy.{{ macros.get_name(resource, properties) }}  __project__/{{- resource_name }}
+resource "google_compute_target_https_proxy" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  name = "{{- resource_name }}"
+  {{- macros.fields(properties, {
+    'description': 'description',
+    'urlMap': 'url_map',
+    'region': 'region',
+    'tlsEarlyData': 'tls_early_data',
+    'sslPolicy': 'ssl_policy',
+    'sslCertificates': 'ssl_certificates',
+    'serverTlsPolicy': 'server_tls_policy',
+    'quicOverride': 'quic_override',
+    'proxyBind': 'proxy_bind',
+    'project': 'project',
+    'httpKeepAliveTimeoutSec': 'http_keep_alive_timeout_sec',
+    'certificateMap': 'certificate_map',
+    'certificateManagerCertificates': 'certificate_manager_certificates',
+  }, ' ' * 2) }}
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}

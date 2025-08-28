@@ -1,0 +1,21 @@
+resources:
+- name: pubsub-topic
+  properties:
+    topic: pubsub-topic
+  type: gcp-types/pubsub-v1:projects.topics
+- name: iam-serviceaccount
+  properties:
+    accountId: iam-serviceaccount
+  type: gcp-types/iam-v1:projects.serviceAccounts
+- name: iamrole
+  properties:
+    parent: projects/tjr-dm-test-1
+    role:
+      description: This role only contains two permissions - publish and update
+      includedPermissions:
+      - pubsub.topics.publish
+      - pubsub.topics.update
+      stage: GA
+      title: Example Custom Role
+    roleId: iamrole
+  type: gcp-types/iam-v1:projects.roles

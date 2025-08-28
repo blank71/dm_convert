@@ -1,0 +1,20 @@
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMPolicy
+metadata:
+  name: {{ resource['name']|lower }}
+{%- if 'namespace' in context %}
+  namespace: {{ context['namespace'] }}
+{%- endif %}
+spec:
+  bindings:
+{%- for b in resource['properties']['policy']['bindings'] %}
+    - members:
+  {%- for m in b['members'] %}
+        - {{ m }}
+  {%- endfor %}
+      role: {{ b['role'] }}
+{%- endfor %}
+  resourceRef:
+    apiVersion: {{ resource['kccapi'] }} # eg pubsub.cnrm.cloud.google.com/v1beta1
+    kind: {{ resource['kcckind'] }} # eg PubSubTopic
+    name: {{ resource['properties']['resource'].split('/')[-1] }}

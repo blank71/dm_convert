@@ -1,0 +1,21 @@
+apiVersion: accesscontextmanager.cnrm.cloud.google.com/v1beta1
+kind: AccessContextManagerAccessPolicy
+metadata:
+{%- if resource['properties']['parent'] is defined %}
+  annotations:
+    cnrm.cloud.google.com/organization-id: '{{ resource['properties']['parent'].split('/')[-1] }}'
+{%- endif %}
+{%- if resource['properties']['labels'] is defined %}
+  labels: {{ resource['properties']['labels'] }}
+{%- endif %}
+{%- if resource['properties']['name'] is defined %}
+  name: {{ resource['properties']['name'] }}
+{%- else %}
+  name: {{ resource['name'] }}
+{%- endif %}
+spec:
+{%- if resource['properties']['title'] is defined %}
+  title: {{ resource['properties']['title'] }}
+{%- endif %}
+# DM fields not present in KCC:
+# parent

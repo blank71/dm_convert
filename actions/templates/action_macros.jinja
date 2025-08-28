@@ -1,0 +1,114 @@
+{# Converts fields of a config to YAML using field_mappings to rename fields.
+
+Example usage:
+  {{- macros.fields(properties, {
+    'foo': 'bar',
+    'baz': 'baz',
+    'list': {
+      'list_name': 'new-list-name'
+    },
+    'map': 'map'
+  }, ' ' * 2) }}
+
+  will convert a config like
+    {
+      'foo': 'foo-value',
+      'baz': 'baz-value',
+      'list': [
+        {'list-item': 'list-item-val'}
+      ],
+      'map': {
+        'some-map-key': 'some-map-value'
+      }
+    }
+
+  into
+
+    bar: foo-value
+    baz: baz-value
+    new-list-name:
+      - list-item: list-item-val
+    map:
+      some-map-key: some-map-value
+
+Params:
+  config: Python dict representing properties of a DM resource
+  field_mappings: Python dict that maps each DM resource property into a new name
+  indent: Indent that should prefix each output line
+#}
+{%- macro fields(config, field_mappings, indent) %}
+  {%- for src_key, dst_field in field_mappings.items() %}
+    {%- if src_key in config %}
+      {%- if config[src_key] is mapping %}
+        {%- if dst_field is mapping %}
+{{ indent + dst_field.pop('map_name', src_key) }}:
+          {{- fields(config[src_key], dst_field, indent + ' ' * 2) }}
+        {%- else %}
+{{ indent + dst_field }}:
+          {{- identical(config[src_key], indent + ' ' * 2) }}
+        {%- endif %}
+      {%- elif config[src_key] | is_list %}
+        {%- if dst_field is mapping %}
+{{ indent + dst_field.pop('list_name', src_key) }}:
+          {% for item in config[src_key] %}
+            {{- fields(item, dst_field, indent + '- ') }}
+          {% endfor %}
+        {%- else %}
+{{ indent + dst_field }}:
+          {{- identical(config[src_key], indent + ' ' * 2) }}
+        {%- endif %}
+      {%- else %}
+{{ indent + dst_field }}: {{ config[src_key] }}
+      {%- endif %}
+    {%- endif %}
+  {%- endfor %}
+{%- endmacro %}
+
+{# Converts a Python dict into YAML without renaming or substitution of keys and
+  values. This is a convenience feature when writing Jinja templates, where we
+  might only want to specify top-level fields, and all subfields are converted
+  as-is without specifying every single mapping.
+
+Sample input data:
+  'foo': {
+    'bar': 'baz',
+    'spam': 'ham',
+  }
+
+Result:
+  foo:
+    bar: baz
+    spam: ham
+
+Params:
+  config: Python dict or list
+  indent: Indent that should prefix each output line
+#}
+{%- macro identical(config, indent) %}
+  {%- if config is mapping %}
+    {%- for key, value in config.items() %}
+      {%- if value is mapping %}
+{{ indent + key }}:
+        {{- identical(value, indent + ' ' * 2) }}
+      {%- else %}
+{{ indent + key }}: {{ value }}
+      {%- endif %}
+    {%- endfor %}
+  {%- elif config | is_list %}
+    {%- for item in config %}
+{{ indent + "- " }}{{ identical(item, indent + ' ' * 2) }}
+    {%- endfor %}
+  {%- else %}
+{{- config }}
+  {%- endif %}
+{%- endmacro %}
+
+{%- macro depends_on(resource, indent) %}
+  {%- if resource.get('metadata') and resource.get('metadata').get('dependsOn') %}
+{{ indent }}metadata:
+{{ indent + ' ' * 2}}dependsOn:
+    {%- for item in resource.get('metadata').get('dependsOn', []) %}
+{{ indent + ' ' * 2 + '- '}}{{ item }}
+    {%- endfor %}
+  {%- endif %}
+{%- endmacro %}

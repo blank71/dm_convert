@@ -1,0 +1,28 @@
+apiVersion: storage.cnrm.cloud.google.com/v1beta1
+kind: StorageNotification
+metadata:
+{%- if resource['properties']['labels'] is defined %}
+  labels: {{ resource['properties']['labels'] }}
+{%- endif %}
+{%- if resource['properties']['id'] is defined %}
+  name: {{ resource['properties']['id'] }}
+{%- else %}
+  name: {{ resource['name'] }}
+{%- endif %}
+spec:
+{%- if resource['properties']['custom_attributes'] is defined %}
+  customAttributes: {{ resource['properties']['custom_attributes'] }}
+{%- endif %}
+{%- if resource['properties']['event_types'] is defined %}
+  eventTypes: {{ resource['properties']['event_types'] }}
+{%- endif %}
+{%- if resource['properties']['object_name_prefix'] is defined %}
+  objectNamePrefix: {{ resource['properties']['object_name_prefix'] }}
+{%- endif %}
+{%- if resource['properties']['payload_format'] is defined %}
+  payloadFormat: {{ resource['properties']['payload_format'] }}
+{%- endif %}
+{%- if resource['properties']['topic'] is defined %}
+  topicRef:
+    name: {{ resource['properties']['topic'].split('/')[-1] }}
+{%- endif %}

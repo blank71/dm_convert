@@ -1,0 +1,32 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+resource "google_project_service" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.write_labels(properties) }}
+  {{- macros.fields(properties, {
+    'name': 'name',
+    'disableDependentServices': 'disable_dependent_services',
+  }, ' ' * 2) }}
+
+  {%- set api_name = properties.get('serviceName') %}
+  {%- if '.googleapis.com' in api_name %}
+  {%- set service_name = api_name %}
+  {%- else %}
+  {%- set service_name = api_name + '.googleapis.com' %}
+  {%- endif %}
+  service = "{{ service_name }}"
+
+  {%- if 'consumerId' in properties %}
+  {%- set project_value = properties['consumerId'].replace('project:', '').strip() %}
+  project = {{ macros.normalize(project_value) }}
+  {%- endif %}
+  disable_on_destroy = false
+  {{- macros.format_lifecycle_directive(resource) }}
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}
+#tfimport-terraform import google_project_service.{{ macros.get_name(resource, properties) }}  {{ macros.import_project(project_value) }}/{{ service_name }}
+
+{#-
+1. [TF] disable_dependent_services - is ignored, since disable_on_destroy is always true
+2. [TF] timeout - is ignored, because it's not being used in DM
+#}

@@ -1,0 +1,27 @@
+resources:
+- name: sqladmin-instance
+  properties:
+    databaseVersion: MYSQL_5_7
+    labels:
+      label-one: value-one
+    region: us-central1
+    settings:
+      backupConfiguration:
+        binaryLogEnabled: false
+        pointInTimeRecoveryEnabled: false
+        replicationLogArchivingEnabled: false
+      ipConfiguration:
+        requireSsl: false
+      locationPreference:
+        zone: us-central1-a
+      tier: db-n1-standard-1
+  type: sqladmin.v1beta4.instance
+- metadata:
+    dependsOn:
+    - sqladmin-instance
+  name: sqladmin-user
+  properties:
+    host: '%'
+    instance: sqladmin-instance
+    password: cGFzc3dvcmQ=
+  type: sqladmin.v1beta4.user

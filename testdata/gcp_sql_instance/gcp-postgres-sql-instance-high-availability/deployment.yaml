@@ -1,0 +1,17 @@
+resources:
+- name: sql-instance
+  properties:
+    databaseVersion: POSTGRES_9_6
+    region: us-central1
+    settings:
+      availabilityType: REGIONAL
+      backupConfiguration:
+        binaryLogEnabled: false
+        pointInTimeRecoveryEnabled: false
+        replicationLogArchivingEnabled: false
+      ipConfiguration:
+        ipv4Enabled: true
+      locationPreference:
+        zone: us-central1-a
+      tier: db-custom-1-3840
+  type: gcp-types/sqladmin-v1beta4:instances

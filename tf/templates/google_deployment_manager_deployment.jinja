@@ -1,0 +1,24 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set resource_name = resource.get('name') -%}
+#tfimport-terraform import google_deployment_manager_deployment.{{ macros.get_name(resource, properties) }}  {{macros.import_project(properties['project'])}}/{{properties['region']}}/{{ resource_name }}
+resource "google_deployment_manager_deployment" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.write_labels(properties) }}
+  name = "{{ resource_name }}"
+  target {
+     {{- macros.lists(properties.target, {
+      'config': {
+        'content': 'content' ,
+      }
+     } , ' ' * 4) }}
+      {{- macros.lists(properties.target, {
+        'imports': {
+          'list_name': 'imports',
+          'name': 'name',
+          'content': 'content' ,
+        }
+      }, ' ' * 4) }}
+    }
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}

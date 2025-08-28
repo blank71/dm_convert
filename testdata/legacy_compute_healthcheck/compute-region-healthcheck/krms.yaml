@@ -1,0 +1,10 @@
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeHealthCheck
+metadata:
+  name: compute-healthcheck-tcp
+spec:
+  checkIntervalSec: 10
+  location: us-west1
+  tcpHealthCheck:
+    port: 21
+    portName: tcp

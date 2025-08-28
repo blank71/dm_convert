@@ -1,0 +1,383 @@
+{# Value normalization macro, needed to normalize value based on value and type.
+   If value contains 'ref', then build Terraform reference.
+   If value is a boolean, then lower filter will be applied.
+   If value is a string, then write string using double quotes and replace single quote with double.
+   Otherwise replace single quote with double quotes.
+#}
+{%- macro normalize(value) %}
+    {%- if (value | lower).startswith('$(ref.') %}{{- value | make_reference }}
+    {%- elif value is boolean %}{{- value | lower }}
+    {%- elif value is string %}
+    {%- if "\n" in value %}<<-EOT
+{{ value | replace("${", "$${") | replace("%{", "%%{")  }}
+EOT
+    {%- else %}"{{- value | replace("\"", '\\"')}}"
+    {%- endif %}
+    {%- else %}{{- value | replace("'", '"') }}
+    {%- endif %}
+{%- endmacro %}
+
+{# Inserts fields into template, checking that each exists.
+   First parameter requires list of properties using for mapping.
+   Second parameter maps field names from DM to Terraform.
+   Third parameter is a string to indent fields with.
+   Fourth parameter is index of element within a list, if any. #}
+{%- macro fields(base, dmToTfMapping, indent, index='') %}
+    {%- set variables = {'indent': indent} %}
+    {%- for dm_name, terraform_name in dmToTfMapping.items() %}
+        {%- if dm_name in base %}
+            {%- if base[dm_name] is mapping %}
+              {%- if terraform_name is mapping %}
+{{ variables['indent'] + terraform_name.pop('map_name', dm_name) }} {
+{{- fields(base[dm_name], terraform_name, indent + ' ' * 2) }}
+{{ variables['indent'] }}}
+              {%- else %}
+{{ variables['indent'] + terraform_name }} {
+                {%- for key, value in base[dm_name].items() %}
+{{ variables['indent'] + ' ' * 2 + key }} = {{ normalize(value) }}
+{{ variables['indent'] }}}
+                {%- endfor %}
+              {%- endif %}
+            {%- elif base[dm_name] | is_list %}
+{{ variables['indent'] + terraform_name }} = [
+{%- for item in base[dm_name] %}
+{{ indent + ' ' * 2 + normalize(item) }} {{- "," if not loop.last else "" -}}
+{%- endfor %}
+{{ variables['indent'] }}]
+            {%- else %}
+{{ variables['indent'] + terraform_name }} = {{ normalize(base[dm_name]) }}
+            {%- endif %}
+            {%- set _ = variables.__setitem__('indent', indent | replace('-', ' ')) %}
+        {%- endif %}
+    {%- endfor %}
+{%- endmacro %}
+
+{# Extracts name field from resource if any, then from properties #}
+{%- macro get_name(resource, properties) %}
+{%- if 'resource_name' in resource %}
+{{- resource['resource_name'] | normalize_resource_name }}
+{%- elif 'name' in resource %}
+{{- resource['name'] | normalize_resource_name }}
+{%- else %}
+{{- properties['name'] | normalize_resource_name }}
+{%- endif %}
+{%- endmacro %}
+
+{# Extracts name field from resource if any, then from properties as it was in the deployment manager #}
+{%- macro get_resource_name(resource, properties) %}
+{%- if 'name' in resource %}
+{{- resource['name'] }}
+{%- else %}
+{{- properties['name'] }}
+{%- endif %}
+{%- endmacro %}
+
+{# Inserts lists into template, checking that each exists.
+   First parameter - source data for rendering.
+   Second parameter - maps DM list names to a dict containing
+   a map of field names from DM to tf. tf name of list has
+   key 'list_name'.
+   Third parameter - indent formatting.
+   Fourth parameter [optional] - will render setter after list
+   name if value is true. #}
+{%- macro lists(base, names, indent, use_setter=false) %}
+    {%- for dm_name, tf_field_names in names.items() %}
+        {%- if dm_name in base %}
+            {%- set tf_list_name = tf_field_names.pop('list_name', dm_name) %}
+            {%- if use_setter %}
+{{ indent + tf_list_name }} = {
+            {%- else %}
+{{ indent + tf_list_name }} {
+            {%- endif %}
+            {%- if base[dm_name] | is_list %}
+              {%- for item in base[dm_name] %}
+                  {{- fields(item, tf_field_names, indent + ' ' * 2 ) }}
+              {%- endfor %}
+            {%- else %}
+            {{- fields(base[dm_name], tf_field_names, indent + ' ' * 2 ) }}
+            {%- endif %}
+{{ indent + '}' }}
+        {%- endif %}
+    {%- endfor %}
+{%- endmacro %}
+
+{# Writes labels if any available in provided data source.
+
+Params:
+  properties: Data source with labels.
+  title: The map title, by default value is 'labels'.
+  property_name: Data source property name with labels.
+  indent_width: Number of spaces to indent, by default value is set to 2.
+#}
+{%- macro write_labels(properties, indent_width = 2, title = 'labels', property_name = 'labels') %}
+  {%- if property_name in properties %}
+{{ (title ~ ' = {') | indent(indent_width, true)}}
+    {%- for key, value in properties[property_name].items() %}
+{{ key |indent(indent_width + 2, true) }} = {{ normalize(value) }}
+    {%- endfor %}
+{{'}' | indent(indent_width, true)}}
+  {%- endif %}
+{%- endmacro %}
+
+{# Converts authoritative IAM bindings in a resource's properties as Terraform.
+
+Params:
+  resource_type: Terraform resource type e.g. google_pubsub_subscription
+  resource_name: Terraform resource name e.g. my_pubsub_subscription. Used when
+      naming the IAM policy resource.
+  access_control: accessControl block for this resource.
+#}
+{%- macro convert_access_control(resource_type, resource_name, access_control, import_resource) %}
+  {%- if "gcpIamPolicy" in access_control and "bindings" in access_control["gcpIamPolicy"] %}
+{{ format_iam_policy(resource_name, access_control["gcpIamPolicy"]["bindings"]) }}
+
+{% set importCmd = "#tfimport-terraform import " + resource_type + "_iam_policy." + resource_name + "_policy " + import_resource -%}
+{{ importCmd }}
+resource "{{ resource_type }}_iam_policy" "{{ resource_name }}_policy" {
+  {%- if resource_type == "google_pubsub_subscription" %}
+  subscription   = google_pubsub_subscription.{{ resource_name }}.name
+  {%- elif resource_type == "google_pubsub_topic" %}
+  topic          = google_pubsub_topic.{{ resource_name }}.name
+  {%- elif resource_type == "google_compute_disk" %}
+  project        = {{ resource_type }}.{{ resource_name }}.project
+  zone           = {{ resource_type }}.{{ resource_name }}.zone
+  name           = {{ resource_type }}.{{ resource_name }}.name
+  {%- elif resource_type == "google_compute_region_disk" %}
+  project        = {{ resource_type }}.{{ resource_name }}.project
+  region         = {{ resource_type }}.{{ resource_name }}.region
+  name           = {{ resource_type }}.{{ resource_name }}.name
+  {%- elif resource_type == "google_compute_subnetwork" %}
+  project        = {{ resource_type }}.{{ resource_name }}.project
+  region         = {{ resource_type }}.{{ resource_name }}.region
+  subnetwork     = {{ resource_type }}.{{ resource_name }}.name
+  {%- elif resource_type == "google_storage_bucket" %}
+  bucket         = {{ resource_type }}.{{ resource_name }}.name
+  {%- endif %}
+  policy_data    = data.google_iam_policy.{{ resource_name }}_iam_policy.policy_data
+}
+{%- endif %}
+{%- endmacro %}
+
+{# Formats a google_iam_policy data type from IAM bindings.
+
+Params:
+  resource_name: Terraform resource name e.g. my_pubsub_subscription. Used when
+      naming the IAM policy resource.
+  iam_bindings: List of dicts, each with "role" and "members" fields populated.
+#}
+{%- macro format_iam_policy(resource_name, iam_bindings) %}
+data "google_iam_policy" "{{ resource_name }}_iam_policy" {
+{%- for binding in iam_bindings %}
+  binding {
+    role = "{{ binding["role"] }}"
+    members = [
+    {%- for member in binding["members"] %}
+      "{{ member }}",
+    {%- endfor %}
+    ]
+  }
+{%- endfor %}
+}
+{%- endmacro %}
+
+{%- macro format_dependencies(resource) %}
+{%- if 'metadata' in resource and 'dependsOn' in resource.metadata %}
+{% set dependencies = resource | make_dependencies %}
+depends_on = [
+{%- for dep in dependencies %}
+  {{ dep }}
+  {{-"," if not loop.last else "" -}}
+{%- endfor %}
+]
+{%- endif %}
+{%- endmacro %}
+
+{# Inserts a lifecycle directive based on additional context.
+
+Params:
+  context: Dict of context about this resource.
+#}
+{%- macro format_lifecycle_directive(resource) -%}
+  {%- if resource and resource.get('metadata', {}).get('runtimePolicy', []) -%}
+    {% set policies = resource.get('metadata', {}).get('runtimePolicy', []) -%}
+    {%- if "CREATE" in policies and "UPDATE_ALWAYS" not in policies and "UPDATE_ON_CHANGE" not in policies %}
+
+  // Derived from action metadata.runtimePolicy = "CREATE"
+  lifecycle {
+    ignore_changes = all
+  }
+    {%- endif %}
+  {%- endif %}
+{%- endmacro -%}
+
+{# Writes field value if field_name is found in varargs.
+
+Params:
+  field_name: The field name to search for.
+  varargs: The datasources where field_name will be search for.
+#}
+{%- macro if_null(field_name) %}
+{%- set value = normalize(field_name | if_null(varargs)) %}
+{%- if value is not none %}
+  {{- value }}
+{%- endif %}
+{%- endmacro %}
+
+
+{# Unroll list of dict to separate dict records.
+Sample (name = sample, schema = {'field': 'my_field'}):
+  list
+  {
+    dict {'field', 'value1'}
+    dict {'field', 'value2'}
+  }
+
+Transform to:
+  sample {
+    my_field = 'value1'
+  }
+
+  sample {
+    my_field = 'value2'
+  }
+
+Params:
+  input: The source data with collection of dict.
+  name: The name for dict.
+  mapping: The DM field name to TF field name mapping schema.
+#}
+{%- macro unroll_dict(input, name, mapping = {}) %}
+  {%- if input is not none %}
+    {%- for innerDict in input %}
+{{ name | indent(2, True) }} {
+      {%- for key, value in innerDict.items() %}
+        {%- if key in mapping %}
+{{ mapping[key] | indent(4, True) }} = {{ normalize(value) }}
+        {%- else %}
+{{ key | indent(4, True) }} = {{ normalize(value) }}
+        {%- endif %}
+      {%- endfor %}
+{{ '}' | indent(2, True) }}
+    {%- endfor %}
+  {%- endif %}
+{%- endmacro %}
+
+{# The macro supports dict to render, including nested dict.
+Specific value 'dict_name' will be used as name for dict rendering, otherwise original key will be used.
+Sample input data:
+  consistentHash:
+    httpHeaderName: Hash string
+    minimumRingSize: 1024
+    httpCookie:
+      name: cookie name
+      path: /foo/bar
+      ttl:
+        seconds: 10000
+        nanos: 100000
+
+Sample input schema:
+  'consistentHash': {
+      'dict_name': 'consistent_hash',
+      'httpCookie': {
+          'dict_name': 'http_cookie',
+          'name': 'name',
+          'path': 'path',
+          'ttl': {
+              'seconds': 'seconds',
+              'nanos': 'nanos'
+          },
+      },
+    'httpHeaderName': 'http_header_name',
+    'minimumRingSize': 'minimum_ring_size',
+
+Result:
+  consistent_hash {
+    http_cookie {
+      name = "cookie name"
+      path = "/foo/bar"
+      ttl {
+        seconds = 10000
+        nanos = 100000
+      }
+    }
+    http_header_name = "Hash string"
+    minimum_ring_size = 1024
+  }
+
+Params:
+  input: The collection of dict.
+  schema: The transformation schema.
+#}
+{%- macro dict(input, schema) %}
+  {%- for schema_field_name, schema_field_value in schema.items() %}
+    {%- if input and schema_field_name in input %}
+      {%- if schema_field_value is mapping %}
+        {%- set tf_dict_name = schema_field_value.pop('dict_name', schema_field_name) %}
+{{ tf_dict_name }} {
+{{- dict(input[schema_field_name], schema_field_value) | indent(2) }}
+}
+      {%- else %}
+{{ schema_field_value }} = {{ normalize(input[schema_field_name]) }}
+      {%- endif %}
+    {%- endif %}
+  {%- endfor %}
+{%- endmacro %}
+
+
+{# The macro supports map to render.
+Sample input data:
+  labelExtractors:
+    instance_name: EXTRACT(resource.labels.instance_id)
+    project_name: EXTRACT(resource.labels.project_id)
+
+Result:
+  label_extractors = {
+    "instance_name" = "EXTRACT(resource.labels.instance_id)"
+    "project_name" = "EXTRACT(resource.labels.project_id)"
+  }
+
+Params:
+  input: The collection of unique values.
+  schema: The transformation schema.
+#}
+{%- macro map(input, name) %}
+{%- if input %}
+{{ name }} = {
+  {%- for key, value in input.items() %}
+  "{{key}}" = {{ normalize(value) }}
+  {%- endfor %}
+}
+{%- endif %}
+{%- endmacro %}
+
+{# Writes Terraform provider. Value comes from run args. Value 'google-beta' is set by default.
+#}
+{%- macro write_provider() %}
+  provider = {{ get_tf_provider }}
+{% endmacro %}
+
+{# Ternary macro.
+#}
+{%- macro ternary(condition1, input1, condition2, input2, input3) %}
+  {%- if condition1 %}{{input1}}
+  {%- elif condition2 %}{{input2}}
+  {%- else %}{{input3}}
+  {%- endif %}
+{%- endmacro %}
+
+{# Import project.
+#}
+{%- macro import_project(project_id) %}
+  {%- if project_id %}{{hydrate_ref(project_id)}}
+  {%- else %}__project__
+  {%- endif %}
+{%- endmacro %}
+
+{# Takes a field value from the resource spec and determines if
+it is a reference. If so, it hydrates the value with the real field value.
+#}
+{%- macro hydrate_ref(value) %}
+  {%- if (value | lower).startswith('$(ref.') %}{{ value | hydrate_ref_field }}
+  {%- else %}{{ value }}
+  {%- endif %}
+{%- endmacro %}

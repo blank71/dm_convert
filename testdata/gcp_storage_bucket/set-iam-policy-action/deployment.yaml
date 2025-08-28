@@ -1,0 +1,27 @@
+resources:
+- name: bucket-set-iam-policy
+  action: gcp-types/storage-v1:storage.buckets.setIamPolicy
+  properties:
+    bucket: $(ref.storage-bucket.name)
+    projectId: test-project-id  # this field should be ignored because it's only used for storage.v1.{insert,list} according to https://www.googleapis.com/discovery/v1/apis/storage/v1/rest
+    bindings:
+    - members:
+      - serviceAccount:123456789@cloudservices.gserviceaccount.com
+      role: roles/storage.objectAdmin
+    - members:
+      - group:groupname@testdomain.com
+      role: roles/storage.objectViewer
+    - members: []
+      role: roles/storage.objectAdmin
+    - members:
+      - user:user1@testdomain.com
+      role: roles/storage.objectCreator
+  metadata:
+    dependsOn:
+    - storage-bucket
+- name: storage-bucket
+  type: gcp-types/storage-v1:buckets
+  properties:
+    versioning:
+      enabled: true
+    location: US

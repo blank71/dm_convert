@@ -1,0 +1,61 @@
+apiVersion: sql.cnrm.cloud.google.com/v1beta1
+kind: SQLInstance
+metadata:
+{%- if resource['properties']['project'] is defined %}
+  annotations:
+    cnrm.cloud.google.com/project-id: {{ resource['properties']['project'] }}
+{%- endif %}
+{%- if resource['properties']['labels'] is defined %}
+  labels: {{ resource['properties']['labels'] }}
+{%- endif %}
+{%- if resource['properties']['name'] is defined %}
+  name: {{ resource['properties']['name'] }}
+{%- else %}
+  name: {{ resource['name'] }}
+{%- endif %}
+spec:
+{%- if resource['properties']['databaseVersion'] is defined %}
+  databaseVersion: {{ resource['properties']['databaseVersion'] }}
+{%- endif %}
+{%- if resource['properties']['diskEncryptionConfiguration'] is defined %}
+  encryptionKMSCryptoKeyRef:
+    name: {{ resource['properties']['diskEncryptionConfiguration']['kmsKeyName'] }}
+{%- endif %}
+{%- if resource['properties']['masterInstanceName'] is defined %}
+  masterInstanceRef:
+    name: {{ resource['properties']['masterInstanceName'] }}
+{%- endif %}
+{%- if resource['properties']['region'] is defined %}
+  region: {{ resource['properties']['region'] }}
+{%- endif %}
+{%- if resource['properties']['replicaConfiguration'] is defined %}
+  replicaConfiguration: {{ resource['properties']['replicaConfiguration'] }}
+{%- endif %}
+{%- if resource['properties']['rootPassword'] is defined %}
+  rootPassword: {{ resource['properties']['rootPassword'] }}
+{%- endif %}
+{%- if resource['properties']['settings'] is defined %}
+  {%- set _ = resource['properties']['settings'].pop('settingsVersion', None) %}
+  {%- set settings = resource['properties']['settings'].copy() %}
+  {%- if settings['dataDiskSizeGb'] is defined %}
+    {%- set _ = settings.__setitem__('diskSize', settings.pop('dataDiskSizeGb') | int) %}
+  {%- endif %}
+  {%- set backupConfiguration = settings.get('backupConfiguration', {}) %}
+  {%- set _ = backupConfiguration.pop('replicationLogArchivingEnabled', None) %}
+  {%- set _ = backupConfiguration.pop('transactionLogRetentionDays', None) %}
+  settings: {{ settings }}
+{%- endif %}
+# DM fields not present in KCC:
+# backendType
+# currentDiskSize
+# diskEncryptionStatus
+# failoverReplica
+# gceZone
+# instanceType
+# ipAddresses
+# ipv6Address
+# onPremisesConfiguration
+# replicaNames
+# scheduledMaintenance
+# state
+# suspensionReason

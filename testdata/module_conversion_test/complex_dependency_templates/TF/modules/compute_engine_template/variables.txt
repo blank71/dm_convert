@@ -1,0 +1,26 @@
+variable "vm1_machineType"{
+}
+
+
+variable "vm1_zone"{
+}
+
+
+variable "vm2_machineType"{
+}
+
+
+variable "vm2_zone"{
+}
+
+
+variable "vm3_machineType"{
+}
+
+
+variable "network"{
+}
+
+
+variable "vm3_zone"{
+}

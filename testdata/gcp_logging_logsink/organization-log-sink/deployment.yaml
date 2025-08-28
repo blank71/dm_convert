@@ -1,0 +1,15 @@
+resources:
+- name: tjr-dm-test-1-bucket
+  type: gcp-types/storage-v1:buckets
+  properties:
+    location: US
+- metadata:
+    dependsOn:
+    - tjr-dm-test-1-bucket
+  name: logging-sink
+  properties:
+    destination: $(ref.tjr-dm-test-1-bucket.name)
+    filter: resource.type="bigquery_project" AND logName:"cloudaudit.googleapis.com"
+    name: logging-sink
+    parent: organizations/128653134652
+  type: gcp-types/logging-v2:organizations.sinks

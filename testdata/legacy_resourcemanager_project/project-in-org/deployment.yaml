@@ -1,0 +1,11 @@
+resources:
+- name: rm-project
+  properties:
+    labels:
+      label-one: value-one
+    name: Project in Org
+    parent:
+      id: '128653134652'
+      type: organization
+    projectId: rm-project
+  type: cloudresourcemanager.v1.project

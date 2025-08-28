@@ -1,0 +1,12 @@
+resources:
+- name: get-project-action-test
+  action: gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.get
+  properties:
+    projectId: test-project-id
+  metadata:
+    dependsOn:
+    - pubsub-resource-for-testing-depends-on
+- name: pubsub-resource-for-testing-depends-on
+  type: gcp-types/pubsub-v1:projects.topics
+  properties:
+    topic: some-topic

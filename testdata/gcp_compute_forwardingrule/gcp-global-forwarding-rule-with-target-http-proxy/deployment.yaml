@@ -1,0 +1,46 @@
+resources:
+- name: compute-healthcheck
+  properties:
+    checkIntervalSec: 10
+    httpHealthCheck:
+      port: 80
+      requestPath: /
+    type: HTTP
+  type: gcp-types/compute-v1:healthChecks
+- metadata:
+    dependsOn:
+    - compute-healthcheck
+  name: compute-backendservice
+  properties:
+    healthChecks:
+    - $(ref.compute-healthcheck.selfLink)
+    connectionDraining:
+      drainingTimeoutSec: 0
+  type: gcp-types/compute-v1:backendServices
+- metadata:
+    dependsOn:
+    - compute-backendservice
+  name: compute-urlmap
+  properties:
+    defaultService: $(ref.compute-backendservice.name)
+  type: gcp-types/compute-v1:urlMaps
+- metadata:
+    dependsOn:
+    - compute-urlmap
+  name: compute-targethttpproxy
+  properties:
+    urlMap: $(ref.compute-urlmap.name)
+  type: gcp-types/compute-v1:targetHttpProxies
+- metadata:
+    dependsOn:
+    - compute-targethttpproxy
+  name: compute-globalforwardingrule
+  properties:
+    IPProtocol: TCP
+    description: A global forwarding rule
+    ipVersion: IPV4
+    labels:
+      label-one: value-one
+    portRange: '80'
+    target: $(ref.compute-targethttpproxy.name)
+  type: gcp-types/compute-v1:globalForwardingRules

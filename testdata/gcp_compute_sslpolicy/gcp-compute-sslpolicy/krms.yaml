@@ -1,0 +1,7 @@
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeSSLPolicy
+metadata:
+  name: compute-sslpolicy
+spec:
+  minTlsVersion: TLS_1_2
+  profile: COMPATIBLE

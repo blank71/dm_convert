@@ -1,0 +1,21 @@
+resources:
+- name: virtual-iam-member-binding-storage-bucket
+  action: gcp-types/storage-v1:virtual.buckets.iamMemberBinding
+  properties:
+    bucket: my-test-bucket
+    member: user:user1@google.com
+    role: roles/storage.objectViewer
+- name: virtual-iam-member-binding-storage-bucket-2
+  action: gcp-types/storage-v1:virtual.buckets.iamMemberBinding
+  properties:
+    bucket: $(ref.my-test-bucket-2.name)
+    member: user:user2@google.com
+    role: roles/storage.objectAdmin
+  metadata:
+    dependsOn:
+    - my-test-bucket-2
+- name: my-test-bucket-2
+  type: gcp-types/storage-v1:buckets
+  properties:
+    location: US
+    storageClass: STANDARD

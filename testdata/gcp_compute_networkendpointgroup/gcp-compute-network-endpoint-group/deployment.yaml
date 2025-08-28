@@ -1,0 +1,31 @@
+resources:
+- name: compute-network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+  type: gcp-types/compute-beta:networks
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-subnetwork
+  properties:
+    ipCidrRange: 10.2.0.0/16
+    logConfig:
+      enable: false
+    network: $(ref.compute-network.selfLink)
+    region: us-west1
+  type: gcp-types/compute-beta:subnetworks
+- metadata:
+    dependsOn:
+    - compute-network
+    - compute-subnetwork
+  name: compute-networkendpointgroup
+  properties:
+    defaultPort: 90
+    description: A network endpoint group living in a specific us-west1 subnetwork, whose member endpoints will serve on port number 90 by default.
+    network: $(ref.compute-network.selfLink)
+    networkEndpointType: GCE_VM_IP_PORT
+    subnetwork: $(ref.compute-subnetwork.selfLink)
+    zone: us-west1-a
+  type: gcp-types/compute-beta:networkEndpointGroups

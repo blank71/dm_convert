@@ -1,0 +1,65 @@
+resources:
+- name: it-europe
+  properties:
+    autoHealingPolicies:
+    - healthCheck: fake-health-check-self-link-here
+      initialDelaySec: 900
+    baseInstanceName: it
+    instanceTemplate: projects/my-project/global/instanceTemplates/it-europe
+    namedPorts:
+    - name: front
+      port: 443
+    targetSize: 1
+    region: europe-west4
+    statefulPolicy:
+      preservedState:
+        disks:
+          test-boot:
+            autoDelete: ON_PERMANENT_INSTANCE_DELETION
+          test-data:
+            autoDelete: NEVER
+    updatePolicy:
+      maxSurge:
+        calculated: 1
+      maxUnavailable:
+        fixed: 0
+      minimalAction: REPLACE
+      type: PROACTIVE
+    zone: europe-west4-a
+  type: compute.v1.regionInstanceGroupManager
+- name: demo-deployment-it
+  properties:
+    properties:
+      disks:
+      - autoDelete: true
+        boot: true
+        deviceName: boot
+        initializeParams:
+          diskName: demo-deployment-disk
+          sourceImage: https://www.googleapis.com/compute/v1/projects/debian-cloud/global/images/debian-7-wheezy-v20140619
+        mode: READ_WRITE
+        type: PERSISTENT
+      machineType: f1-micro
+      networkInterfaces:
+      - network: global/networks/default
+  type: gcp-types/compute-v1:instanceTemplates
+- metadata:
+    dependsOn:
+    - demo-deployment-it
+  name: demo-deployment-igm-1
+  properties:
+    baseInstanceName: demo-deployment-instance
+    instanceTemplate: $(ref.demo-deployment-it.selfLink)
+    region: us-west1
+    targetSize: 1
+  type: gcp-types/compute-beta:regionInstanceGroupManagers
+- metadata:
+    dependsOn:
+    - demo-deployment-it
+  name: demo-deployment-igm-2
+  properties:
+    baseInstanceName: demo-deployment-instance
+    instanceTemplate: $(ref.demo-deployment-it.selfLink)
+    region: us-west1
+    targetSize: 1
+  type: compute.beta.regionInstanceGroupManager

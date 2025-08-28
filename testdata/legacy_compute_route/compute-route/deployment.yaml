@@ -1,0 +1,49 @@
+resources:
+- name: compute-network
+  properties:
+    autoCreateSubnetworks: true
+    description: Default network for the project
+  type: compute.v1.network
+- name: compute-instance
+  type: gcp-types/compute-v1:instances
+  properties:
+    zone: us-west1-a
+    machineType: projects/tjr-dm-test-1/zones/us-west1-a/machineTypes/n1-standard-1
+    canIpForward: true
+    disks:
+    - autoDelete: false
+      boot: true
+      deviceName: proxycontroldisk
+      diskEncryptionKey:
+        rawKey: SGVsbG8gZnJvbSBHb29nbGUgQ2xvdWQgUGxhdGZvcm0=
+      mode: READ_ONLY
+      source: $(ref.compute-disk.selfLink)
+    networkInterfaces:
+    - network: $(ref.compute-network.selfLink)
+      networkIP: 10.2.0.4
+    labels:
+      created-from: disk
+      network-type: global
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-route
+  properties:
+    description: A sample compute route
+    destRange: 0.0.0.0/0
+    network: projects/tjr-dm-test-1/global/networks/compute-network
+    nextHopIp: 10.2.0.4
+    priority: 100
+    tags:
+    - tag1
+  type: compute.v1.route
+- name: compute-disk
+  properties:
+    description: a sample encrypted, blank disk
+    diskEncryptionKey:
+      rawKey: SGVsbG8gZnJvbSBHb29nbGUgQ2xvdWQgUGxhdGZvcm0=
+    physicalBlockSizeBytes: 4096
+    sizeGb: 1
+    type: projects/tjr-dm-test-1/zones/us-west1-c/diskTypes/pd-ssd
+    zone: us-west1-c
+  type: compute.v1.disk

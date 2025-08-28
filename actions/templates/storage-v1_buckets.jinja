@@ -1,0 +1,27 @@
+{%- import 'action_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set resource_name = resource.get('name') -%}
+- name: {{ properties.get('name') }}
+  type: gcp-types/storage-v1:buckets
+  properties:
+  {{- macros.fields(properties, {
+      'acl': 'acl',
+      'billing': 'billing',
+      'cors': 'cors',
+      'defaultObjectAcl': 'defaultObjectAcl',
+      'encryption': 'encryption',
+      'iamConfiguration': 'iamConfiguration',
+      'labels': 'labels',
+      'lifecycle': 'lifecycle',
+      'location': 'location',
+      'logging': 'logging',
+      'project': 'project',
+      'retentionPolicy': 'retentionPolicy',
+      'storageClass': 'storageClass',
+      'versioning': 'versioning',
+      'website': 'website',
+    }, ' ' * 4)
+  -}}
+  {{- macros.fields(resource, {
+    'metadata': 'metadata'
+  }, ' ' * 2) -}}

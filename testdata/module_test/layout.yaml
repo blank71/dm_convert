@@ -1,0 +1,19 @@
+resources:
+- name: some_engine
+  properties:
+    some_property: something
+  resources:
+  - name: vm-1
+    properties:
+      network: network-1
+      property: something
+    resources:
+    - name: vm-1
+      type: vm_type
+    type: vm-template.py
+  - name: network-1
+    resources:
+    - name: network-1
+      type: network_type
+    type: network-template.py
+  type: engine.py

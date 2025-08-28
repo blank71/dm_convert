@@ -1,0 +1,28 @@
+# Note: This isn't a deployable YAML file, most properties were omitted to put
+# focus on the accessControl block
+resources:
+- name: fake-network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+  type: gcp-types/compute-v1:networks
+- name: compute-subnetwork-access-control-test
+  type: compute.v1.subnetwork
+  properties:
+    description: Test subnet
+    ipCidrRange: 192.168.0.0/24
+    network: $(ref.fake-network.selfLink)
+    region: us-west1
+  accessControl:
+    gcpIamPolicy:
+      bindings:
+      - members:
+        - user:user1@google.com
+        - user:user2@google.com
+        role: roles/compute.instanceAdminV1
+      - members:
+        - serviceAccount:test@test.iam.gserviceaccount.com
+        role: roles/compute.networkViewer
+      - members: []
+        role: roles/compute.admin

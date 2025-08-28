@@ -1,0 +1,24 @@
+{%- import 'macros.jinja' as macros %}
+apiVersion: resourcemanager.cnrm.cloud.google.com/v1beta1
+kind: Project
+metadata:
+{%- set properties = resource.get('properties', {}) %}
+{%- set parent = properties['parent'] %}
+  annotations:
+{%- if parent['type'] == 'folder' %}
+    cnrm.cloud.google.com/folder-id: '{{ parent['id'] }}'
+{%- else %}
+    cnrm.cloud.google.com/organization-id: '{{ parent['id'] }}'
+{%- endif %}
+{{- macros.fields(properties, {'labels': 'labels'}, ' ' * 2) }}
+  name: {{ resource['name'] | arbitrary_reference | replace('_', '-') }}
+spec:
+{{- macros.fields(properties, {
+  'name': 'name',
+  'projectId': 'resourceID',
+}, ' ' * 2) }}
+{%- if 'billingAccountName' in properties %}
+  {%- set billing_val = properties['billingAccountName'] %}
+  billingAccountRef:
+    external: {{ billing_val.split('/')[-1] }}
+{%- endif %}

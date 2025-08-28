@@ -1,0 +1,18 @@
+resources:
+- name: compute-disk
+  properties:
+    sizeGb: 5
+    type: projects/tjr-dm-test-1/zones/us-west1-a/diskTypes/pd-ssd
+    zone: us-west1-a
+  type: compute.v1.disk
+- metadata:
+    dependsOn:
+    - compute-disk
+  name: compute-image
+  properties:
+    description: A sample image created from an empty disk resource
+    diskSizeGb: 5
+    labels:
+      label-one: value-one
+    sourceDisk: $(ref.compute-disk.selfLink)
+  type: compute.v1.image

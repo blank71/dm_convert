@@ -1,0 +1,38 @@
+resources:
+- name: pubsub-topic
+  properties:
+    labels:
+      tag: dmv3-hackathon
+    name: projects/tjr-dm-test-1/topics/pubsub-topic
+    topic: pubsub-topic
+  type: gcp-types/pubsub-v1:projects.topics
+- name: pubsub-dead-letter-topic
+  properties:
+    name: projects/tjr-dm-test-1/topics/pubsub-dead-letter-topic
+    topic: pubsub-dead-letter-topic
+  type: gcp-types/pubsub-v1:projects.topics
+- metadata:
+    dependsOn:
+    - pubsub-topic
+  name: pubsub-subscription-1
+  properties:
+    name: projects/tjr-dm-test-1/subscriptions/pubsub-subscription-1
+    subscription: pubsub-subscription-1
+    topic: $(ref.pubsub-topic.name)
+  type: gcp-types/pubsub-v1:projects.subscriptions
+- metadata:
+    dependsOn:
+    - pubsub-topic
+  name: pubsub-subscription-2
+  properties:
+    ackDeadlineSeconds: 15
+    filter: attributes.domain = "com"
+    messageRetentionDuration: 86400s
+    name: projects/tjr-dm-test-1/subscriptions/pubsub-subscription-2
+    retainAckedMessages: false
+    subscription: pubsub-subscription-2
+    topic: $(ref.pubsub-topic.name)
+    deadLetterPolicy:
+      deadLetterTopic: $(ref.pubsub-dead-letter-topic.name)
+      maxDeliveryAttempts: 5
+  type: gcp-types/pubsub-v1:projects.subscriptions

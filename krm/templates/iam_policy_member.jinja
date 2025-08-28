@@ -1,0 +1,22 @@
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMPolicyMember
+metadata:
+  name: {{ resource['name'] }}
+spec:
+  member: {{ resource['properties']['member'] }}
+  resourceRef:
+{%- set type = resource['type'].split('-') %}
+{%- set api = type[1].split('/')[1].replace('cloud', '') %}
+{%- set kind = type[2].split('.')[1] %}
+    apiVersion: {{ api }}.cnrm.cloud.google.com/v1beta1
+  {%- if kind ==  'organizations' %}
+    external: '{{ resource['properties']['resource'].split('/')[1] }}'
+  {%- elif kind == 'projects' %}
+    external: projects/{{ resource['properties']['resource'] }}
+  {%- elif kind == 'buckets' %}
+    external: {{ resource['properties']['bucket'] }}
+  {%- else %}
+    external: {{ resource['properties']['resource'] }}
+  {%- endif %}
+    kind: {{ (api.capitalize() if api == 'storage' else '') + kind[:-1].capitalize() }}
+  role: {{ resource['properties']['role'] }}

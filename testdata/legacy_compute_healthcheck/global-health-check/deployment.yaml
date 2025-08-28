@@ -1,0 +1,9 @@
+resources:
+- name: compute-healthcheck
+  properties:
+    checkIntervalSec: 10
+    httpHealthCheck:
+      port: 80
+      requestPath: /
+    type: HTTP
+  type: compute.v1.healthCheck

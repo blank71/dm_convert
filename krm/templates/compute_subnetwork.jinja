@@ -1,0 +1,48 @@
+{%- import 'macros.jinja' as macros %}
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeSubnetwork
+metadata:
+{%- set properties = resource.get('properties', {}) %}
+{{- macros.fields(properties, {'labels': 'labels'}, ' ' * 2) }}
+{%- if 'name' in properties %}
+  {%- set name = properties['name'] | arbitrary_reference %}
+{%- else %}
+  {%- set name = resource['name'] | arbitrary_reference %}
+{%- endif %}
+  name: {{ name }}
+{%- if properties | set_difference(['labels', 'name', 'project']) %}
+{# At least one field of properties was not converted to metadata and will be converted to spec. #}
+spec:
+  {{- macros.fields(properties, {
+    'description': 'description',
+    'ipCidrRange': 'ipCidrRange',
+    'network': 'networkRef',
+    'privateIpGoogleAccess': 'privateIpGoogleAccess',
+    'privateIpv6GoogleAccess': 'privateIpv6GoogleAccess',
+    'purpose': 'purpose',
+    'region': 'region',
+    'role': 'role',
+    'secondaryIpRanges': 'secondaryIpRange',
+  }, ' ' * 2) }}
+  {%- if 'logConfig' in properties %}
+    {%- set log_config = properties['logConfig'] %}
+    {%- if log_config.get('enable') %}
+  logConfig:
+      {{- macros.fields(log_config, {
+        'aggregationInterval': 'aggregationInterval',
+        'filterExpr': 'filterExpr',
+        'flowSampling': 'flowSampling',
+        'metadata': 'metadata',
+        'metadataFields': 'metadataFields',
+      }, ' ' * 4) }}
+    {%- endif %}
+  {%- endif %}
+{%- endif %}
+{%- set unconvertable = properties | missing_fields((
+  'enableFlowLogs',
+)) %}
+{%- if unconvertable %}
+# Unconvertable fields found:
+{{ unconvertable | join('\n# ') }}
+{%- endif %}
+{{- macros.access_control(resource, 'compute', 'ComputeSubnetwork', name) }}

@@ -1,0 +1,21 @@
+resources:
+- name: my-function
+  properties:
+    description: Cloud Function
+    entryPoint: schema_change
+    environmentVariables:
+      DEPLOYMENT_NAME: test-dep
+      INSERT_FILTER_LIST: ''
+      SP_BASE_URL: http://127.0.0.1
+      TARGET_AUDIENCE: 1234.apps.googleusercontent.com
+    eventTrigger:
+      eventType: providers/cloud.pubsub/eventTypes/topic.publish
+      resource: projects/my-project/topics/my-topic
+    function: my-function
+    maxInstances: 1
+    parent: projects/my-project/locations/asia-southeast2
+    runtime: python37
+    sourceArchiveUrl: gs://my-bucket/cloud-function.zip
+    timeout: 420s
+    vpcConnector: projects/my-project/locations/asia-southeast2/connectors/bi-app-vc
+  type: gcp-types/cloudfunctions-v1:projects.locations.functions

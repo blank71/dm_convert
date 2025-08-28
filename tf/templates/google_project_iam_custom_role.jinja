@@ -1,0 +1,21 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+#tfimport-terraform import google_project_iam_custom_role.{{ macros.get_name(resource, properties) }} projects/__project__/roles/{{ properties['roleId'] }}
+resource "google_project_iam_custom_role" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.fields(properties, {
+    'roleId': 'role_id'
+  }, ' ' * 2) }}
+  {{- macros.fields(properties.get('role', {}), {
+    'description': 'description',
+    'includedPermissions': 'permissions',
+    'stage': 'stage',
+    'title': 'title'
+  }, ' ' * 2) }}
+
+  {%- if 'parent' in properties %}
+  project = "{{ properties.parent.split('/')[-1] }}"
+  {%- endif %}
+
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}

@@ -1,0 +1,78 @@
+resources:
+- name: compute-network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: GLOBAL
+  type: gcp-types/compute-v1:networks
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-subnetwork
+  properties:
+    ipCidrRange: 10.2.0.0/16
+    logConfig:
+      enable: false
+    network: $(ref.compute-network.selfLink)
+    region: us-west1
+  type: gcp-types/compute-v1:subnetworks
+- metadata:
+    dependsOn:
+    - compute-network
+    - compute-subnetwork
+  name: compute-networkendpointgroup
+  properties:
+    network: $(ref.compute-network.selfLink)
+    networkEndpointType: GCE_VM_IP_PORT
+    subnetwork: $(ref.compute-subnetwork.selfLink)
+    zone: us-west1-a
+  type: gcp-types/compute-v1:networkEndpointGroups
+- name: compute-healthcheck
+  properties:
+    httpsHealthCheck:
+      port: 443
+      requestPath: /
+    type: HTTPS
+  type: gcp-types/compute-v1:healthChecks
+- metadata:
+    dependsOn:
+    - compute-healthcheck
+    - compute-networkendpointgroup
+  name: compute-backendservice
+  properties:
+    affinityCookieTtlSec: 360
+    backends:
+    - balancingMode: RATE
+      capacityScaler: 1
+      description: A network endpoint group serving this backend with all its available
+        capacity, as calculated by number of simultaneous connections.
+      group: $(ref.compute-networkendpointgroup.selfLink)
+      maxRatePerEndpoint: 10
+      maxUtilization: 0.80000001
+    connectionDraining:
+      drainingTimeoutSec: 60
+    customRequestHeaders:
+    - 'Trailer: custom-trailer'
+    description: External backend service with cookie-based session affinity.
+    healthChecks:
+    - $(ref.compute-healthcheck.selfLink)
+    loadBalancingScheme: EXTERNAL
+    logConfig:
+      enable: true
+      sampleRate: 0.5
+    portName: cookie-cloud
+    protocol: HTTPS
+    sessionAffinity: GENERATED_COOKIE
+    timeoutSec: 30
+  type: gcp-types/compute-v1:backendServices
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-instancegroup
+  properties:
+    namedPorts:
+    - name: compute-instancegroup
+      port: 8444
+    network: $(ref.compute-network.selfLink)
+    zone: us-central1-a
+  type: gcp-types/compute-v1:instanceGroups

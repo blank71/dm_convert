@@ -1,0 +1,20 @@
+resources:
+- name: pubsub-topic-resource
+  type: gcp-types/pubsub-v1:projects.topics
+  properties:
+    topic: pubsub-topic
+    labels:
+      subnetwork-name: $(ref.get-subnetwork-action.selfLink)
+- name: get-subnetwork-action
+  action: gcp-types/compute-v1:compute.subnetworks.get
+  properties:
+    project: test-project
+    subnetwork: test-subnet
+    region: us-west1
+  metadata:
+    dependsOn:
+    - pubsub-resource-for-testing-depends-on
+- name: pubsub-resource-for-testing-depends-on
+  type: gcp-types/pubsub-v1:projects.topics
+  properties:
+    topic: some-topic

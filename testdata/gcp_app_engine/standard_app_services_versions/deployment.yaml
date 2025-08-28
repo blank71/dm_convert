@@ -1,0 +1,23 @@
+resources:
+- name: magellan-gcs-uploader-v1
+  properties:
+    appsId: streaming-func-test
+    deployment:
+      files:
+        github.com/golang/protobuf/proto/clone.go:
+          sha1Sum: 9a016945b0d1350e607f5bba666c26d6244eb074
+          sourceUrl: https://storage.googleapis.com/magellan-gae-repository/magellan-gcs-uploader/v1/github.com/golang/protobuf/proto/clone.go
+    envVariables:
+      BLOCKS_URL: ""
+      STORAGE_BUCKET: ml-test-data
+    handlers:
+    - script:
+        scriptPath: _go_app
+      urlRegex: /.*
+    id: gcs-uploader-v1
+    runtime: go
+    servicesId: magellan-iot-filetypeiottest
+    env: standard
+    entrypoint:
+      shell: go run myapp
+  type: appengine.v1.version

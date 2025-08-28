@@ -1,0 +1,204 @@
+{%- import 'macros.jinja' as macros %}
+{# Contains templating common between boot disk and attached disks #}
+{%- macro disk_common(disk, hyphen) %}
+  {%- set matching_fields = {
+    'deviceName': 'deviceName',
+    'mode': 'mode',
+    'source': 'sourceDiskRef',
+  } %}
+  {{- macros.fields(disk, matching_fields, ' ' * 2 + hyphen + ' ') }}
+  {%- if matching_fields | set_intersection(disk) %}
+    {%- set hyphen = ' ' %}
+  {%- else %}
+    {%- set hyphen = '-' %}
+  {%- endif %}
+  {%- if 'diskEncryptionKey' in disk %}
+    {%- set disk_encryption_key = disk['diskEncryptionKey'] %}
+    {%- set matching_fields = {
+      'sha256': 'diskEncryptionKeysha256',
+      'kmsKeyName': 'kmsKeyRef',
+    } %}
+    {{- macros.fields(disk_encryption_key, matching_fields, ' ' * 2 + hyphen + ' ') }}
+    {%- if matching_fields | set_intersection(disk) %}
+      {%- set hyphen = ' ' %}
+    {%- endif %}
+    {%- if 'rawKey' in disk_encryption_key %}
+  {{ hyphen }} diskEncryptionKeyRaw:
+      {{- macros.fields(disk_encryption_key, {
+        'rawKey': 'value'
+      }, ' ' * 6 + hyphen + ' ') }}
+      {%- set hyphen = ' ' %}
+    {%- endif %}
+  {%- endif %}
+{%- endmacro %}
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeInstance
+metadata:
+{%- set properties = resource.get('properties', {}) %}
+{{- macros.fields(properties, {'labels': 'labels'}, ' ' * 2) }}
+{%- if 'name' in properties %}
+  {%- set name = properties['name'] | arbitrary_reference %}
+{%- else %}
+  {%- set name = resource['name'] | arbitrary_reference %}
+{%- endif %}
+  name: {{ name }}
+{%- if properties | set_difference(['name', 'labels', 'project']) %}
+{# At least one field of properties was not converted to metadata and will be converted to spec. #}
+spec:
+  {{- macros.fields(properties, {
+    'canIpForward': 'canIpForward',
+    'confidentialInstanceConfig': 'confidentialInstanceConfig',
+    'deletionProtection': 'deletionProtection',
+    'description': 'description',
+    'sourceInstanceTemplate': 'instanceTemplateRef',
+    'minCpuPlatform': 'minCpuPlatform',
+    'shieldedInstanceConfig': 'shieldedInstanceConfig',
+    'zone': 'zone',
+  }, ' ' * 2) }}
+  {%- if 'disks' in properties %}
+    {%- set boot_disk = [] %}
+    {%- set scratch_disks = [] %}
+    {%- set attached_disks = [] %}
+    {%- for disk in properties['disks'] %}
+      {%- if 'boot' in disk and disk['boot'] %}
+        {%- set _ = boot_disk.append(disk) %}
+      {%- elif 'type' in disk and disk['type'] == 'SCRATCH' %}
+        {%- set _ = scratch_disks.append(disk) %}
+      {%- else %}
+        {%- set _ = attached_disks.append(disk) %}
+      {%- endif %}
+    {%- endfor %}
+    {%- if boot_disk | length %}
+  bootDisk:
+      {{- disk_common(boot_disk[0], ' ') }}
+      {{- macros.fields(boot_disk[0], {'autoDelete': 'autoDelete'}, ' ' * 4) }}
+      {%- if 'initializeParams' in boot_disk[0] %}
+    initializeParams:
+        {%- set initialize_params = boot_disk[0]['initializeParams'] %}
+        {{- macros.fields(initialize_params, {
+          'labels': 'labels',
+          'diskSizeGb': 'size',
+          'sourceImage': 'sourceImageRef',
+          'diskType': 'type',
+        }, ' ' * 6) }}
+        {%- if 'diskType' in initialize_params %}
+      type: {{ (initialize_params['diskType'] | arbitrary_reference).rpartition('/')[2] }}
+        {%- endif %}
+      {%- endif %}
+    {%- endif %}
+    {%- if attached_disks | length %}
+  attachedDisk:
+      {%- for attached_disk in attached_disks %}
+        {{- disk_common(attached_disk, '-') }}
+      {%- endfor %}
+    {%- endif %}
+    {%- if scratch_disks | length %}
+  scratchDisk:
+      {%- for scratch_disk in scratch_disks %}
+        {{- macros.fields(scratch_disk, {
+          'interface': 'interface',
+        }, ' ' * 2 + '- ') }}
+      {%- endfor %}
+    {%- endif %}
+  {%- endif %}
+  {%- if 'guestAccelerators' in properties %}
+  guestAccelerator:
+    {%- for guest_accelerator in properties['guestAccelerators'] %}
+      {%- set hyphen = '-' %}
+      {%- if 'acceleratorCount' in guest_accelerator %}
+    {{ hyphen }} count: {{ guest_accelerator['acceleratorCount'] }}
+        {%- set hyphen = ' ' %}
+      {%- endif %}
+      {%- if 'acceleratorType' in guest_accelerator %}
+    {{ hyphen }} type: {{ (guest_accelerator['acceleratorType'] | arbitrary_reference).rpartition('/')[2] }}
+      {%- endif %}
+    {%- endfor %}
+  {%- endif %}
+  {%- if 'machineType' in properties %}
+  machineType: {{ (properties['machineType'] | arbitrary_reference).rpartition('/')[2] }}
+  {%- endif %}
+  {%- if 'metadata' in properties %}
+    {%- set metainfo = properties['metadata'].get('items', []) %}
+  metadata: {{ metainfo }}
+  {%- endif %}
+  {%- if 'scheduling' in properties %}
+    {%- set scheduling = properties['scheduling'] %}
+  scheduling:
+    {{- macros.fields(scheduling, {
+      'automaticRestart': 'automaticRestart',
+      'minNodeCpus': 'minNodeCpus',
+      'onHostMaintenance': 'onHostMaintenance',
+      'preemptible': 'preemptible',
+    }, ' ' * 4) }}
+  {%- endif %}
+  {%- if 'networkInterfaces' in properties %}
+  networkInterface:
+    {%- for network_interface in properties['networkInterfaces'] %}
+      {%- set matching_fields = {
+        'aliasIpRanges': 'aliasIpRange',
+        'name': 'name',
+        'networkIP': 'networkIp',
+        'network': 'networkRef',
+        'nicType': 'nicType',
+        'subnetwork': 'subnetworkRef',
+      } %}
+      {{- macros.fields(network_interface, matching_fields, ' ' * 2 + '- ') }}
+      {%- if matching_fields | set_intersection(network_interface) %}
+        {%- set hyphen = ' ' %}
+      {%- else %}
+        {%- set hyphen = '-' %}
+      {%- endif %}
+      {{- macros.lists(network_interface, {'accessConfigs': {
+        'list_name': 'accessConfig',
+        'natIP': 'natIpRef',
+        'networkTier': 'networkTier',
+        'publicPtrDomainName': 'publicPtrDomainName',
+      }}, ' ' * 2 + hyphen + ' ') }}
+      {%- if 'subnetwork' in network_interface %}
+        {%- set subnetwork_ref = network_interface['subnetwork'] | typed_reference %}
+        {%- if 'external' in subnetwork_ref %}
+          {# Subnetwork is url. #}
+  {{ hyphen }} subnetworkProject: {{ subnetwork_ref['external'].split('/')[-5] }}
+        {%- endif %}
+      {%- endif %}
+    {%- endfor %}
+  {%- endif %}
+  {%- if 'resourcePolicies' in properties %}
+  resourcePolicies:
+    {%- for policy in properties['resourcePolicies'] %}
+  - {{ macros.quote(policy | typed_reference) }}
+    {%- endfor %}
+  {%- endif %}
+  {%- if 'serviceAccounts' in properties %}
+  serviceAccount:
+    {%- set service_account = properties['serviceAccounts'][0] %}
+    {{- macros.fields(service_account, {
+      'email': 'serviceAccountRef',
+    }, ' ' * 4) }}
+    {%- if 'scopes' in service_account %}
+    scopes:
+      {%- for scope in service_account['scopes'] %}
+        {%- set scope = scope.rpartition('/')[2] %}
+        {%- if '.' not in scope %}
+          {%- set scope = scope + '-rw' %}
+        {%- endif %}
+        {%- set scope = scope.replace('dev', '').replace('_', '').replace('readonly', 'ro').replace('.', '-') %}
+    - {{ scope }}
+      {%- endfor %}
+    {%- endif %}
+  {%- endif %}
+{%- endif %}
+{%- set unconvertable = properties | missing_fields((
+  'reservationAffinity',
+  'shieldedInstanceIntegrityPolicy',
+  'displayDevice',
+  'privateIpv6GoogleAccess',
+  'advancedMachineFeatures',
+  'scheduling.locationHint',
+  'labelFingerprint',
+)) %}
+{%- if unconvertable %}
+# Unconvertable fields found:
+{{ unconvertable | join('\n# ') }}
+{%- endif %}
+{{- macros.access_control(resource, 'compute', 'ComputeInstance', name) }}

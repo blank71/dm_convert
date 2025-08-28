@@ -1,0 +1,27 @@
+resources:
+- name: gcp-pubsub-topic-insert-action-test
+  action: gcp-types/pubsub-v1:pubsub.projects.topics.create
+  properties:
+    name: projects/test-project/topics/test-topic-name
+    messageStoragePolicy:
+      allowedPersistenceRegions: ["us-west1"]
+    kmsKeyName: projects/test-project/locations/us-central1/keyRings/testKeyRing/cryptoKeys/testCryptoKey
+    labels:
+      label1: label1-val
+      label2: label2-val
+  metadata:
+    dependsOn:
+    - pubsub-topic
+    runtimePolicy:  # Add all runtimePolicies for testing.
+    - CREATE
+    - UPDATE_ON_CHANGE
+    - UPDATE_ALWAYS
+    - DELETE
+- name: pubsub-topic
+  type: gcp-types/pubsub-v1:projects.topics
+  properties:
+    name: projects/test-project/topics/pubsub-topic
+    topic: pubsub-topic
+  metadata:
+    runtimePolicy:
+    - CREATE

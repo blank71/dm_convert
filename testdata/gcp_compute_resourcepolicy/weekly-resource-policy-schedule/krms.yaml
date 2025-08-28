@@ -1,0 +1,24 @@
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeResourcePolicy
+metadata:
+  name: compute-resource-policy
+spec:
+  region: us-central1
+  snapshotSchedulePolicy:
+    retentionPolicy:
+      maxRetentionDays: 12
+    schedule:
+      weeklySchedule:
+        dayOfWeeks:
+        - day: MONDAY
+          startTime: 08:00
+        - day: WEDNESDAY
+          startTime: '15:00'
+        - day: FRIDAY
+          startTime: '23:00'
+    snapshotProperties:
+      labels:
+        autodeleted: 'false'
+        interval: weekly
+      storageLocations:
+      - us

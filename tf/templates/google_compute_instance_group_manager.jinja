@@ -1,0 +1,106 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) %}
+{%- set name_value = macros.get_resource_name(resource, properties) %}
+#tfimport-terraform import google_compute_instance_group_manager.{{ macros.get_name(resource, properties) }}  __project__/{{ properties['zone'] }}/{{ name_value }}
+resource "google_compute_instance_group_manager" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.fields(properties, {
+    'description': 'description',
+    'baseInstanceName': 'base_instance_name',
+    'targetPools': 'target_pools',
+    'targetSize': 'target_size',
+    'instanceGroup': 'instance_group',
+    'fingerprint': 'fingerprint',
+    'zone': 'zone',
+    'waitForInstancesStatus': 'wait_for_instances_status',
+    'waitForInstances': 'wait_for_instances',
+    'project': 'project',
+    'listManagedInstancesResults': 'list_managed_instances_results',
+  }, ' ' * 2) }}
+  name = "{{ name_value }}"
+
+  {{- macros.unroll_dict(properties.get('access'), 'access', {
+      'role': 'role',
+      'userByEmail': 'user_by_email',
+      'groupByEmail': 'group_by_email',
+      'domain': 'domain',
+      'specialGroup': 'special_group'
+  }) }}
+
+  {%- if 'version' in properties %}
+  {%- set version_data = properties['version'] | first%}
+  version {
+  {{- macros.fields(version_data, {
+    'name': 'name',
+    'instanceTemplate': 'instance_template'
+  }, ' ' * 4) }}
+  {%- if 'targetSize' in version_data %}
+  {{- macros.fields(policy_data.get('maxUnavailable'), {
+    'fixed': 'fixed',
+    'percent': 'percent',
+    'calculated': 'percent',
+  }, ' ' * 6) }}
+  {%- endif %}
+  }
+  {%- else %}
+  version {
+  {{- macros.fields(properties, {
+    'name': 'name',
+    'instanceTemplate': 'instance_template'
+  }, ' ' * 4) }}
+  }
+  {%- endif %}
+
+  {{- macros.unroll_dict(properties.get('namedPorts'), 'named_port') }}
+
+  {%- if 'autoHealingPolicies' in properties %}
+  {%- set auto_healing = properties['autoHealingPolicies'] | first%}
+  auto_healing_policies {
+  {{- macros.fields(auto_healing, {
+    'healthCheck': 'health_check',
+    'initialDelaySec': 'initial_delay_sec'
+  }, ' ' * 4) }}
+  }
+  {%- endif %}
+
+  {%- if 'updatePolicy' in properties %}
+  {%- set policy_data = properties['updatePolicy'] %}
+  update_policy {
+  {{- macros.fields(policy_data, {
+    'type': 'type',
+    'minimalAction': 'minimal_action',
+    'replacementMethod': 'replacement_method'
+  }, ' ' * 4) }}
+  {{- macros.fields(policy_data.get('maxSurge'), {
+    'fixed': 'max_surge_fixed',
+    'percent': 'max_surge_percent',
+    'calculated': 'max_surge_percent',
+  }, ' ' * 4) }}
+  {{- macros.fields(policy_data.get('maxUnavailable'), {
+    'fixed': 'max_unavailable_fixed',
+    'percent': 'max_unavailable_percent',
+    'calculated': 'max_unavailable_percent',
+  }, ' ' * 4) }}
+  }
+  {%- endif %}
+
+  {%- if 'statefulPolicy' in properties %}
+  {%- set disks = properties['statefulPolicy'].get('preservedState').get('disks') %}
+  {%- for disk in disks.items() %}
+  stateful_disk {
+    device_name = "{{ disk[0] }}"
+    delete_rule = "{{ disk[1].get('autoDelete') }}"
+  }
+  {%- endfor %}
+  {%- endif %}
+
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}
+
+{#-
+1. [DM] updatePolicy.instanceRedistributionType is not implemented in TF
+2. [DM] distributionPolicy is not implemented in TF
+3. [DM] root.instanceTemplate is not implemented in TF
+4. [TF] name is taken from properties.name then from resource.name, DM has name as optional
+5. [DM] versions.calculated/percent usages are not found.
+#}

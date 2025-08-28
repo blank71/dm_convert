@@ -1,0 +1,11 @@
+resources:
+- name: rm-project
+  properties:
+    labels:
+      label-one: value-one
+    name: Project in Folder
+    parent:
+      id: '328101438358'
+      type: folder
+    projectId: rm-project
+  type: gcp-types/cloudresourcemanager-v1:projects

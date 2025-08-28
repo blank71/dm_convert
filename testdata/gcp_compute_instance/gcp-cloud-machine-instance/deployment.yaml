@@ -1,0 +1,98 @@
+resources:
+- name: vm-placementpolicy-spread
+  properties:
+    description: test-description
+    groupPlacementPolicy:
+      availabilityDomainCount: 3
+    name: vm-placementpolicy-spread
+    region: us-east1
+  type: gcp-types/compute-v1:resourcePolicies
+- name: compute-disk-1
+  properties:
+    description: a sample encrypted, blank disk
+    diskEncryptionKey:
+      rawKey: SGVsbG8gZnJvbSBHb29nbGUgQ2xvdWQgUGxhdGZvcm0=
+    physicalBlockSizeBytes: 4096
+    sizeGb: 1
+    type: zones/us-west1-a/diskTypes/pd-ssd
+    zone: us-west1-a
+  type: gcp-types/compute-v1:disks
+- name: compute-disk-2
+  properties:
+    sizeGb: 1
+    type: zones/us-west1-a/diskTypes/pd-ssd
+    zone: us-west1-a
+  type: gcp-types/compute-v1:disks
+- name: compute-network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+  type: gcp-types/compute-v1:networks
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-subnetwork
+  properties:
+    ipCidrRange: 10.2.0.0/16
+    logConfig:
+      enable: false
+    network: $(ref.compute-network.selfLink)
+    region: us-west1
+    secondaryIpRanges:
+    - ipCidrRange: 10.3.16.0/20
+      rangeName: cloudrange
+  type: gcp-types/compute-v1:subnetworks
+- metadata:
+    dependsOn:
+    - compute-disk-1
+    - compute-disk-2
+    - compute-subnetwork
+    - vm-placementpolicy-spread
+  name: compute-instance
+  properties:
+    canIpForward: false
+    disks:
+    - autoDelete: false
+      boot: true
+      initializeParams:
+        diskSizeGb: 24
+        diskType: zones/us-west1-a/diskTypes/pd-ssd
+        sourceImage: projects/debian-cloud/global/images/family/debian-11
+        labels:
+          data-source: external
+          schema-type: auto-junk
+    - deviceName: proxycontroldisk
+      diskEncryptionKey:
+        rawKey: SGVsbG8gZnJvbSBHb29nbGUgQ2xvdWQgUGxhdGZvcm0=
+      mode: READ_ONLY
+      source: $(ref.compute-disk-1.selfLink)
+    - deviceName: persistentdisk
+      mode: READ_WRITE
+      source: $(ref.compute-disk-2.selfLink)
+    labels:
+      created-from: image
+      network-type: subnetwork
+    metadata:
+      items:
+      - key: foo
+        value: bar
+    resourcePolicies:
+    - $(ref.vm-placementpolicy-spread.selfLink)
+    machineType: zones/us-west1-a/machineTypes/n1-standard-1
+    minCpuPlatform: Intel Skylake
+    networkInterfaces:
+    - aliasIpRanges:
+      - ipCidrRange: /24
+        subnetworkRangeName: cloudrange
+      subnetwork: $(ref.compute-subnetwork.selfLink)
+    serviceAccounts:
+    - email: cnrm-system@tjr-dm-test-1.iam.gserviceaccount.com
+      scopes:
+      - https://www.googleapis.com/auth/compute
+      - https://www.googleapis.com/auth/logging.write
+    zone: us-west1-a
+    tags:
+      items:
+      - sap-hanaexpress-public-1-tcp-22
+  type: gcp-types/compute-v1:instances

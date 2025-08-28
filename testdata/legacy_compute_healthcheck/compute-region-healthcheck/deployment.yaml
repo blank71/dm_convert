@@ -1,0 +1,11 @@
+resources:
+- name: compute-healthcheck-tcp
+  properties:
+    checkIntervalSec: 10
+    project: my-test-tcp-dm-project
+    tcpHealthCheck:
+      port: 21
+      portName: tcp
+    type: HTTP
+    region: us-west1
+  type: compute.v1.regionHealthChecks

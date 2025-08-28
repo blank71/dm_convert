@@ -1,0 +1,30 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+#tfimport-terraform import google_compute_interconnect_attachment.{{ macros.get_name(resource, properties) }}  {{ macros.import_project(properties['project']) }}/{{ properties['region'] }}/{{ properties['name'] }}
+resource "google_compute_interconnect_attachment" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.fields(properties, {
+    'region': 'region',
+    'project': 'project',
+    'description': 'description',
+    'name': 'name',
+    'interconnect': 'interconnect',
+    'router': 'router',
+    'mtu': 'mtu',
+    'type': 'type',
+    'adminEnabled': 'admin_enabled',
+    'vlanTag8021q': 'vlan_tag8021q',
+    'edgeAvailabilityDomain': 'edge_availability_domain',
+    'candidateSubnets': 'candidate_subnets',
+    'bandwidth': 'bandwidth',
+    'partnerAsn': 'partner_asn',
+    'encryption': 'encryption',
+    'ipsecInternalAddresses': 'ipsec_internal_addresses',
+    'subnetLength': 'subnet_length',
+    'stackType': 'stack_type',
+  }, ' ' * 2) }}
+}
+
+{#-
+1. No partnerMetadata in TF
+#}

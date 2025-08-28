@@ -1,0 +1,72 @@
+resources:
+- name: it_opt-binpacking_g2
+  type: gcp-types/compute-v1:instanceTemplates
+  properties:
+    name: opt-binpacking-g2
+    properties:
+      disks:
+      - autoDelete: true
+        boot: true
+        deviceName: persistent-disk-0
+        initializeParams:
+          sourceImage: projects/cos-cloud/global/images/family/cos-stable
+      labels:
+        container-vm: cos-stable
+      machineType: n1-standard-4
+      canIpForward: false
+      minCpuPlatform: Intel Haswell
+      metadata:
+        items:
+        - key: gce-container-declaration
+          value: |
+            # DISCLAIMER:
+            # This container declaration format is not a public API and may change without
+            # notice. Please use gcloud command-line tool or Google Cloud Console to run
+            # Containers on Google Compute Engine.
+
+            spec:
+              containers:
+              - env:
+                - name: REQUEST_SUBSCRIPTION
+                  value: subscription_opt-binpacking-request
+                - name: RESPONSE_TOPIC
+                  value: projects/project-a/topics/opt-binpacking-result
+                - name: HEAP_LIMIT_MB
+                  value: '14336'
+                image: gcr.io/blocks-private-registry/gn-binpacking-optimizer:stable
+                name: opt-binpacking
+                securityContext:
+                  privileged: false
+                stdin: false
+                tty: false
+                volumeMounts: []
+              restartPolicy: OnFailure
+              volumes: []
+        - key: google-logging-enabled
+          value: 'true'
+      networkInterfaces:
+      - accessConfigs: []
+        network: network_optimization
+      scheduling:
+        automaticRestart: true
+        onHostMaintenance: MIGRATE
+        preemptible: false
+      serviceAccounts:
+      - email: default
+        scopes:
+        - https://www.googleapis.com/auth/cloud-platform
+        - https://www.googleapis.com/
+      - email: test
+        scopes:
+        - https://www.api.com/auth
+      reservationAffinity:
+        consumeReservationType: ANY_RESERVATION
+        key: key-here
+        values:
+        - line1
+        - line2
+        - line3
+      tags:
+        items:
+        - binpacking-optimize
+      fingerprint: tags-fingerprint

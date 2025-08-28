@@ -1,0 +1,31 @@
+resources:
+- name: compute-network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+  type: gcp-types/compute-v1:networks
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-subnetwork
+  properties:
+    computeVersion: beta
+    ipCidrRange: 10.10.10.0/24
+    logConfig:
+      enable: false
+    network: $(ref.compute-network.selfLink)
+    privateIpGoogleAccess: false
+    region: us-west1
+  type: gcp-types/compute-v1:subnetworks
+- metadata:
+    dependsOn:
+    - compute-subnetwork
+  name: compute-address
+  properties:
+    addressType: INTERNAL
+    description: a test regional address
+    ipVersion: IPV4
+    region: us-west1
+    subnetwork: $(ref.compute-subnetwork.selfLink)
+  type: gcp-types/compute-v1:addresses

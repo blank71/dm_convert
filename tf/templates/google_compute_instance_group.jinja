@@ -1,0 +1,24 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set name_value = macros.if_null('name', properties, resource) -%}
+#tfimport-terraform import google_compute_instance_group.{{ macros.get_name(resource, properties) }}  {{ macros.import_project(properties['project']) }}/{{ properties['zone'] }}/{{ name_value | replace("\"", "")}}
+resource "google_compute_instance_group" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.write_labels(properties) }}
+  name = {{ name_value }}
+  {{- macros.fields(properties, {
+    'description': 'description',
+    'network': 'network',
+    'zone': 'zone',
+    'project': 'project',
+    'instances': 'instances'
+  }, ' ' * 2) }}
+
+  {{- macros.unroll_dict(properties.get('namedPorts'), 'named_port') }}
+
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}
+
+{#-
+1. instances property is extra and added due b/188198642
+#}

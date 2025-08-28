@@ -1,0 +1,170 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set name_value = macros.if_null('name', properties, resource) -%}
+#tfimport-terraform import google_compute_backend_service.{{ macros.get_name(resource, properties) }}  __project__/{{ name_value | replace("\"", "")}}
+resource "google_compute_backend_service" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.write_labels(properties) }}
+  name = {{ name_value }}
+  {{- macros.fields(properties, {
+    'description': 'description',
+    'timeoutSec': 'timeout_sec',
+    'protocol': 'protocol',
+    'portName': 'port_name',
+    'enableCDN': 'enable_cdn',
+    'sessionAffinity': 'session_affinity',
+    'affinityCookieTtlSec': 'affinity_cookie_ttl_sec',
+    'loadBalancingScheme': 'load_balancing_scheme',
+    'customRequestHeaders': 'custom_request_headers',
+    'customResponseHeaders': 'custom_response_headers',
+    'securityPolicy': 'security_policy',
+    'localityLbPolicy': 'locality_lb_policy',
+    'serviceLbPolicy': 'service_lb_policy',
+    'project': 'project',
+    'enableCdn': 'enable_cdn',
+    'edgeSecurityPolicy': 'edge_security_policy',
+    'connectionDrainingTimeoutSec': 'connection_draining_timeout_sec',
+    'compressionMode': 'compression_mode',
+  }, ' ' * 2) }}
+  {%- if 'connectionDraining' in properties %}
+  {{- macros.fields(properties['connectionDraining'], {
+    'drainingTimeoutSec': 'connection_draining_timeout_sec',
+  }, ' ' * 2) }}
+  {%- endif %}
+  {%- if 'healthChecks' in properties %}
+  health_checks = [
+  {%- for hc in properties['healthChecks'] %}
+  {{ macros.normalize(hc) }}
+  {{-"," if not loop.last else "" -}}
+  {%- endfor %}
+  ]
+  {%- endif %}
+
+  {{- macros.unroll_dict(properties.get('backends'), 'backend', {
+    'balancingMode': 'balancing_mode',
+    'maxUtilization': 'max_utilization',
+    'maxRate': 'max_rate',
+    'maxRatePerInstance': 'max_rate_per_instance',
+    'maxRatePerEndpoint': 'max_rate_per_endpoint',
+    'maxConnections': 'max_connections',
+    'maxConnectionsPerInstance': 'max_connections_per_instance',
+    'maxConnectionsPerEndpoint': 'max_connections_per_endpoint',
+    'capacityScaler': 'capacity_scaler',
+  }) }}
+
+  {{- macros.lists(properties, {
+    'failoverPolicy': {
+      'list_name': 'failover_policy',
+      'disableConnectionDrainOnFailover': 'disable_connection_drain_on_failover',
+      'dropTrafficIfUnhealthy': 'drop_traffic_if_unhealthy',
+      'failoverRatio': 'failover_ratio'
+    }
+  }, ' ' * 2, false) }}
+
+  {{- macros.lists(properties, {
+    'iap': {
+      'oauth2ClientId': 'oauth2_client_id',
+      'oauth2ClientSecret': 'oauth2_client_secret',
+      'oauth2ClientSecretSha256': 'oauth2_client_secret_sha256'
+    }
+  }, ' ' * 2, false) }}
+
+  {{- macros.dict(properties, {
+    'cdnPolicy': {
+      'dict_name': 'cdn_policy',
+      'cacheKeyPolicy': {
+        'dict_name': 'cache_key_policy',
+        'includeProtocol': 'include_protocol',
+        'includeHost': 'include_host',
+        'includeQueryString': 'include_query_string',
+        'queryStringWhitelist': 'query_string_whitelist',
+        'queryStringBlacklist': 'query_string_blacklist',
+        'signedUrlCacheMaxAgeSec': 'signed_url_cache_max_age_sec',
+        'cacheMode': 'cache_mode',
+        'defaultTtl': 'default_ttl',
+        'maxTtl': 'max_ttl',
+        'clientTtl': 'client_ttl',
+        'negativeCaching': 'negative_caching',
+        'negativeCachingPolicy': {
+          'dict_name': 'negative_caching_policy',
+          'code': 'code',
+          'ttl': 'ttl'
+        },
+        'serveWhileStale': 'serve_while_stale',
+      },
+      'httpHeaderName': 'http_header_name',
+      'minimumRingSize': 'minimum_ring_size',
+    },
+  }) | indent(2) }}
+
+  {{- macros.lists(properties, {
+    'logConfig': {
+      'list_name': 'log_config',
+      'enable': 'enable',
+      'sampleRate': 'sample_rate'
+    }
+  }, ' ' * 2, false) }}
+
+  {{- macros.dict(properties, {
+    'consistentHash': {
+      'dict_name': 'consistent_hash',
+      'httpCookie': {
+        'dict_name': 'http_cookie',
+        'name': 'name',
+        'path': 'path',
+        'ttl': {
+          'seconds': 'seconds',
+          'nanos': 'nanos'
+        },
+      },
+      'httpHeaderName': 'http_header_name',
+      'minimumRingSize': 'minimum_ring_size',
+    },
+  }) | indent(2) }}
+
+  {{- macros.dict(properties, {
+    'circuitBreakers': {
+      'dict_name': 'circuit_breakers',
+      'maxConnections': 'max_connections',
+      'maxRequestsPerConnection': 'max_requests_per_connection',
+      'maxPendingRequests': 'max_pending_requests',
+      'maxRequests': 'max_requests',
+      'maxRetries': 'max_retries'
+    },
+  }) | indent(2) }}
+
+  {{- macros.dict(properties, {
+    'outlierDetection': {
+      'dict_name': 'outlier_detection',
+      'consecutiveErrors': 'consecutive_errors',
+      'interval': {
+        'seconds': 'seconds',
+        'nanos': 'nanos'
+      },
+      'baseEjectionTime': {
+        'dict_name': 'base_ejection_time',
+        'seconds': 'seconds',
+        'nanos': 'nanos'
+      },
+      'maxEjectionPercent': 'max_ejection_percent',
+      'enforcingConsecutiveErrors': 'enforcing_consecutive_errors',
+      'enforcingConsecutiveGatewayFailure': 'enforcing_consecutive_gateway_failure',
+      'enforcingSuccessRate': 'enforcing_success_rate',
+      'successRateMinimumHosts': 'success_rate_minimum_hosts',
+      'successRateRequestVolume': 'success_rate_request_volume',
+      'successRateStdevFactor': 'success_rate_stdev_factor',
+      'consecutiveGatewayFailure': 'consecutive_gateway_failure'
+    },
+  }) | indent(2) }}
+}
+
+{#-
+1. DM port - deprecated and the field is not supported by TF
+  1. cache_mode
+  2. default_ttl
+  3. max_ttl
+  4. client_ttl
+  5. negative_caching
+  6. negative_caching_policy
+  7. serve_while_stale
+#}

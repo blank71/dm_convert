@@ -1,0 +1,17 @@
+apiVersion: serviceusage.cnrm.cloud.google.com/v1beta1
+kind: Service
+metadata:
+{%- if 'serviceUsage' in resource['type'] %}
+  {%- set project, service = resource['properties']['name'].split('/')[1::2] %}
+  annotations:
+    cnrm.cloud.google.com/project-id: "{{ project }}"
+  name: {{ service }}
+{%- else %}
+  {%- if resource['properties']['consumerId'] is defined %}
+  annotations:
+    cnrm.cloud.google.com/project-id: {{ resource['properties']['consumerId'].split(':')[-1] }}
+  {%- endif %}
+  {%- if resource['properties']['serviceName'] is defined %}
+  name: {{ resource['properties']['serviceName'] }}.googleapis.com
+  {%- endif %}
+{%- endif %}

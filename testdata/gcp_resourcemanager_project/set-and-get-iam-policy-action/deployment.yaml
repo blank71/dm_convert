@@ -1,0 +1,30 @@
+resources:
+- name: get-iam-policy
+  action: gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.getIamPolicy
+  properties:
+    resource: test-project-id
+- name: patch-iam-policy
+  action: gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.setIamPolicy
+  properties:
+    resource: test-project-id
+    policy:
+      etag: $(ref.get-iam-policy.etag)
+      bindings:
+      - members:
+        - user:composer-admin@testdomain.com
+        role: roles/composer.admin
+      - members:
+        - group:compute-admins@testdomain.com
+        role: roles/compute.admin
+      - members:
+        - group:owner@testdomain.com
+        role: roles/owner
+      - members:
+        - group:viewer1@testdomain.com
+        - group:viewer2@testdomain.com
+        role: roles/viewer
+      - members: []
+        role: roles/appengine.codeViewer
+  metadata:
+    dependsOn:
+    - get-iam-policy

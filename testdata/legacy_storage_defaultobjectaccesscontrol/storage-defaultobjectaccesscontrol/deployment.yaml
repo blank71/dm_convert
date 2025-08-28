@@ -1,0 +1,16 @@
+resources:
+- name: tjr-dm-test-1-bucket
+  type: storage.v1.bucket
+  properties:
+    location: US
+- metadata:
+    dependsOn:
+    - tjr-dm-test-1-bucket
+  name: storage-defaultobjectaccesscontrol
+  properties:
+    bucket: tjr-dm-test-1-bucket
+    entity: allAuthenticatedUsers
+    labels:
+      label-one: value-one
+    role: READER
+  type: storage.v1.defaultObjectAccessControl

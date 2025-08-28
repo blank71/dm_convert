@@ -1,0 +1,86 @@
+apiVersion: storage.cnrm.cloud.google.com/v1beta1
+kind: StorageBucket
+metadata:
+  name: tjr-dm-test-1-bucket
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeBackendBucket
+metadata:
+  name: compute-backendbucket
+spec:
+  bucketRef:
+    name: tjr-dm-test-1-bucket
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeHealthCheck
+metadata:
+  name: compute-healthcheck
+spec:
+  checkIntervalSec: 10
+  httpHealthCheck:
+    port: 80
+    requestPath: /
+  location: global
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeBackendService
+metadata:
+  name: compute-backendservice-1
+spec:
+  connectionDrainingTimeoutSec: 300
+  healthChecks:
+  - healthCheckRef:
+      name: compute-healthcheck
+  location: global
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeBackendService
+metadata:
+  name: compute-backendservice-2
+spec:
+  connectionDrainingTimeoutSec: 300
+  healthChecks:
+  - healthCheckRef:
+      name: compute-healthcheck
+  location: global
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeBackendService
+metadata:
+  name: compute-backendservice-3
+spec:
+  connectionDrainingTimeoutSec: 300
+  healthChecks:
+  - healthCheckRef:
+      name: compute-healthcheck
+  location: global
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeURLMap
+metadata:
+  name: compute-urlmap
+spec:
+  defaultService:
+    backendServiceRef:
+      external: projects/tjr-dm-test-1/global/backendServices/compute-backendservice-1
+  hostRule:
+  - hosts:
+    - example.com
+    pathMatcher: allpaths
+  location: global
+  pathMatcher:
+  - defaultService:
+      backendServiceRef:
+        external: projects/tjr-dm-test-1/global/backendServices/compute-backendservice-2
+    name: allpaths
+    pathRule:
+    - paths:
+      - /home
+      service:
+        backendServiceRef:
+          external: projects/tjr-dm-test-1/global/backendServices/compute-backendservice-3
+    - paths:
+      - /foo
+      service:
+        backendBucketRef:
+          external: projects/tjr-dm-test-1/global/backendBuckets/compute-backendbucket

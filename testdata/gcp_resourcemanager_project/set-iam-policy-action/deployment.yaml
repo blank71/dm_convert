@@ -1,0 +1,26 @@
+resources:
+- name: set-iam-policy-completely
+  action: gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.setIamPolicy
+  properties:
+    resource: $(ref.test-project.projectId)
+    policy:
+      bindings:
+      - members:
+        - serviceAccount:service-account@testdomain.com
+        role: roles/editor
+      - members:
+        - user:user@testdomain.com
+        role: roles/deploymentmanager.editor
+      - members:
+        - group:group@testdomain.com
+        role: roles/deploymentmanager.editor
+      - members: []
+        role: roles/appengine.codeViewer
+- name: test-project
+  type: gcp-types/cloudresourcemanager-v1:projects
+  properties:
+    name: test-project
+    projectId: project-id
+    parent:
+      type: organization
+      id: "123456789"

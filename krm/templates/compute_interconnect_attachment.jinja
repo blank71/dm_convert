@@ -1,0 +1,46 @@
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeInterconnectAttachment
+metadata:
+{%- if resource['properties']['labels'] is defined %}
+  labels: {{ resource['properties']['labels'] }}
+{%- endif %}
+{%- if resource['properties']['name'] is defined %}
+  name: {{ resource['properties']['name'] }}
+{%- else %}
+  name: {{ resource['name'] }}
+{%- endif %}
+spec:
+{%- if resource['properties']['adminEnabled'] is defined %}
+  adminEnabled: {{ resource['properties']['adminEnabled'] }}
+{%- endif %}
+{%- if resource['properties']['bandwidth'] is defined %}
+  bandwidth: {{ resource['properties']['bandwidth'] }}
+{%- endif %}
+{%- if resource['properties']['candidateSubnets'] is defined %}
+  candidateSubnets: {{ resource['properties']['candidateSubnets'] }}
+{%- endif %}
+{%- if resource['properties']['description'] is defined %}
+  description: {{ resource['properties']['description'] }}
+{%- endif %}
+{%- if resource['properties']['edgeAvailabilityDomain'] is defined %}
+  edgeAvailabilityDomain: {{ resource['properties']['edgeAvailabilityDomain'] }}
+{%- endif %}
+{%- if resource['properties']['interconnect'] is defined %}
+  interconnect: {{ resource['properties']['interconnect'] }}
+{%- endif %}
+{%- if resource['properties']['region'] is defined %}
+  region: {{ resource['properties']['region'] }}
+{%- endif %}
+{%- if resource['properties']['router'] is defined %}
+  routerRef:
+    name: {{ resource['properties']['router'].split('/')[-1] }}
+{%- endif %}
+{%- if resource['properties']['type'] is defined %}
+  type: {{ resource['properties']['type'] }}
+{%- endif %}
+{%- if resource['properties']['vlanTag8021q'] is defined %}
+  vlanTag8021q: {{ resource['properties']['vlanTag8021q'] }}
+{%- endif %}
+# DM fields not present in KCC:
+# operationalStatus
+# partnerMetadata

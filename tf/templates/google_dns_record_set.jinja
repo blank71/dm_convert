@@ -1,0 +1,43 @@
+{%- import 'tf_macros.jinja' as macros -%}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set managedZone = macros.hydrate_ref(properties['managedZone']) -%}
+{%- if 'records' in properties %}
+{%- for record in properties['records'] %}
+{%- set prefix_resource_name = macros.get_name(resource, properties) %}
+{%- set nested_resource_name = macros.normalize(prefix_resource_name ~ "_" ~ loop.index | string) %}
+#tfimport-terraform import google_dns_record_set.{{ nested_resource_name | replace("\"", "") }} {{ macros.import_project(properties['project']) }}/{{ managedZone }}/{{ nested_resource_name | replace("\"", "") }}/{{ record['type'] }}
+resource "google_dns_record_set" {{ nested_resource_name }} {
+  {{- macros.write_provider() }}
+  name = {{ nested_resource_name[:-1] }}."
+  {{- macros.fields(properties, {
+    'managedZone': 'managed_zone',
+    'project': 'project'
+  }, ' ' * 2) }}
+  {{- macros.fields(record, {
+    'type': 'type',
+    'ttl': 'ttl',
+    'rrdatas': 'rrdatas',
+  }, ' ' * 2) }}
+
+  {{- macros.format_lifecycle_directive(resource) }}
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}
+{{- "\n" if not loop.last else "" }}
+{%- endfor %}
+{%- else %}
+#tfimport-terraform import google_dns_record_set.{{ macros.get_name(resource, properties) }} {{ macros.import_project(properties['project']) }}/{{ managedZone }}/{{ macros.get_name(resource, properties) }}/{{ properties['type'] }}
+resource "google_dns_record_set" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  name = "{{ macros.get_name(resource, properties) }}."
+  {{- macros.fields(properties, {
+    'managedZone': 'managed_zone',
+    'project': 'project',
+    'type': 'type',
+    'ttl': 'ttl',
+    'rrdatas': 'rrdatas',
+  }, ' ' * 2) }}
+
+  {{- macros.format_lifecycle_directive(resource) }}
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}
+{%- endif %}

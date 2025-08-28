@@ -1,0 +1,161 @@
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeDisk
+metadata:
+  name: compute-disk
+spec:
+  description: a sample encrypted, blank disk
+  location: us-west1-c
+  physicalBlockSizeBytes: 4096
+  size: 1
+  type: pd-ssd
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeImage
+metadata:
+  name: compute-image
+spec:
+  description: A sample image created from an empty disk resource
+  diskRef:
+    name: compute-disk
+  rawDisk:
+    containerType: TAR
+    source: test-source
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeNetwork
+metadata:
+  name: compute-network
+spec:
+  autoCreateSubnetworks: false
+  routingMode: REGIONAL
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeSubnetwork
+metadata:
+  name: compute-subnetwork
+spec:
+  description: a sample subnetwork
+  ipCidrRange: 10.2.0.0/16
+  logConfig:
+    aggregationInterval: INTERVAL_10_MIN
+    filterExpr: 'true'
+    flowSampling: 0.5
+    metadata: INCLUDE_ALL_METADATA
+  networkRef:
+    name: compute-network
+  privateIpGoogleAccess: false
+  region: us-west1
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeInstanceTemplate
+metadata:
+  labels:
+    env: dev
+  name: compute-instancetemplate
+spec:
+  description: a sample instance template
+  disk:
+  - autoDelete: false
+    boot: true
+    interface: SCSI
+    sourceDiskRef:
+      name: compute-disk
+  - autoDelete: true
+    deviceName: attachment
+    diskName: sample-attached-disk
+    diskSizeGb: 10
+    diskType: pd-ssd
+    interface: SCSI
+    sourceImageRef:
+      name: compute-image
+    type: PERSISTENT
+  guestAccelerator:
+  - count: 1
+    type: nvidia-tesla-k80
+  instanceDescription: a sample instance created from the sample instance template
+  machineType: n1-standard-1
+  minCpuPlatform: Intel Skylake
+  networkInterface:
+  - aliasIpRange:
+    - ipCidrRange: /16
+      subnetworkRangeName: sub-range
+    networkIp: 10.2.0.1
+    networkRef:
+      name: compute-network
+    subnetworkRef:
+      name: compute-subnetwork
+  scheduling:
+    automaticRestart: true
+    onHostMaintenance: MIGRATE
+    preemptible: false
+  serviceAccount:
+    scopes:
+    - compute-ro
+    - storage-ro
+    - userinfo-email
+    serviceAccountRef:
+      external: cnrm-system@tjr-dm-test-1.iam.gserviceaccount.com
+  shieldedInstanceConfig:
+    enableIntegrityMonitoring: true
+    enableSecureBoot: false
+    enableVtpm: true
+  tags:
+  - foo
+  - bar
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeInstanceTemplate
+metadata:
+  labels:
+    env: dev
+  name: compute-beta-instancetemplate
+spec:
+  description: a sample  beta instance template
+  disk:
+  - autoDelete: false
+    boot: true
+    interface: SCSI
+    sourceDiskRef:
+      name: compute-disk
+  - autoDelete: true
+    deviceName: attachment
+    diskName: sample-attached-disk
+    diskSizeGb: 10
+    diskType: pd-ssd
+    interface: SCSI
+    sourceImageRef:
+      name: compute-image
+    type: PERSISTENT
+  guestAccelerator:
+  - count: 1
+    type: nvidia-tesla-k80
+  instanceDescription: a sample beta instance created from the sample instance template
+  machineType: n1-standard-1
+  minCpuPlatform: Intel Skylake
+  networkInterface:
+  - aliasIpRange:
+    - ipCidrRange: /16
+      subnetworkRangeName: sub-range
+    networkIp: 10.2.0.1
+    networkRef:
+      name: compute-network
+    subnetworkRef:
+      name: compute-subnetwork
+  scheduling:
+    automaticRestart: true
+    onHostMaintenance: MIGRATE
+    preemptible: false
+  serviceAccount:
+    scopes:
+    - compute-ro
+    - storage-ro
+    - userinfo-email
+    serviceAccountRef:
+      external: cnrm-system@tjr-dm-test-1.iam.gserviceaccount.com
+  shieldedInstanceConfig:
+    enableIntegrityMonitoring: true
+    enableSecureBoot: false
+    enableVtpm: true
+  tags:
+  - foo
+  - bar

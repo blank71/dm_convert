@@ -1,0 +1,15 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+#tfimport-terraform import google_folder.{{ macros.get_name(resource, properties) }} {{ macros.get_name(resource, properties) }}
+resource "google_folder" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.fields(properties, {
+    'displayName': 'display_name',
+    'parent': 'parent',
+  }, ' ' * 2) }}
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}
+
+{#-
+1. [TF] lifecycle_state - readonly? have not find any usage in DM
+#}

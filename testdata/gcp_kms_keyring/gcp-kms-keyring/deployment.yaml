@@ -1,0 +1,6 @@
+resources:
+- name: kms-keyring
+  properties:
+    keyRingId: kms-keyring
+    parent: projects/tjr-dm-test-1/locations/us-central1
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings

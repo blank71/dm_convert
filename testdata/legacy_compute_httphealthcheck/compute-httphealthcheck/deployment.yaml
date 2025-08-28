@@ -1,0 +1,11 @@
+resources:
+- name: compute-httphealthcheck
+  properties:
+    checkIntervalSec: 10
+    description: example HTTP health check
+    healthyThreshold: 2
+    port: 80
+    requestPath: /
+    timeoutSec: 5
+    unhealthyThreshold: 2
+  type: compute.v1.httpHealthCheck

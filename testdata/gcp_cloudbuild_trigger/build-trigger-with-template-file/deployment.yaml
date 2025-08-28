@@ -1,0 +1,19 @@
+resources:
+- name: cloud-buildtrigger
+  properties:
+    description: Cloud Build Trigger with a build template file. Builds the master
+      branch of the referenced Cloud Source Repository.
+    disabled: false
+    filename: cloudbuild.yaml
+    ignoredFiles:
+    - '**/*.md'
+    includedFiles:
+    - src/**
+    name: cloud-buildtrigger
+    substitutions:
+      _SERVICE_NAME: service-name
+    triggerTemplate:
+      branchName: master
+      dir: team-a/service-b
+      repoName: projects/tjr-dm-test-1/repos/sourcerepo-repo
+  type: gcp-types/cloudbuild-v1:projects.triggers

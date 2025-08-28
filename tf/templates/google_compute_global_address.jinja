@@ -1,0 +1,22 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set resource_name = resource.get('name') -%}
+#tfimport-terraform import google_compute_global_address.{{ macros.get_name(resource, properties) }}  __project__/{{- resource_name }}
+resource "google_compute_global_address" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  name = "{{- resource_name }}"
+  {{- macros.fields(properties, {
+    'address': 'address',
+    'description': 'description',
+    'ipVersion': 'ip_version',
+    'prefixLength': 'prefix_length',
+    'addressType': 'address_type',
+    'purpose': 'purpose',
+    'project': 'project',
+  }, ' ' * 2) }}
+  {%- if 'network' in properties %}
+  {%- set network = resource['properties']['network'] %}
+  {{ 'network = ' + macros.normalize(network) }}
+  {%- endif %}
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}

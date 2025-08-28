@@ -1,0 +1,28 @@
+apiVersion: sql.cnrm.cloud.google.com/v1beta1
+kind: SQLDatabase
+metadata:
+{%- if resource['properties']['project'] is defined %}
+  annotations:
+    cnrm.cloud.google.com/project-id: {{ resource['properties']['project'] }}
+{%- endif %}
+{%- if resource['properties']['labels'] is defined %}
+  labels: {{ resource['properties']['labels'] }}
+{%- endif %}
+{%- if resource['properties']['name'] is defined %}
+  name: {{ resource['properties']['name'] }}
+{%- else %}
+  name: {{ resource['name'] }}
+{%- endif %}
+spec:
+{%- if resource['properties']['charset'] is defined %}
+  charset: {{ resource['properties']['charset'] }}
+{%- endif %}
+{%- if resource['properties']['collation'] is defined %}
+  collation: {{ resource['properties']['collation'] }}
+{%- endif %}
+{%- if resource['properties']['instance'] is defined %}
+  instanceRef:
+    name: {{ resource['properties']['instance'].split('/')[-1] }}
+{%- endif %}
+# DM fields not present in KCC:
+# sqlserverDatabaseDetails

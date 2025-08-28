@@ -1,0 +1,152 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set resource_name = macros.get_resource_name(resource,properties) -%}
+{%- set default_sql_version = "MYSQL_8_0" -%}
+#tfimport-terraform import google_sql_database_instance.{{ macros.get_name(resource, properties) }}  __project__/{{ resource_name }}
+resource "google_sql_database_instance" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  name = "{{resource_name}}"
+  {%- if 'databaseVersion' not in properties %}
+  database_version = "{{ default_sql_version }}"
+  {%- endif %}
+  {{- macros.fields(properties, {
+    'databaseVersion': 'database_version',
+    'region': 'region',
+    'project': 'project',
+    'masterInstanceName': 'master_instance_name',
+    'rootPassword': 'root_password',
+    'maintenanceVersion': 'maintenance_version',
+    'instanceType': 'instance_type',
+    'encryptionKeyName': 'encryption_key_name',
+    'deletionProtection': 'deletion_protection',
+  }, ' ' * 2) }}
+  {%- if 'settings' in properties %}
+  settings {
+    {{- macros.fields(properties['settings'], {
+      'tier': 'tier',
+      'dataDiskSizeGb': 'disk_size',
+      'availabilityType': 'availability_type',
+      'pricingPlan': 'pricing_plan',
+      'storageAutoResizeLimit': 'disk_autoresize_limit',
+      'activationPolicy': 'activation_policy',
+      'storageAutoResize': 'disk_autoresize',
+      'dataDiskType': 'disk_type',
+      'edition': 'edition',
+      'connectorEnforcement': 'connector_enforcement',
+      'deletionProtectionEnabled': 'deletion_protection_enabled',
+      'locationPreference': {
+        'map_name': 'location_preference',
+        'zone': 'zone',
+        'secondaryZone': 'secondary_zone',
+      },
+      'dataCacheConfig': {
+        'map_name': 'data_cache_config',
+        'dataCacheEnabled': 'data_cache_enabled',
+      },
+      'maintenanceWindow': {
+        'map_name': 'maintenance_window',
+        'day': 'day',
+        'hour': 'hour',
+        'updateTrack': 'update_track',
+      },
+      'backupConfiguration': {
+        'map_name': 'backup_configuration',
+        'backupRetentionSettings' : {
+          'map_name': 'backup_retention_settings',
+          'retentionUnit': 'retention_unit',
+          'retainedBackups': 'retained_backups',
+        },
+        'binaryLogEnabled': 'binary_log_enabled',
+        'enabled': 'enabled',
+        'location': 'location',
+        'pointInTimeRecoveryEnabled': 'point_in_time_recovery_enabled',
+        'startTime': 'start_time',
+        'transactionLogRetentionDays': 'transaction_log_retention_days',
+      },
+    }, ' ' * 4) }}
+    {{- macros.lists(properties['settings'], {
+      'databaseFlags': {
+        'list_name': 'database_flags',
+        'name': 'name',
+        'value': 'value',
+      },
+    }, ' ' * 4) }}
+    {%- if 'ipConfiguration' in properties['settings'] %}
+    ip_configuration {
+      {{- macros.fields(properties['settings']['ipConfiguration'], {
+        'ipv4Enabled': 'ipv4_enabled',
+        'privateNetwork': 'private_network',
+        'allocatedIpRange': 'allocated_ip_range',
+      }, ' ' * 6) }}
+      {{- macros.lists(properties['settings']['ipConfiguration'], {
+      'authorizedNetworks': {
+        'list_name': 'authorized_networks',
+        'name': 'name',
+        'value': 'value',
+        'expirationTime': 'expiration_time',
+      },
+      }, ' ' * 6) }}
+    }
+    {%- endif %}
+{{ macros.write_labels(properties['settings'], 4, 'user_labels', 'userLabels') }}
+  }
+  {%- endif %}
+  {%- if 'replicaConfiguration' in properties %}
+  replica_configuration{
+    {{- macros.fields(properties['replicaConfiguration'], {
+      'failoverTarget': 'failover_target',
+      'dumpFilePath': 'dump_file_path',
+      'username': 'username',
+      'password': 'password',
+      'connectRetryInterval': 'connect_retry_interval',
+      'masterHeartbeatPeriod': 'master_heartbeat_period',
+      'caCertificate': 'ca_certificate',
+      'clientCertificate': 'client_certificate',
+      'clientKey': 'client_key',
+      'sslCipher': 'ssl_cipher',
+      'verifyServerCertificate': 'verify_server_certificate',
+    }, ' ' * 4) }}
+  }
+  {%- endif %}
+}
+
+{%- set unconvertible_fields = resource | match_missing_fields([
+  'properties.state',
+  'properties.etag',
+  'properties.failoverReplica',
+  'properties.replicaNames',
+  'properties.maxDiskSize',
+  'properties.currentDiskSize',
+  'properties.ipAddresses',
+  'properties.serverCaCert',
+  'properties.instanceType',
+  'properties.ipv6Address',
+  'properties.serviceAccountEmailAddress',
+  'properties.onPremisesConfiguration',
+  'properties.backendType',
+  'properties.selfLink',
+  'properties.suspensionReason',
+  'properties.connectionName',
+  'properties.gceZone',
+  'properties.secondaryGceZone',
+  'properties.diskEncryptionStatus',
+  'properties.scheduledMaintenance',
+  'properties.satisfiesPzs',
+  'properties.availableMaintenanceVersions',
+  'properties.outOfDiskReport',
+  'properties.diskEncryptionConfiguration',
+  'properties.settings.settingsVersion',
+  'properties.settings.authorizedGaeApplications',
+  'properties.settings.replicationType',
+  'properties.settings.databaseReplicationEnabled',
+  'properties.settings.crashSafeReplicationEnabled',
+  'properties.settings.locationPreference.followGaeApplication',
+  'properties.settings.backupConfiguration.replicationLogArchivingEnabled',
+  'properties.settings.denyMaintenancePeriods',
+  'properties.settings.passwordValidationPolicy',
+  'properties.settings.insightsConfig',
+  'properties.settings.sqlServerAuditConfig',
+  'properties.settings.activeDirectoryConfig',
+  'properties.settings.collation',
+  'properties.settings.timeZone',
+  ]) %}

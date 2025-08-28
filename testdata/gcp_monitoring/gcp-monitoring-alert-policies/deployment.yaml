@@ -1,0 +1,40 @@
+resources:
+- name: monitoring-instance-uptime-check
+  properties:
+    combiner: OR
+    conditions:
+    - conditionThreshold:
+        aggregations:
+        - alignmentPeriod: 60s
+          crossSeriesReducer: REDUCE_SUM
+          groupByFields:
+          - resource.label.instance_id
+          perSeriesAligner: ALIGN_RATE
+        comparison: COMPARISON_LT
+        duration: 900s
+        filter: |
+          metric.type="compute.googleapis.com/instance/uptime" AND
+          metadata.user_labels.autoscaled="false" AND
+          metadata.user_labels.monitored="true" AND
+          resource.type="gce_instance"
+        thresholdValue: 1
+        trigger:
+          count: 1
+      displayName: Uptime check for GCE INSTANCE - Platform
+    displayName: rax-mgcp-monitoring-instance-uptime-check
+    documentation:
+      content: |
+        1. Ensure instance is responding.
+           1. See GCE Instance Connectivity for connectivity instructions.
+              - NOTE: Restart stackdriver monitoring agent if instance is accessible but alert is showing absent uptime metric.
+        1. If no response, restart instance.
+           1. `gcloud --project my-project compute instances reset ${INSTANCE}`
+        1. If unable to diagnosis issue or resolve errors, call customer escalation list
+      mimeType: text/markdown
+    enabled: true
+    notificationChannels:
+    - projects/my-project/notificationChannels/123321
+    userLabels:
+      foo: bar
+      label1: value1
+  type: gcp-types/monitoring-v3:projects.alertPolicies

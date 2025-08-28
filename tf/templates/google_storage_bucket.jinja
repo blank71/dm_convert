@@ -1,0 +1,109 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set resource_name = macros.get_name(resource, properties) -%}
+#tfimport-terraform import google_storage_bucket.{{ resource_name }}  {{macros.import_project(properties['projectNumber'])}}/{{ resource['name'] }}
+resource "google_storage_bucket" "{{ resource_name }}" {
+  {{- macros.write_provider() }}
+  name = "{{ resource["name"] }}"
+  {{- macros.fields(properties, {
+    'projectNumber': 'project',
+    'encryption': {
+      'defaultKmsKeyName': 'default_kms_key_name'
+    },
+    'location': 'location',
+    'logging': {
+      'logBucket': 'log_bucket',
+      'logObjectPrefix': 'log_object_prefix'
+    },
+    'retentionPolicy': {
+      'map_name': 'retention_policy',
+      'isLocked': 'is_locked',
+      'retentionPeriod': 'retention_period',
+    },
+    'storageClass': 'storage_class',
+    'versioning': 'versioning',
+    'website': {
+      'mainPageSuffix': 'main_page_suffix',
+      'notFoundPage': 'not_found_page'
+    },
+    'rpo': 'rpo',
+    'publicAccessPrevention': 'public_access_prevention',
+    'project': 'project',
+    'forceDestroy': 'force_destroy',
+    'enableObjectRetention': 'enable_object_retention',
+    'defaultEventBasedHold': 'default_event_based_hold',
+  }, ' ' * 2) }}
+
+  {{- macros.fields(properties.get('billing', {}), {
+    'requesterPays': 'requester_pays',
+  }, ' ' * 2) }}
+
+  {%- if properties.get('iamConfigAccess', {})
+                   .get('uniformBucketLevelAccess', {})
+                   .get('enabled') %}
+  uniform_bucket_level_access = true
+  {%- endif %}
+
+  {{- macros.lists(properties, {
+    'cors': {
+      'origin': 'origin',
+      'method': 'method',
+      'responseHeader': 'response_header',
+      'maxAgeSeconds': 'max_age_seconds'
+    }
+  }, ' ' * 2) }}
+
+  {%- if 'lifecycle' in properties %}
+    {{- macros.lists(properties['lifecycle'], {
+    'rule': {
+      'list_name': 'lifecycle_rule',
+      'action': {
+        'type': 'type',
+        'storageClass': 'storage_class'
+      },
+      'condition': {
+        'age': 'age',
+        'createdBefore': 'created_before',
+        'customTimeBefore': 'custom_time_before',
+        'daysSinceCustomTime': 'days_since_custom_time',
+        'daysSinceNoncurrentTime': 'days_since_noncurrent_time',
+        'matchesStorageClass': 'matches_storage_class',
+        'noncurrentTimeBefore': 'noncurrent_time_before',
+        'numNewerVersions': 'num_newer_versions',
+      }
+    }
+  }, ' ' * 2) }}
+  {%- endif %}
+
+  {{- macros.write_labels(properties) }}
+  {{- macros.format_lifecycle_directive(resource) }}
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}
+
+{%- if "acl" in properties %}
+resource "google_storage_bucket_acl" "{{ resource_name }}_acl" {
+  {{- macros.write_provider() }}
+  bucket      = google_storage_bucket.{{ resource_name }}.name
+  role_entity = [
+  {%- for acl in properties["acl"] %}
+    "{{ acl["role"] }}:{{ acl["entity"]}}",
+  {%- endfor %}
+  ]
+}
+{%- endif %}
+
+{%- if "defaultObjectAcl" in properties %}
+resource "google_storage_default_object_acl" "{{ resource_name }}_default_object_acl" {
+  {{- macros.write_provider() }}
+  bucket      = google_storage_bucket.{{ resource_name }}.name
+  role_entity = [
+  {%- for acl in properties["defaultObjectAcl"] %}
+    "{{ acl["role"] }}:{{ acl["entity"]}}",
+  {%- endfor %}
+  ]
+}
+{%- endif %}
+{%- set import_resource = "b/" + resource['name'] -%}
+{{- macros.convert_access_control("google_storage_bucket",
+      macros.get_name(resource, properties),
+      resource.get('accessControl', {}), import_resource) }}

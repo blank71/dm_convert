@@ -1,0 +1,321 @@
+{%- import 'tf_macros.jinja' as macros -%}
+{#- Contains templating commong between boot disk and attached disks #}
+{%- macro disk_common(disk) %}
+  {{- macros.fields(disk, {
+    'deviceName': 'device_name',
+    'mode': 'mode',
+    'tags': 'tags',
+    'project': 'project',
+    'metadataStartupScript': 'metadata_startup_script',
+    'labels': 'labels',
+    'guestAccelerator': 'guest_accelerator',
+    'desiredStatus': 'desired_status',
+    'allowStoppingForUpdate': 'allow_stopping_for_update',
+  }, ' ' * 4)}}
+  {%- if 'diskEncryptionKey' in disk %}
+    {%- set disk_encryption_key = disk['diskEncryptionKey'] %}
+    {{- macros.fields(disk_encryption_key, {
+      'sha256': 'disk_encryption_keysha256',
+      'kmsKeyName': 'kms_key_name',
+    }, ' ' * 4) }}
+    {%- if 'rawKey' in disk_encryption_key %}
+    {{ 'disk_encryption_key_raw = "%s"' % disk_encryption_key['rawKey'] }}
+    {%- endif %}
+  {%- endif %}
+  {%- if 'source' in disk %}
+    source = {{ disk['source'] | make_reference }}
+  {%- endif %}
+{%- endmacro %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set resource_name = resource.get('name') -%}
+#tfimport-terraform import google_compute_instance.{{ macros.get_name(resource, properties) }}  __project__/{{ properties['zone'] }}/{{ resource_name }}
+resource "google_compute_instance" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  name = "{{ resource_name }}"
+  {{- macros.fields(properties, {
+      'canIpForward': 'can_ip_forward',
+      'deletionProtection': 'deletion_protection',
+      'description': 'description',
+      'hostname': 'hostname',
+      'minCpuPlatform': 'min_cpu_platform',
+      'zone': 'zone',
+  }, ' ' * 2) }}
+  {%- if '/' in properties['machineType'] %}
+  {%- set segments = properties['machineType'].split('/') %}
+  machine_type = "{{ segments[-1] }}"
+  {%- else %}
+  {{- macros.fields(properties, {'machineType': 'machine_type'}, ' ' * 2) }}
+  {%- endif %}
+  {{- macros.fields(properties['tags'], {'items': 'tags'}, ' ' * 2) }}
+  {{- macros.write_labels(properties) }}
+  {%- set boot = namespace(disk={}) %}
+  {%- set scratch_disks = [] %}
+  {%- set attached_disks = [] %}
+  {%- for disk in properties['disks'] %}
+    {%- if 'boot' in disk and disk['boot'] %}
+      {%- set boot.disk = disk %}
+    {%- elif 'type' in disk and disk['type'] == 'SCRATCH' %}
+      {%- set _ = scratch_disks.append(disk) %}
+    {%- else %}
+      {%- set _ = attached_disks.append(disk) %}
+    {%- endif %}
+  {%- endfor %}
+  {%- if boot.disk | length %}
+  boot_disk {
+    {{- disk_common(boot.disk) }}
+    {{- macros.fields(boot.disk, {
+        'autoDelete': 'auto_delete',
+      }, ' ' * 4) }}
+    {%- if 'initializeParams' in boot.disk %}
+    initialize_params {
+      {%- set initialize_params = boot.disk['initializeParams'] %}
+      {{- macros.write_labels(initialize_params) | indent(4) }}
+      {{- macros.fields(initialize_params, {
+        'diskSizeGb': 'size',
+        'sourceImage': 'image',
+      }, ' ' * 6) }}
+      {%- if 'diskType' in initialize_params %}
+      {%- set disk_type = initialize_params['diskType'].rpartition('/')[2] %}
+      {{'type = "%s"' % disk_type }}
+      {%- endif %}
+    }
+    {%- endif %}
+  }
+  {%- endif %}
+  {%- for attached_disk in attached_disks %}
+  attached_disk {
+      {{- disk_common(attached_disk) }}
+  }
+  {%- endfor %}
+  {%- if scratch_disks | length %}
+  {%- for scratch_disk in scratch_disks %}
+  scratch_disk {
+      {{- macros.fields(scratch_disk, {
+        'interface': 'interface',
+      }, ' ' * 4 ) }}
+  }
+  {%- endfor %}
+  {%- endif -%}
+  {%- for network_interface in properties['networkInterfaces'] %}
+  network_interface {
+    {{- macros.fields(network_interface, {
+        'subnetworkProject': 'subnetwork_project',
+        'networkIP': 'network_ip',
+        'nicType': 'nicType',
+        'network': 'network',
+        'subnetwork': 'subnetwork',
+        'queueCount':'queue_count',
+        'stackType': 'stack_type',
+      }, ' ' * 4) }}
+    {%- if 'aliasIpRanges' in network_interface %}
+    {%- for alias_ip_range in network_interface['aliasIpRanges'] %}
+    alias_ip_range {
+      {{- macros.fields(alias_ip_range, {
+        'ipCidrRange': 'ip_cidr_range',
+        'subnetworkRangeName': 'subnetwork_range_name',
+      }, ' ' * 6) }}
+    }
+    {%- endfor %}
+    {%- endif %}
+    {{- macros.lists(network_interface, {
+      'accessConfigs': {
+        'list_name': 'access_config',
+        'natIP': 'nat_ip',
+        'networkTier': 'network_tier',
+        'publicPtrDomainName': 'public_ptr_domain_name'}
+    }, ' ' * 4) }}
+    {%- if 'ipv6AccessConfigs' in network_interface %}
+    {%- for ipv6AccessConfig in network_interface['ipv6AccessConfigs']%}
+    ipv6_access_config {
+      {%- if 'networkTier' in ipv6AccessConfig %}
+      network_tier = {{macros.normalize(ipv6AccessConfig['networkTier'])}}
+      {%- endif %}
+      {%- if 'publicPtrDomainName' in ipv6AccessConfig %}
+        {%- set fully_qualified_domain_name = ipv6AccessConfig['publicPtrDomainName'] %}
+        {%- if fully_qualified_domain_name[-1]!='.' %}
+          {%- set fully_qualified_domain_name = fully_qualified_domain_name+'.' %}
+        {%- endif %}
+      public_ptr_domain_name = {{macros.normalize(fully_qualified_domain_name)}}
+      {%- endif %}
+    }
+    {%- endfor %}
+    {%- endif %}
+  }
+  {%- endfor %}
+  {%- if 'metadata' in properties %}
+  {%- set metainfo = properties['metadata'].get('items', []) %}
+  metadata = {
+    {%- for item in metainfo %}
+    {{ item['key'] }} = {{ macros.normalize(item['value']) }}
+    {%- endfor %}
+  }
+  {%- endif %}
+  {%- if 'resourcePolicies' in properties %}
+  resource_policies = [
+  {%- for policies in properties['resourcePolicies'] %}
+    {{ macros.normalize(policies) }}
+    {{-"," if not loop.last else "" -}}
+  {%- endfor %}
+  ]
+  {%- endif %}
+  {%- if 'scheduling' in properties %}
+    {%- set scheduling = properties['scheduling'] %}
+  scheduling {
+    {{- macros.fields(scheduling, {
+      'automaticRestart': 'automatic_restart',
+      'minNodeCpus': 'minNodeCpus',
+      'onHostMaintenance': 'on_host_maintenance',
+      'preemptible': 'preemptible',
+      'instanceTerminationAction': 'instance_termination_action',
+      'provisioningModel': 'provisioning_model',
+    }, ' ' * 4) }}
+    {%- if 'nodeAffinities' in scheduling %}
+      {%- for nodeAffinity in scheduling['nodeAffinities'] %}
+    node_affinities {
+      {{- macros.fields(nodeAffinity,{
+        'key':'key',
+        'operator':'operator',
+        'values':'values',
+      }, ' ' * 6) }}
+    }
+      {%- endfor %}
+    {%- endif %}
+  }
+  {%- endif %}
+  {%- if 'shieldedInstanceConfig' in properties %}
+  shielded_instance_config {
+  {{- macros.fields(properties['shieldedInstanceConfig'],{
+    'enableIntegrityMonitoring': 'enable_integrity_monitoring',
+    'enableSecureBoot': 'enable_secure_boot',
+    'enableVtpm': 'enable_vtpm',
+  }, ' ' * 4) }}
+  }
+  {%- endif %}
+  {%- if 'displayDevice' in properties %}
+  {%- if 'enableDisplay' in properties['displayDevice'] %}
+  enable_display = {{macros.normalize(properties['displayDevice']['enableDisplay'])}}
+  {%- endif %}
+  {%- endif %}
+  {%- if 'reservationAffinity' in properties %}
+  reservation_affinity {
+  {{- macros.fields(properties['reservationAffinity'],{
+    'consumeReservationType': 'type',
+  }, ' ' * 4) }}
+  {%- if 'consumeReservationType' in properties['reservationAffinity'] %}
+  {%- if properties['reservationAffinity']['consumeReservationType']=="SPECIFIC_RESERVATION" %}
+    specific_reservation{
+    {{- macros.fields(properties['reservationAffinity'],{
+      'key':'key',
+      'values': 'values',
+    }, ' ' * 6) }}
+    }
+  {%- endif %}
+  {%- endif %}
+  }
+  {%- endif %}
+  {%- if 'confidentialInstanceConfig' in properties %}
+    {%- if 'enableConfidentialCompute' in properties['confidentialInstanceConfig'] %}
+  confidential_instance_config {
+    enable_confidential_compute = {{macros.normalize(properties['confidentialInstanceConfig']['enableConfidentialCompute'])}}
+  }
+    {%- endif %}
+  {%- endif %}
+  {%- if 'advancedMachineFeatures' in properties %}
+  advanced_machine_features {
+    {{- macros.fields(properties['advancedMachineFeatures'],{
+      'enableNestedVirtualization': 'enable_nested_virtualization',
+      'threadsPerCore':'threads_per_core',
+      'visibleCoreCount':'visible_core_count',
+    }, ' ' * 6) }}
+  }
+  {%- endif %}
+  {%- if 'networkPerformanceConfig' in properties %}
+  {%- if 'totalEgressBandwidthTier' in properties['networkPerformanceConfig'] %}
+  network_performance_config {
+    total_egress_bandwidth_tier = {{macros.normalize(properties['networkPerformanceConfig']['totalEgressBandwidthTier'])}}
+  }
+  {%- endif %}
+  {%- endif %}
+  {%- if 'guestAccelerators' in properties %}
+  {%- for guest_accelerator in properties['guestAccelerators'] %}
+  guest_accelerator {
+    {%- if 'acceleratorCount' in guest_accelerator %}
+    count = "{{- guest_accelerator['acceleratorCount'] -}}"
+    {%- endif %}
+    {%- if 'acceleratorType' in guest_accelerator %}
+    {{ 'type = "%s"' % guest_accelerator['acceleratorType'].rpartition('/')[2] }}
+    {%- endif %}
+  }
+  {%- endfor %}
+  {%- endif %}
+  {%- if 'serviceAccounts' in properties and properties['serviceAccounts'] %}
+  service_account {
+    {%- set service_account = properties['serviceAccounts'][0] %}
+    {{- macros.fields(service_account, {
+      'email': 'email',
+    }, ' ' * 4) }}
+    {%- if 'scopes' in service_account %}
+    scopes = [
+      {%- for scope in service_account['scopes'] %}
+        {{- '"%s"' % scope -}}
+        {{- ", " if not loop.last else "" -}}
+      {%- endfor -%}
+      ]
+    {%- endif %}
+  }
+  {%- endif %}
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}
+
+{%- set unconvertible_fields = resource | match_missing_fields([
+  'properties.tags.fingerprint',
+  'properties.networkInterfaces.ipv6Address',
+  'properties.networkInterfaces.internalIpv6PrefixLength',
+  'properties.networkInterfaces.accessConfigs.type',
+  'properties.networkInterfaces.accessConfigs.name',
+  'properties.networkInterfaces.accessConfigs.externalIpv6',
+  'properties.networkInterfaces.accessConfigs.externalIpv6PrefixLength',
+  'properties.networkInterfaces.accessConfigs.setPublicPtr',
+  'properties.networkInterfaces.ipv6AccessConfigs.type',
+  'properties.networkInterfaces.ipv6AccessConfigs.name',
+  'properties.networkInterfaces.ipv6AccessConfigs.natIP',
+  'properties.networkInterfaces.ipv6AccessConfigs.externalIpv6',
+  'properties.networkInterfaces.ipv6AccessConfigs.externalIpv6PrefixLength',
+  'properties.networkInterfaces.ipv6AccessConfigs.setPublicPtr',
+  'properties.networkInterfaces.fingerprint',
+  'properties.networkInterfaces.networkAttachment',
+  'properties.disks.savedState',
+  'properties.disks.initializeParams.diskName',
+  'properties.disks.initializeParams.sourceImageEncryptionKey',
+  'properties.disks.initializeParams.sourceSnapshot',
+  'properties.disks.initializeParams.sourceSnapshotEncryptionKey',
+  'properties.disks.initializeParams.description',
+  'properties.disks.initializeParams.replicaZones',
+  'properties.disks.initializeParams.resourcePolicies',
+  'properties.disks.initializeParams.onUpdateAction',
+  'properties.disks.initializeParams.provisionedIops',
+  'properties.disks.initializeParams.licenses',
+  'properties.disks.initializeParams.architecture',
+  'properties.disks.initializeParams.resourceManagerTags',
+  'properties.disks.initializeParams.provisionedThroughput',
+  'properties.disks.guestOsFeatures',
+  'properties.disks.diskEncryptionKey.rawKey',
+  'properties.disks.diskEncryptionKey.rsaEncryptedKey',
+  'properties.disks.diskEncryptionKey.kmsKeyServiceAccount',
+  'properties.disks.forceAttach',
+  'properties.metadata.fingerprint',
+  'properties.scheduling.locationHint',
+  'properties.params',
+  'properties.labelFingerprint',
+  'properties.instanceEncryptionKey',
+  'properties.sourceMachineImage',
+  'properties.shieldedInstanceIntegrityPolicy',
+  'properties.sourceMachineImageEncryptionKey',
+  'properties.fingerprint',
+  'properties.privateIpv6GoogleAccess',
+  'properties.advancedMachineFeatures.enableUefiNetworking',
+  'properties.keyRevocationActionType',
+  ]) %}
+{#-
+1. logic for machineType property is temporary until TF team fixes bug - b/200292248, https://github.com/hashicorp/terraform-provider-google/issues/10428
+#}

@@ -1,0 +1,9 @@
+module "{{resource.get('name')}}"{
+  {%- for property_name in resource['properties'] %}
+    {%- if property_name in resource['references'] %}
+    {{property_name}} = {{resource['properties'][property_name]}}
+    {%-  else %}
+    {{property_name}} = "{{resource['properties'][property_name]}}"
+    {%- endif %}
+  {%- endfor %}
+}

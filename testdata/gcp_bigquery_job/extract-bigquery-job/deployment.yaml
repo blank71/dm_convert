@@ -1,0 +1,55 @@
+resources:
+- name: bigquerydataset
+  properties:
+    datasetReference:
+      datasetId: bigquerydataset
+    friendlyName: bigqueryjob-dep-extract
+  type: gcp-types/bigquery-v2:datasets
+- metadata:
+    dependsOn:
+    - bigquerydataset
+  name: bigquerytable
+  properties:
+    datasetId: $(ref.bigquerydataset.datasetId)
+    friendlyName: bigqueryjob-dep-extract
+    schema:
+      fields:
+      - mode: NULLABLE
+        name: name
+        type: STRING
+      - mode: NULLABLE
+        name: post_abbr
+        type: STRING
+      - mode: NULLABLE
+        name: date
+        type: DATE
+    tableReference:
+      tableId: bigquerytable
+  type: gcp-types/bigquery-v2:tables
+- name: tjr-dm-test-1-storage-bucket
+  type: gcp-types/storage-v1:buckets
+- metadata:
+    dependsOn:
+    - bigquerydataset
+    - bigquerytable
+    - tjr-dm-test-1-storage-bucket
+  name: bigqueryjob
+  properties:
+    configuration:
+      extract:
+        compression: GZIP
+        destinationFormat: CSV
+        destinationUris:
+        - gs://tjr-dm-test-1-bigqueryjob-dep-extract/extract
+        fieldDelimiter: ','
+        printHeader: true
+        sourceTable:
+          datasetId: bigquerydataset
+          projectId: tjr-dm-test-1
+          tableId: $(ref.bigquerytable.tableReference.tableId)
+      labels:
+        label-one: value-one
+    jobReference:
+      jobId: bigqueryjob
+      projectId: tjr-dm-test-1
+  type: gcp-types/bigquery-v2:jobs

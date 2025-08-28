@@ -1,0 +1,71 @@
+resources:
+- name: compute-healthcheck
+  properties:
+    httpHealthCheck:
+      port: 80
+      requestPath: /
+    type: HTTP
+  type: gcp-types/compute-v1:healthChecks
+- name: compute-network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+  type: gcp-types/compute-v1:networks
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-instancegroup
+  properties:
+    network: $(ref.compute-network.selfLink)
+    zone: us-west1-a
+  type: gcp-types/compute-v1:instanceGroups
+- metadata:
+    dependsOn:
+    - compute-healthcheck
+    - compute-instancegroup
+  name: compute-regionbackendservice
+  properties:
+    backends:
+    - balancingMode: RATE
+      capacityScaler: 0.9
+      description: An instance group serving this backend with 90% of its capacity,
+        as calculated by requests per second.
+      group: $(ref.compute-instancegroup.selfLink)
+      maxRate: 10000
+    circuitBreakers:
+      maxConnections: 1024
+      maxPendingRequests: 1024
+      maxRequests: 1024
+      maxRequestsPerConnection: 1
+      maxRetries: 3
+    connectionDraining:
+      drainingTimeoutSec: 10
+    consistentHash:
+      httpHeaderName: Hash string
+      minimumRingSize: 1024
+    description: Internal managed backend service with Maglev session affinity.
+    healthChecks:
+    - $(ref.compute-healthcheck.selfLink)
+    loadBalancingScheme: INTERNAL_MANAGED
+    localityLbPolicy: MAGLEV
+    outlierDetection:
+      baseEjectionTime:
+        nanos: 999999999
+        seconds: 29
+      consecutiveErrors: 5
+      consecutiveGatewayFailure: 5
+      enforcingConsecutiveErrors: 100
+      enforcingSuccessRate: 100
+      interval:
+        nanos: 999999999
+        seconds: 9
+      maxEjectionPercent: 10
+      successRateMinimumHosts: 5
+      successRateRequestVolume: 100
+      successRateStdevFactor: 1900
+    protocol: HTTP
+    region: us-west1
+    sessionAffinity: HEADER_FIELD
+    timeoutSec: 86400
+  type: gcp-types/compute-v1:regionBackendServices

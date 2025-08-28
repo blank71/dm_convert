@@ -1,0 +1,4 @@
+# yamllint disable
+resources:
+- name: malformed-yaml-file
+- invalid-key:: : ::::: aewpfiejw whoops-invalid

@@ -1,0 +1,30 @@
+resources:
+- name: kms-keyring
+  properties:
+    keyRingId: kms-keyring
+    parent: projects/tjr-dm-test-1/locations/us-west1
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings
+- metadata:
+    dependsOn:
+    - kms-keyring
+  name: kms-cryptokey
+  properties:
+    cryptoKeyId: kms-cryptokey
+    labels:
+      key-one: value-one
+    parent: $(ref.kms-keyring.name)
+    purpose: ENCRYPT_DECRYPT
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings.cryptoKeys
+- metadata:
+    dependsOn:
+    - kms-cryptokey
+  name: compute-disk
+  properties:
+    description: a sample encrypted, blank disk
+    diskEncryptionKey:
+      kmsKeyName: $(ref.kms-cryptokey.name)
+    physicalBlockSizeBytes: 4096
+    sizeGb: 1
+    type: projects/tjr-dm-test-1/zones/us-west1-c/diskTypes/pd-ssd
+    zone: us-west1-c
+  type: gcp-types/compute-v1:disks

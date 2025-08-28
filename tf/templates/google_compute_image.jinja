@@ -1,0 +1,26 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set resource_name = resource.get('name') -%}
+#tfimport-terraform import google_compute_image.{{ macros.get_name(resource, properties) }}  __project__/{{- resource_name }}
+resource "google_compute_image" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  name = "{{- resource_name }}"
+  {{- macros.fields(properties, {
+    'description': 'description',
+    'rawDisk': {
+      'map_name': 'raw_disk',
+      'containerType': 'container_type',
+      'source': 'source'
+    },
+    'storageLocations': 'storage_locations',
+    'sourceSnapshot': 'source_snapshot',
+    'sourceImage': 'source_image',
+    'sourceDisk': 'source_disk',
+    'project': 'project',
+    'licenses': 'licenses',
+    'labels': 'labels',
+    'family': 'family',
+    'diskSizeGb': 'disk_size_gb',
+  }, ' ' * 2) }}
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}

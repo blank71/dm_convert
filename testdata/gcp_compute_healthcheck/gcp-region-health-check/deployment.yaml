@@ -1,0 +1,67 @@
+resources:
+- name: compute-healthcheck-tcp
+  properties:
+    checkIntervalSec: 10
+    project: my-test-tcp-dm-project
+    tcpHealthCheck:
+      port: 21
+      portName: tcp
+    type: HTTP
+    region: us-west1
+  type: gcp-types/compute-v1:regionHealthChecks
+
+- name: compute-healthcheck-ssl
+  properties:
+    checkIntervalSec: 10
+    project: my-test-ssl-dm-project
+    sslHealthCheck:
+      port: 443
+      portName: ssl
+    type: HTTP
+    region: europe-west2
+  type: gcp-types/compute-v1:regionHealthChecks
+
+- name: compute-healthcheck-http
+  properties:
+    checkIntervalSec: 10
+    project: my-test-http-dm-project
+    httpHealthCheck:
+      port: 80
+      portName: http
+    type: HTTP
+    region: asia-south1
+  type: gcp-types/compute-v1:regionHealthChecks
+
+- name: compute-healthcheck-https
+  properties:
+    checkIntervalSec: 10
+    project: my-test-https-dm-project
+    httpsHealthCheck:
+      port: 8080
+      portName: https
+    type: HTTP
+    region: us-central1
+  type: gcp-types/compute-v1:regionHealthChecks
+
+- name: compute-healthcheck-http2
+  properties:
+    checkIntervalSec: 10
+    project: my-test-http2-dm-project
+    http2HealthCheck:
+      port: 8081
+      portName: http2
+    type: HTTP
+    region: europe-north1
+  type: gcp-types/compute-v1:regionHealthChecks
+
+- name: compute-healthcheck-grcp
+  properties:
+    checkIntervalSec: 10
+    project: my-test-grcp-dm-project
+    grpcHealthCheck:
+      port: 12345
+      portName: grcp
+      grpcServiceName: hello-world
+    type: HTTP
+    region: asia-east1
+  type: gcp-types/compute-v1:regionHealthChecks

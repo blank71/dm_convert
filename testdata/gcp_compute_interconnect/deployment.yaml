@@ -1,0 +1,9 @@
+resources:
+- name: example-interconnect
+  properties:
+    customerName: example_customer
+    interconnectType: DEDICATED
+    linkType: LINK_TYPE_ETHERNET_10G_LR
+    location: https://www.googleapis.com/compute/v1/projects/dm-convert-prow/global/interconnectLocations/iad-zone1-1
+    requestedLinkCount: 1
+  type: gcp-types/compute-v1:interconnects

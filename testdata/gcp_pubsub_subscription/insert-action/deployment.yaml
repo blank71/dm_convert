@@ -1,0 +1,33 @@
+resources:
+- name: gcp-pubsub-subscription-insert-action-test
+  action: gcp-types/pubsub-v1:pubsub.projects.subscriptions.create
+  properties:
+    name: projects/test-project/subscriptions/test-subscription-name
+    topic: projects/test-project/topics/pubsub-topic
+    ackDeadlineSeconds: 60
+    retainAckedMessages: true
+    messageRetentionDuration: 432000s
+    labels:
+      label1: label1-val
+      label2: label2-val
+    enableMessageOrdering: true
+    expirationPolicy:
+      ttl: 432000s
+    filter: "attributes:foo"
+    deadLetterPolicy:
+      deadLetterTopic: projects/test-project/topics-dead-letter-dest-topic
+      maxDeliveryAttempts: 10
+    retryPolicy:
+      minimumBackoff: 5
+      maximumBackoff: 600
+    detached: false
+  metadata:
+    dependsOn:
+    - pubsub-topic
+    runtimePolicy:
+    - CREATE
+- name: pubsub-topic
+  type: gcp-types/pubsub-v1:projects.topics
+  properties:
+    name: projects/test-project/topics/pubsub-topic
+    topic: pubsub-topic

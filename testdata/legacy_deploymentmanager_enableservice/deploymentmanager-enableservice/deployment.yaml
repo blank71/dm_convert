@@ -1,0 +1,6 @@
+resources:
+- name: deploymentmanager-enable-service
+  properties:
+    consumerId: project:tjr-dm-test-1
+    serviceName: drive
+  type: deploymentmanager.v2.virtual.enableService

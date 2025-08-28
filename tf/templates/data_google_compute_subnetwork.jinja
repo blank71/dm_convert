@@ -1,0 +1,10 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+data "google_compute_subnetwork" "{{ macros.get_name(resource, properties) }}" {
+  name = "{{ resource.get('name') }}"
+  {{- macros.fields(properties, {
+    'region': 'region',
+    'project': 'project',
+  }, ' ' * 2) }}
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}

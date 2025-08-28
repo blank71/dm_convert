@@ -1,0 +1,96 @@
+{%- import 'macros.jinja' as macros %}
+apiVersion: storage.cnrm.cloud.google.com/v1beta1
+kind: StorageBucket
+metadata:
+{%- set properties = resource.get('properties', {}) %}
+{{- macros.fields(properties, {'labels': 'labels'}, ' ' * 2) }}
+{%- if 'name' in properties %}
+  {%- set name = properties['name'] | arbitrary_reference %}
+{%- else %}
+  {%- set name = resource['name'] | arbitrary_reference %}
+{%- endif %}
+  name: {{ name }}
+{%- if properties | set_difference(['name', 'labels', 'project']) %}
+{# At least one field of properties was not converted to metadata and will be converted to spec. #}
+spec:
+  {{- macros.fields(properties, {
+    'cors': 'cors',
+    'defaultEventBasedHold': 'defaultEventBasedHold',
+    'location': 'location',
+    'logging': 'logging',
+    'storageClass': 'storageClass',
+    'versioning': 'versioning',
+    'website': 'website',
+  }, ' ' * 2) }}
+  {%- if 'encryption' in properties %}
+    {%- set encryption = properties['encryption'] %}
+  encryption:
+    {{- macros.fields(encryption, {'defaultKmsKeyName': 'kmsKeyRef'}, ' ' * 4) }}
+  {%- endif %}
+  {%- if 'lifecycle' in properties %}
+    {%- set lifecycle = properties['lifecycle'] %}
+    {{- macros.fields(lifecycle, {'rule': 'lifecycleRule'}, ' ' * 2) }}
+  {%- endif %}
+  {%- if 'retentionPolicy' in properties %}
+    {%- set retention_policy = properties['retentionPolicy'] %}
+  retentionPolicy:
+    {{- macros.fields(retention_policy, {
+      'isLocked': 'isLocked',
+      'retentionPeriod': 'retentionPeriod',
+    }, ' ' * 4) }}
+  {%- endif %}
+  {%- if 'iamConfiguration' in properties %}
+    {%- set iam_configuration = properties['iamConfiguration'] %}
+    {{- macros.fields(iam_configuration['uniformBucketLevelAccess'], {'enabled': 'uniformBucketLevelAccess'}, ' ' * 2) }}
+  {%- endif %}
+  {%- if 'acl' in properties %}
+    {%- for access_control in properties['acl'] %}
+---
+apiVersion: storage.cnrm.cloud.google.com/v1beta1
+kind: StorageBucketAccessControl
+metadata:
+  name: {{ access_control['id'] | arbitrary_reference }}
+spec:
+  bucketRef:
+      {%- if 'name' in properties %}
+    name: {{ properties['name'] | arbitrary_reference }}
+      {%- else %}
+    name: {{ resource['name'] | arbitrary_reference }}
+      {%- endif %}
+      {{- macros.fields(access_control, {
+        'entity': 'entity',
+        'role': 'role',
+      }, ' ' * 2) }}
+    {%- endfor %}
+  {%- endif %}
+  {%- if 'defaultObjectAcl' in properties %}
+    {%- for default_object_access_control in properties['defaultObjectAcl'] %}
+---
+apiVersion: storage.cnrm.cloud.google.com/v1beta1
+kind: StorageDefaultObjectAccessControl
+metadata:
+  name: {{ default_object_access_control['name'] }}
+spec:
+  bucketRef:
+      {%- if 'name' in properties %}
+    name: {{ properties['name'] | arbitrary_reference }}
+      {%- else %}
+    name: {{ resource['name'] | arbitrary_reference }}
+      {%- endif %}
+      {{- macros.fields(default_object_access_control, {
+        'entity': 'entity',
+        'role': 'role',
+      }, ' ' * 2) }}
+    {%- endfor %}
+  {%- endif %}
+{%- endif %}
+{%- set unconvertable = properties | missing_fields((
+  'metageneration',
+  'etag',
+  'billing',
+)) %}
+{%- if unconvertable %}
+# Unconvertable fields found:
+{{ unconvertable | join('\n# ') }}
+{%- endif %}
+{{- macros.access_control(resource, 'storage', 'StorageBucket', name) }}

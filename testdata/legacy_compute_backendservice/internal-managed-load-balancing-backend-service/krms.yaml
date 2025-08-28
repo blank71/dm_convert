@@ -1,0 +1,126 @@
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeHealthCheck
+metadata:
+  name: compute-healthcheck
+spec:
+  httpHealthCheck:
+    port: 80
+    requestPath: /
+  location: global
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeNetwork
+metadata:
+  name: compute-network
+spec:
+  autoCreateSubnetworks: false
+  routingMode: REGIONAL
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeInstanceGroup
+metadata:
+  name: compute-instancegroup
+spec:
+  networkRef:
+    name: compute-network
+  zone: us-west1-a
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeBackendService
+metadata:
+  name: compute-regionbackendservice
+spec:
+  backend:
+  - balancingMode: RATE
+    capacityScaler: 0.9
+    description: An instance group serving this backend with 90% of its capacity,
+      as calculated by requests per second.
+    group:
+      instanceGroupRef:
+        name: compute-instancegroup
+    maxRate: 10000
+  circuitBreakers:
+    maxConnections: 1024
+    maxPendingRequests: 1024
+    maxRequests: 1024
+    maxRequestsPerConnection: 1
+    maxRetries: 3
+  connectionDrainingTimeoutSec: 10
+  consistentHash:
+    httpHeaderName: Hash string
+    minimumRingSize: 1024
+  description: Internal managed backend service with Maglev session affinity.
+  healthChecks:
+  - healthCheckRef:
+      name: compute-healthcheck
+  loadBalancingScheme: INTERNAL_MANAGED
+  localityLbPolicy: MAGLEV
+  location: us-west1
+  outlierDetection:
+    baseEjectionTime:
+      nanos: 999999999
+      seconds: 29
+    consecutiveErrors: 5
+    consecutiveGatewayFailure: 5
+    enforcingConsecutiveErrors: 100
+    enforcingSuccessRate: 100
+    interval:
+      nanos: 999999999
+      seconds: 9
+    maxEjectionPercent: 10
+    successRateMinimumHosts: 5
+    successRateRequestVolume: 100
+    successRateStdevFactor: 1900
+  protocol: HTTP
+  sessionAffinity: HEADER_FIELD
+  timeoutSec: 86400
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeBackendService
+metadata:
+  name: compute-regionbackendservices
+spec:
+  backend:
+  - balancingMode: RATE
+    capacityScaler: 0.9
+    description: An instance group serving this backend with 90% of its capacity,
+      as calculated by requests per second.
+    group:
+      instanceGroupRef:
+        name: compute-instancegroup
+    maxRate: 10000
+  circuitBreakers:
+    maxConnections: 1024
+    maxPendingRequests: 1024
+    maxRequests: 1024
+    maxRequestsPerConnection: 1
+    maxRetries: 3
+  connectionDrainingTimeoutSec: 10
+  consistentHash:
+    httpHeaderName: Hash string
+    minimumRingSize: 1024
+  description: Internal managed backend service with Maglev session affinity.
+  healthChecks:
+  - healthCheckRef:
+      name: compute-healthcheck
+  loadBalancingScheme: INTERNAL_MANAGED
+  localityLbPolicy: MAGLEV
+  location: us-west1
+  outlierDetection:
+    baseEjectionTime:
+      nanos: 999999999
+      seconds: 29
+    consecutiveErrors: 5
+    consecutiveGatewayFailure: 5
+    enforcingConsecutiveErrors: 100
+    enforcingSuccessRate: 100
+    interval:
+      nanos: 999999999
+      seconds: 9
+    maxEjectionPercent: 10
+    successRateMinimumHosts: 5
+    successRateRequestVolume: 100
+    successRateStdevFactor: 1900
+  protocol: HTTP
+  sessionAffinity: HEADER_FIELD
+  timeoutSec: 86400

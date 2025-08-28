@@ -1,0 +1,16 @@
+resources:
+- name: tjr-dm-test-1-bucket
+  properties:
+    versioning:
+      enabled: true
+  type: gcp-types/storage-v1:buckets
+- metadata:
+    dependsOn:
+    - tjr-dm-test-1-bucket
+  name: compute-backendbucket
+  properties:
+    bucketName: $(ref.tjr-dm-test-1-bucket.name)
+    cdnPolicy:
+      signedUrlCacheMaxAgeSec: 360
+    enableCdn: true
+  type: gcp-types/compute-v1:backendBuckets

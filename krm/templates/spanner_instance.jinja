@@ -1,0 +1,26 @@
+apiVersion: spanner.cnrm.cloud.google.com/v1beta1
+kind: SpannerInstance
+metadata:
+{%- if resource['properties']['instance']['labels'] is defined %}
+  labels: {{ resource['properties']['instance']['labels'] }}
+{%- endif %}
+{%- if resource['properties']['instanceId'] is defined %}
+  name: {{ resource['properties']['instanceId'] }}
+{%- else %}
+  name: {{ resource['name'] }}
+{%- endif %}
+{%- if 'namespace' in context %}
+  namespace: {{ context['namespace'] }}
+{%- elif resource['properties']['parent'] is defined %}
+  namespace: {{ resource['properties']['parent'].split('/')[-1] }}
+{%- endif %}
+spec:
+{%- if resource['properties']['instance']['config'] is defined %}
+  config: {{ resource['properties']['instance']['config'].split('/')[-1] }}
+{%- endif %}
+{%- if resource['properties']['instance']['displayName'] is defined %}
+  displayName: {{ resource['properties']['instance']['displayName'] }}
+{%- endif %}
+{%- if resource['properties']['instance']['nodeCount'] is defined %}
+  numNodes: {{ resource['properties']['instance']['nodeCount'] }}
+{%- endif %}

@@ -1,0 +1,86 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set name_value = macros.if_null('name', properties, resource) -%}
+#tfimport-terraform import google_dns_managed_zone.{{ macros.get_name(resource, properties) }} {{ macros.import_project(properties['project']) }}/{{ name_value | replace("\"", "") }}
+resource "google_dns_managed_zone" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.write_labels(properties) }}
+  name = {{ name_value }}
+  {{- macros.fields(properties, {
+    'dnsName': 'dns_name',
+    'description': 'description',
+    'visibility': 'visibility',
+    'project': 'project',
+  }, ' ' * 2) }}
+
+  {%- if 'dnssecConfig' in properties %}
+  {%- set secConfig = properties['dnssecConfig'] %}
+  dnssec_config {
+    {{- macros.fields(secConfig, {
+      'kind': 'kind',
+      'state': 'state',
+      'nonExistence': 'non_existence'
+    }, ' ' * 4) }}
+
+    {{- macros.unroll_dict(secConfig.get('defaultKeySpecs', {}), 'default_key_specs', {
+      'kind': 'kind',
+      'keyType': 'key_type',
+      'algorithm': 'algorithm',
+      'keyLength': 'key_length'
+    }) | indent(4) }}
+  }
+  {%- endif %}
+
+  {%- if 'privateVisibilityConfig' in properties and 'networks' in properties['privateVisibilityConfig'] %}
+  {%- set networks = properties['privateVisibilityConfig']['networks'] %}
+  private_visibility_config {
+    {%- for network in networks%}
+    networks {
+      network_url = {{ macros.normalize(network['networkUrl']) }}
+    }
+    {%- endfor %}
+  }
+  {%- endif %}
+
+  {%- if 'forwardingConfig' in properties and 'targetNameServers' in properties['forwardingConfig'] %}
+  {%- set targetServers = properties['forwardingConfig']['targetNameServers'] %}
+  forwarding_config {
+    {{- macros.unroll_dict(targetServers, 'target_name_servers', {
+      'ipv4Address': 'ipv4_address',
+      'forwardingPath': 'forwarding_path'
+    }) | indent(4) }}
+  }
+  {%- endif %}
+
+  {{- macros.dict(properties, {
+    'peeringConfig': {
+      'dict_name': 'peering_config',
+      'targetNetwork': {
+        'dict_name': 'target_network',
+        'networkUrl': 'network_url'
+      }
+    }
+  }) | indent(2) }}
+
+  {%- if 'reverseLookupConfig' in properties %}
+  reverse_lookup = true
+  {%- endif %}
+
+  {{- macros.dict(properties, {
+    'serviceDirectoryConfig': {
+      'dict_name': 'service_directory_config',
+      'namespace': {
+        'namespaceUrl': 'namespace_url'
+      }
+    }
+  }) | indent(2) }}
+
+  force_destroy = false
+
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}
+
+{#-
+[TF]
+1. force_destroy is hardcoded to false to mimic DM behavior
+#}

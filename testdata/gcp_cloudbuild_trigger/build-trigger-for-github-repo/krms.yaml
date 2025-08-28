@@ -1,0 +1,56 @@
+apiVersion: cloudbuild.cnrm.cloud.google.com/v1beta1
+kind: CloudBuildTrigger
+metadata:
+  name: cloud-buildtrigger
+spec:
+  build:
+    images:
+    - gcr.io/$PROJECT_ID/${_SERVICE_NAME}:$COMMIT_SHA
+    step:
+    - args:
+      - cp
+      - gs://mybucket/remotefile.zip
+      - localfile.zip
+      id: download_zip
+      name: gcr.io/cloud-builders/gsutil
+      timeout: 120s
+    - args:
+      - build
+      - my_package
+      dir: directory
+      env:
+      - ENV1=one
+      - ENV2=two
+      id: build_package
+      name: gcr.io/cloud-builders/go
+      secretEnv:
+      - SECRET_ENV1
+      timeout: 120s
+    - args:
+      - build
+      - -t
+      - gcr.io/$PROJECT_ID/${_SERVICE_NAME}:$COMMIT_SHA
+      - -f
+      - Dockerfile
+      - .
+      id: build_docker_image
+      name: gcr.io/cloud-builders/docker
+      timeout: 120s
+    tags:
+    - team-a
+    - service-b
+    timeout: 1800s
+  description: Cloud Build Trigger for building the master branch of the GitHub repository
+    at github.com/owner_name/repo_name
+  disabled: false
+  github:
+    name: cloud-foundation-toolkit
+    owner: trodge
+    push:
+      branch: master
+  ignoredFiles:
+  - '**/*.md'
+  includedFiles:
+  - src/**
+  substitutions:
+    _SERVICE_NAME: service-name

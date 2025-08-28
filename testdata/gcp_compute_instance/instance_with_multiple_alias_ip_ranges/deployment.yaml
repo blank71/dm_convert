@@ -1,0 +1,16 @@
+resources:
+- name: test-instance
+  type: gcp-types/compute-v1:instances
+  properties:
+    zone: us-central1-a
+    machineType: zones/us-central1-a/machineTypes/n1-standard-1
+    networkInterfaces:
+    - network: global/networks/default
+      aliasIpRanges:
+      - ipCidrRange: 10.128.0.0/24
+      - ipCidrRange: 10.129.0.0/24
+        subnetworkRangeName: "secondary-range-1"
+    disks:
+    - boot: true
+      initializeParams:
+        sourceImage: projects/debian-cloud/global/images/family/debian-11

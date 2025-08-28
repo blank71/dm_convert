@@ -1,0 +1,48 @@
+apiVersion: pubsub.cnrm.cloud.google.com/v1beta1
+kind: PubSubSubscription
+metadata:
+{%- if resource['properties']['subscription'] is defined %}
+  name: {{ resource['properties']['subscription'] }}
+{%- else %}
+  name: {{ resource['name'] }}
+{%- endif %}
+{%- if resource['properties']['labels'] is defined %}
+  labels: {{ resource['properties']['labels'] }}
+{%- endif %}
+spec:
+{%- if resource['properties']['ackDeadlineSeconds'] is defined%}
+  ackDeadlineSeconds: {{ resource['properties']['ackDeadlineSeconds'] }}
+{%- endif %}
+{%- if resource['properties']['deadLetterPolicy'] is defined %}
+  deadLetterPolicy:
+  {%- if resource['properties']['deadLetterPolicy']['deadLetterTopic'] is defined %}
+    {%- set deadLetterTopic = resource['properties']['deadLetterPolicy']['deadLetterTopic'] %}
+    deadLetterTopicRef: {{ deadLetterTopic | typed_reference }}
+  {%- endif %}
+  {%- if resource['properties']['deadLetterPolicy']['maxDeliveryAttempts'] is defined %}
+    maxDeliveryAttempts: {{ resource['properties']['deadLetterPolicy']['maxDeliveryAttempts'] }}
+  {%- endif %}
+{%- endif %}
+{%- if resource['properties']['enableMessageOrdering'] is defined%}
+  enableMessageOrdering: {{ resource['properties']['enableMessageOrdering'] }}
+{%- endif %}
+{%- if resource['properties']['expirationPolicy'] is defined%}
+  expirationPolicy: {{ resource['properties']['expirationPolicy'] }}
+{%- endif %}
+{%- if resource['properties']['filter'] is defined%}
+  filter: {{ resource['properties']['filter'] }}
+{%- endif %}
+{%- if resource['properties']['messageRetentionDuration'] is defined%}
+  messageRetentionDuration: {{ resource['properties']['messageRetentionDuration'] }}
+{%- endif %}
+{%- if resource['properties']['pushConfig'] is defined%}
+  pushConfig: {{ resource['properties']['pushConfig'] }}
+{%- endif %}
+{%- if resource['properties']['retainAckedMessages'] is defined%}
+  retainAckedMessages: {{ resource['properties']['retainAckedMessages'] }}
+{%- endif %}
+{%- if resource['properties']['retryPolicy'] is defined %}
+  retryPolicy: {{ resource['properties']['retryPolicy'] }}
+{%- endif %}
+{%- set topic = resource['properties']['topic'] %}
+  topicRef: {{ topic | typed_reference }}

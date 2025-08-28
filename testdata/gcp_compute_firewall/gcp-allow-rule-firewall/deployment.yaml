@@ -1,0 +1,27 @@
+resources:
+- name: compute-network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+  type: gcp-types/compute-v1:networks
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-firewall
+  properties:
+    allowed:
+    - IPProtocol: tcp
+      ports:
+      - "80"
+      - 1000-2000
+    - IPProtocol: tcp
+      ports:
+      - "53"
+    - IPProtocol: udp
+      ports:
+      - "53"
+    labels:
+      label-one: value-one
+    network: $(ref.compute-network.selfLink)
+  type: gcp-types/compute-v1:firewalls

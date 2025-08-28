@@ -1,0 +1,17 @@
+apiVersion: storage.cnrm.cloud.google.com/v1beta1
+kind: StorageBucket
+metadata:
+  name: tjr-dm-test-1-bucket
+spec:
+  versioning:
+    enabled: true
+---
+apiVersion: storage.cnrm.cloud.google.com/v1beta1
+kind: StorageBucketAccessControl
+metadata:
+  name: storage-bucketaccesscontrol
+spec:
+  bucketRef:
+    name: tjr-dm-test-1-bucket
+  entity: allAuthenticatedUsers
+  role: READER

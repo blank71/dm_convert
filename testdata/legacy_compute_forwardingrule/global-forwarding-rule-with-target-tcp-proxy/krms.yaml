@@ -1,0 +1,44 @@
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeHealthCheck
+metadata:
+  name: compute-healthcheck
+spec:
+  checkIntervalSec: 10
+  location: global
+  tcpHealthCheck:
+    port: 110
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeBackendService
+metadata:
+  name: compute-backendservice
+spec:
+  healthChecks:
+  - healthCheckRef:
+      name: compute-healthcheck
+  location: global
+  protocol: TCP
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeTargetTCPProxy
+metadata:
+  name: compute-targettcpproxy
+spec:
+  backendServiceRef:
+    name: compute-backendservice
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeForwardingRule
+metadata:
+  labels:
+    label-one: value-one
+  name: compute-globalforwardingrule
+spec:
+  description: A global forwarding rule
+  ipProtocol: TCP
+  ipVersion: IPV4
+  location: global
+  portRange: '110'
+  target:
+    targetTCPProxyRef:
+      name: compute-targettcpproxy

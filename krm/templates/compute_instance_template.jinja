@@ -1,0 +1,156 @@
+{%- import 'macros.jinja' as macros %}
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeInstanceTemplate
+metadata:
+{%- set properties = resource.get('properties', {}) %}
+{{- macros.fields(properties['properties'], {'labels': 'labels'}, ' ' * 2) }}
+{%- if 'name' in properties %}
+  name: {{ properties['name'] | arbitrary_reference }}
+{%- else %}
+  name: {{ resource['name'] | arbitrary_reference }}
+{%- endif %}
+{%- if properties | set_difference(['name', 'labels', 'project']) %}
+{# At least one field of properties was not converted to metadata and will be converted to spec. #}
+spec:
+  {{- macros.fields(properties, {
+    'description': 'description',
+  }, ' ' * 2) }}
+  {%- if 'properties' in properties %}
+    {%- set properties = properties['properties'] %}
+    {{- macros.fields(properties, {
+      'canIpForward': 'canIpForward',
+      'confidentialInstanceConfig': 'confidentialInstanceConfig',
+      'description': 'instanceDescription',
+      'metadata': 'metadata',
+      'minCpuPlatform': 'minCpuPlatform',
+      'region': 'region',
+      'scheduling': 'scheduling',
+      'shieldedInstanceConfig': 'shieldedInstanceConfig',
+    }, ' ' * 2) }}
+    {%- if 'disks' in properties %}
+  disk:
+      {%- for disk in properties['disks'] %}
+        {%- set matching_fields = {
+          'autoDelete': 'autoDelete',
+          'boot': 'boot',
+          'deviceName': 'deviceName',
+          'interface': 'interface',
+          'mode': 'mode',
+          'source': 'sourceDiskRef',
+          'type': 'type',
+        } %}
+        {{- macros.fields(disk, matching_fields, ' ' * 2 + '- ') }}
+        {%- if matching_fields | set_intersection(disk) %}
+          {%- set hyphen = ' ' %}
+        {%- else %}
+          {%- set hyphen = '-' %}
+        {%- endif %}
+        {%- if 'diskEncryptionKey' in disk %}
+          {%- set disk_encryption_key = disk['diskEncryptionKey'] %}
+          {%- set matching_fields = {
+            'sha256': 'diskEncryptionKeysha256',
+            'kmsKeyName': 'kmsKeyRef',
+          } %}
+          {{- macros.fields(disk_encryption_key, matching_fields, ' ' * 2 + hyphen + ' ') }}
+          {%- if matching_fields | set_intersection(disk) %}
+            {%- set hyphen = ' ' %}
+          {%- endif %}
+          {%- if 'rawKey' in disk_encryption_key %}
+        {{ hyphen }} diskEncryptionKeyRaw:
+            {{- macros.fields(disk_encryption_key, {
+              'rawKey': 'value'
+            }, ' ' * 6 + hyphen + ' ') }}
+            {%- set hyphen = ' ' %}
+          {%- endif %}
+        {%- endif %}
+        {%- if 'initializeParams' in disk %}
+          {%- set initialize_params = disk['initializeParams'] %}
+          {{- macros.fields(initialize_params, {
+            'diskName': 'diskName',
+            'diskSizeGb': 'diskSizeGb',
+            'diskType': 'diskType',
+            'labels': 'labels',
+            'sourceImage': 'sourceImageRef',
+          }, ' ' * 4) }}
+        {%- endif %}
+      {%- endfor %}
+    {%- endif %}
+    {%- if 'guestAccelerators' in properties %}
+  guestAccelerator:
+      {%- for guest_accelerator in properties['guestAccelerators'] %}
+        {%- set hyphen = '-' %}
+        {%- if 'acceleratorCount' in guest_accelerator %}
+    {{ hyphen }} count: {{ guest_accelerator['acceleratorCount'] }}
+          {%- set hyphen = ' ' %}
+        {%- endif %}
+        {%- if 'acceleratorType' in guest_accelerator %}
+    {{ hyphen }} type: {{ (guest_accelerator['acceleratorType'] | arbitrary_reference).rpartition('/')[2] }}
+        {%- endif %}
+      {%- endfor %}
+    {%- endif %}
+    {%- if 'machineType' in properties %}
+  machineType: {{ (properties['machineType'] | arbitrary_reference).rpartition('/')[2] }}
+    {%- endif %}
+    {%- if 'networkInterfaces' in properties %}
+  networkInterface:
+      {%- for network_interface in properties['networkInterfaces'] %}
+        {%- set matching_fields = {
+          'aliasIpRanges': 'aliasIpRange',
+          'name': 'name',
+          'networkIP': 'networkIp',
+          'network': 'networkRef',
+          'nicType': 'nicType',
+          'subnetwork': 'subnetworkRef',
+        } %}
+        {{- macros.fields(network_interface, matching_fields, ' ' * 2 + '- ') }}
+        {%- if matching_fields | set_intersection(network_interface) %}
+          {%- set hyphen = ' ' %}
+        {%- else %}
+          {%- set hyphen = '-' %}
+        {%- endif %}
+        {{- macros.lists(network_interface, {'accessConfigs': {
+          'list_name': 'accessConfig',
+          'natIP': 'natIpRef',
+          'networkTier': 'networkTier',
+          'publicPtrDomainName': 'publicPtrDomainName',
+        }}, ' ' * 2 + hyphen + ' ') }}
+        {%- if 'subnetwork' in network_interface %}
+          {%- set subnetwork_ref = network_interface['subnetwork'] | typed_reference %}
+          {%- if 'external' in subnetwork %}
+            {# Subnetwork is url. #}
+  {{ hyphen }} subnetworkProject: {{ subnetwork_ref['external'].split('/')[-5] }}
+          {%- endif %}
+        {%- endif %}
+      {%- endfor %}
+    {%- endif %}
+    {%- if 'serviceAccounts' in properties %}
+  serviceAccount:
+      {%- set service_account = properties['serviceAccounts'][0] %}
+      {{- macros.fields(service_account, {
+        'email': 'serviceAccountRef',
+      }, ' ' * 4) }}
+      {%- if 'scopes' in service_account %}
+    scopes:
+        {%- for scope in service_account['scopes'] %}
+          {%- set scope = scope.rpartition('/')[2] %}
+          {%- if '.' not in scope %}
+            {%- set scope = scope + '-rw' %}
+          {%- endif %}
+          {%- set scope = scope.replace('dev', '').replace('_', '').replace('readonly', 'ro').replace('.', '-') %}
+    - {{ scope }}
+        {%- endfor %}
+      {%- endif %}
+    {%- endif %}
+    {%- if 'tags' in properties and 'items' in properties['tags'] %}
+  tags: {{ properties['tags']['items'] }}
+    {%- endif %}
+  {%- endif %}
+{%- endif %}
+{%- set unconvertable = properties | missing_fields((
+  'sourceInstanceParams',
+  'sourceInstance',
+)) %}
+{%- if unconvertable %}
+# Unconvertable fields found:
+{{ unconvertable | join('\n# ') }}
+{%- endif %}

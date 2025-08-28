@@ -1,0 +1,28 @@
+resources:
+- name: it-global
+  properties:
+    autoHealingPolicies:
+    - healthCheck: fake-health-check-self-link-here
+      initialDelaySec: 900
+    baseInstanceName: it
+    instanceTemplate: projects/my-project/global/instanceTemplates/it-global
+    namedPorts:
+    - name: front
+      port: 443
+    targetSize: 1
+    statefulPolicy:
+      preservedState:
+        disks:
+          test-boot:
+            autoDelete: ON_PERMANENT_INSTANCE_DELETION
+          test-data:
+            autoDelete: NEVER
+    updatePolicy:
+      maxSurge:
+        calculated: 1
+      maxUnavailable:
+        fixed: 0
+      minimalAction: REPLACE
+      type: PROACTIVE
+    zone: europe-west4-a
+  type: compute.v1.instanceGroupManager

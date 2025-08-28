@@ -1,0 +1,12 @@
+variable "name"{
+}
+
+
+variable "autoCreateSubnetworks"{
+    default = "true"
+}
+
+
+variable "routingMode"{
+    default = "REGIONAL"
+}

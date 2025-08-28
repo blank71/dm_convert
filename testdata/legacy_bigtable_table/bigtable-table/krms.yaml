@@ -1,0 +1,27 @@
+apiVersion: bigtable.cnrm.cloud.google.com/v1beta1
+kind: BigtableInstance
+metadata:
+  labels:
+    label-one: value-one
+  name: bigtable-instance
+spec:
+  cluster:
+  - clusterId: bigtable-cluster-1
+    numNodes: 3
+    zone: us-central1-a
+  - clusterId: bigtable-cluster-2
+    numNodes: 3
+    zone: us-west1-a
+  displayName: BigtableSample
+  instanceType: PRODUCTION
+---
+apiVersion: bigtable.cnrm.cloud.google.com/v1beta1
+kind: BigtableTable
+metadata:
+  name: bigtable-table
+spec:
+  columnFamily:
+  - family: family1
+  - family: family2
+  instanceRef:
+    external: projects/tjr-dm-test-1/instances/bigtable-instance

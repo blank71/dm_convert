@@ -1,0 +1,11 @@
+resources:
+- name: compute-healthcheck
+  properties:
+    checkIntervalSec: 10
+    httpHealthCheck:
+      port: 80
+      requestPath: /
+    logConfig:
+      enable: true
+    type: HTTP
+  type: gcp-types/compute-beta:healthChecks

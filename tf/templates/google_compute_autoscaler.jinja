@@ -1,0 +1,28 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) %}
+{%- set name_value = macros.get_name(resource, properties) %}
+#tfimport-terraform import google_compute_autoscaler.{{name_value}} __project__/{{ properties['zone'] }}/{{macros.get_resource_name(resource,properties)}}
+resource "google_compute_autoscaler" "{{name_value}}" {
+  {{- macros.write_provider() }}
+  name = "{{macros.get_resource_name(resource,properties)}}"
+  target = {{ macros.normalize(properties.get('target')) }}
+  {{- macros.fields(properties, {
+    'description': 'description',
+    'project': 'project',
+  }, ' ' * 2) }}
+  {{- macros.fields(properties, {
+    'zone': 'zone'
+  }, ' ' * 2) }}
+  autoscaling_policy {
+    {{- macros.fields(properties.autoscalingPolicy, {
+    'minNumReplicas': 'min_replicas',
+    'maxNumReplicas': 'max_replicas',
+    'coolDownPeriodSec': 'cooldown_period'
+  }, ' ' * 4) }}
+    {%- if 'cpuUtilization' in properties.autoscalingPolicy %}
+    cpu_utilization {
+      target = {{properties.autoscalingPolicy.cpuUtilization.get('utilizationTarget')}}
+    }
+    {%- endif %}
+  }
+}

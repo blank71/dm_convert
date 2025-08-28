@@ -1,0 +1,276 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- if properties['env'] == 'flex' %}
+#tfimport-terraform import google_app_engine_flexible_app_version.{{ macros.get_name(resource, properties) }} __project__/{{properties['servicesId']}}/{{ macros.get_name(resource, properties) }}
+resource "google_app_engine_flexible_app_version" "{{ macros.get_name(resource, properties) }}" {
+{%- else %}
+#tfimport-terraform import google_app_engine_standard_app_version.{{ macros.get_name(resource, properties) }} __project__/{{properties['servicesId']}}/{{ macros.get_name(resource, properties) }}
+resource "google_app_engine_standard_app_version" "{{ macros.get_name(resource, properties) }}" {
+{%- endif %}
+  {{- macros.write_provider() }}
+  {{- macros.fields(properties, {
+    'runtime': 'runtime',
+    'servicesId': 'service',
+    'inboundServices': 'inbound_services',
+    'instanceClass': 'instance_class',
+    'zones': 'zones',
+    'runtimeChannel': 'runtime_channel',
+    'threadsafe': 'threadsafe',
+    'servingStatus': 'serving_status',
+    'runtimeApiVersion': 'runtime_api_version',
+    'runtimeMainExecutablePath': 'runtime_main_executable_path',
+    'defaultExpiration': 'default_expiration',
+    'nobuildFilesRegex': 'nobuild_files_regex',
+    'serviceAccount': 'service_account',
+    'project': 'project',
+    'noopOnDestroy': 'noop_on_destroy',
+    'deleteServiceOnDestroy': 'delete_service_on_destroy',
+    'appEngineApis': 'app_engine_apis',
+  }, ' ' * 2) }}
+  version_id = "{{ macros.get_name(resource, properties) }}"
+
+  {{- macros.map(properties.get('betaSettings'), 'beta_settings') | indent(2) }}
+
+  {%- if 'libraries' in properties %}
+  libraries = [
+    {%- for lib in properties['libraries'] %}
+    {
+      {%- if 'name' in lib %}
+      name = {{ lib['name'] }}
+      {%- endif %}
+      {%- if 'version' in lib %}
+      version = {{ lib['version'] }}
+      {%- endif %}
+    }
+    {%- endfor %}
+  ]
+  {%- endif %}
+
+  {{- macros.map(properties.get('envVariables'), 'env_variables') | indent(2) }}
+
+  {{- macros.map(properties.get('buildEnvVariables'), 'env_variables') | indent(2) }}
+
+  {{- macros.dict(properties, {
+    'apiConfig': {
+      'dict_name': 'api_config',
+      'authFailAction': 'auth_fail_action',
+      'login': 'login',
+      'script': 'script',
+      'securityLevel': 'security_level',
+      'url': 'url'
+    }
+  }) | indent(2) }}
+
+  {{- macros.dict(properties, {
+    'readinessCheck': {
+      'dict_name': 'readiness_check',
+      'path': 'path',
+      'host': 'host',
+      'failureThreshold': 'failure_threshold',
+      'successThreshold': 'success_threshold',
+      'checkInterval': 'check_interval',
+      'timeout': 'timeout',
+      'appStartTimeout': 'app_start_timeout'
+    },
+  }) | indent(2) }}
+
+  {{- macros.dict(properties, {
+    'livenessCheck': {
+      'dict_name': 'liveness_check',
+      'path': 'path',
+      'host': 'host',
+      'failureThreshold': 'failure_threshold',
+      'successThreshold': 'success_threshold',
+      'checkInterval': 'check_interval',
+      'timeout': 'timeout',
+      'initialDelay': 'initial_delay'
+    },
+  }) | indent(2) }}
+
+  {%- if 'deployment' in properties %}
+  deployment {
+    {{- macros.dict(properties['deployment'], {
+      'zip': {
+        'sourceUrl': 'source_url',
+        'filesCount': 'files_count'
+      },
+      'container': {
+        'image': 'image'
+      },
+      'cloudBuildOptions': {
+        'dict_name': 'cloud_build_options',
+        'appYamlPath': 'app_yaml_path',
+        'cloudBuildTimeout': 'cloud_build_timeout'
+      }
+    }) | indent(4) }}
+
+    {%- if 'files' in properties['deployment'] %}
+    {%- set file = properties['deployment']['files'].items() | first %}
+    files {
+      name = "{{ file[0] }}"
+      source_url = "{{ file[1]['sourceUrl'] }}"
+      sha1_sum = "{{ file[1]['sha1Sum'] }}"
+    }
+    {%- endif %}
+  }
+  {%- endif %}
+
+  {{- macros.dict(properties, {
+    'network': {
+      'forwardedPorts': 'forwarded_ports',
+      'instanceTag': 'instance_tag',
+      'name': 'name',
+      'subnetworkName': 'subnetwork',
+      'sessionAffinity': 'session_affinity',
+    },
+  }) | indent(2) }}
+
+  {%- if 'resources' in properties %}
+  resources {
+    {{- macros.fields(properties, {
+      'cpu': 'cpu',
+      'diskGb': 'disk_gb',
+      'memoryGb': 'memory_gb'
+    }, ' ' * 4) }}
+    {{- macros.unroll_dict(properties['resources'].get('volumes'), 'volumes', {
+      'name': 'name',
+      'volumeType': 'volume_type',
+      'sizeGb': 'size_gb'
+    }) | indent(4) }}
+  }
+  {%- endif %}
+
+  {%- if 'handlers' in properties %}
+  handlers {
+    {%- for handler in properties['handlers'] %}
+      {{- macros.fields(handler, {
+        'urlRegex': 'url_regex',
+        'securityLevel': 'security_level',
+        'login': 'login',
+        'authFailAction': 'auth_fail_action',
+        'redirectHttpResponseCode': 'redirect_http_response_code',
+      }, ' ' * 4) }}
+      {%- if 'staticFiles' in handler %}
+      static_files {
+        {{- macros.fields(handler['staticFiles'], {
+          'path': 'path',
+          'uploadPathRegex': 'upload_path_regex',
+          'mimeType': 'mime_type',
+          'expiration': 'expiration',
+          'requireMatchingFile': 'require_matching_file',
+          'applicationReadable': 'application_readable',
+        }, ' ' * 4) }}
+        {{- macros.map(handler.get('httpHeaders'), 'http_headers') | indent(4) }}
+      }
+      {%- endif %}
+      {{- macros.dict(handler, {
+        'script': {
+          'scriptPath': 'script_path'
+        }
+      }) | indent(4) }}
+    {%- endfor %}
+  }
+  {%- endif %}
+
+  {{- macros.dict(properties, {
+    'endpointsApiService': {
+      'dict_name': 'endpoints_api_service',
+      'name': 'name',
+      'configId': 'config_id',
+      'rolloutStrategy': 'rollout_strategy',
+      'disableTraceSampling': 'disable_trace_sampling'
+    }
+  }) | indent(2) }}
+
+  {{- macros.dict(properties, {
+    'entrypoint': {
+      'shell': 'shell'
+    }
+  }) | indent(2) }}
+
+  {{- macros.dict(properties, {
+    'vpcAccessConnector': {
+      'dict_name': 'vpc_access_connector',
+      'name': 'name'
+    }
+  }) | indent(2) }}
+
+  {{- macros.dict(properties, {
+    'automaticScaling': {
+      'dict_name': 'automatic_scaling',
+      'coolDownPeriod': 'cool_down_period',
+      'cpuUtilization': {
+        'dict_name': 'cpu_utilization',
+        'aggregationWindowLength': 'aggregation_window_length',
+        'targetUtilization': 'target_utilization'
+      },
+      'maxConcurrentRequests': 'max_concurrent_requests',
+      'maxIdleInstances': 'max_idle_instances',
+      'maxTotalInstances': 'max_total_instances',
+      'maxPendingLatency': 'max_pending_latency',
+      'minIdleInstances': 'min_idle_instances',
+      'minTotalInstances': 'min_total_instances',
+      'minPendingLatency': 'min_pending_latency',
+      'requestUtilization': {
+        'dict_name': 'request_utilization',
+        'targetRequestCountPerSecond': 'target_request_count_per_second',
+        'targetConcurrentRequests': 'target_concurrent_requests',
+      },
+      'diskUtilization': {
+        'dict_name': 'disk_utilization',
+        'targetWriteBytesPerSecond': 'target_write_bytes_per_second',
+        'targetWriteOpsPerSecond': 'target_write_ops_per_second',
+        'targetReadBytesPerSecond': 'target_read_bytes_per_second',
+        'targetReadOpsPerSecond': 'target_read_ops_per_second',
+      },
+      'networkUtilization': {
+        'dict_name': 'request_utilization',
+        'targetSentBytesPerSecond': 'target_sent_bytes_per_second',
+        'targetSentPacketsPerSecond': 'target_sent_packets_per_second',
+        'targetReceivedBytesPerSecond': 'target_received_bytes_per_second',
+        'targetReceivedPacketsPerSecond': 'target_received_packets_per_second',
+      },
+      'standardSchedulerSettings': {
+        'dict_name': 'standard_scheduler_settings',
+        'targetCpuUtilization': 'target_cpu_utilization',
+        'targetThroughputUtilization': 'target_throughput_utilization',
+        'minInstances': 'min_instances',
+        'maxInstances': 'max_instances',
+      },
+      'basicScaling': {
+        'dict_name': 'basic_scaling',
+        'idleTimeout': 'idle_timeout',
+        'maxInstances': 'max_instances'
+      },
+      'manualScaling': {
+        'dict_name': 'manual_scaling',
+        'instances': 'instances'
+      }
+    }
+  }) | indent(2) }}
+
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}
+
+{#-
+1. appsId - no such property on api page
+
+2. [DM] zones not found
+    [DM] vm not found
+    [DM] handlers.apiEndpoint not found
+    [DM] buildEnvVariables not found
+    [DM] healthCheck not found
+
+3. [TF] version_id not found
+
+4. [TF] threadsafe only in standard
+    [TF] service only in standard
+    [TF] libraries only in standard
+    [TF] automaticScaling.standardSchedulerSettings only in standard
+    [TF] automaticScaling.basicScaling only in standard
+
+5. [TF] defaultExpiration only in flexible
+    [TF] nobuildFilesRegex only in flexible
+    [TF] endpointsApiService only in flexible
+    [TF] deployment only in flexible
+#}

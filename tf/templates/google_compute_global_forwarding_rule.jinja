@@ -1,0 +1,48 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set name_value = macros.if_null('name', properties, resource) -%}
+#tfimport-terraform import google_compute_global_forwarding_rule.{{ macros.get_name(resource, properties) }}  __project__/{{ name_value | replace("\"", "") }}
+resource "google_compute_global_forwarding_rule" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.write_labels(properties) }}
+  name = {{ name_value }}
+  {{- macros.fields(properties, {
+    'IPAddress': 'ip_address',
+    'IPProtocol': 'ip_protocol',
+    'allPorts': 'all_ports',
+    'allowGlobalAccess': 'allow_global_access',
+    'backendService': 'backend_service',
+    'description': 'description',
+    'ipVersion': 'ip_version',
+    'isMirroringCollector': 'is_mirroring_collector',
+    'loadBalancingScheme': 'load_balancing_scheme',
+    'network': 'network',
+    'portRange': 'port_range',
+    'ports': 'ports',
+    'serviceLabel': 'service_label',
+    'subnetwork': 'subnetwork',
+    'target': 'target',
+    'sourceIpRanges': 'source_ip_ranges',
+    'project': 'project',
+    'noAutomateDnsZone': 'no_automate_dns_zone',
+    'labels': 'labels',
+    'ipProtocol': 'ip_protocol',
+    'ipAddress': 'ip_address',
+  }, ' ' * 2) }}
+
+  {{- macros.lists(properties, {
+    'metadataFilters': {
+      'list_name': 'metadata_filters',
+      'filterLabels': 'filter_labels',
+      'filterMatchCriteria': 'filter_match_criteria'
+    }
+  }, ' ' * 2, false) }}
+
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}
+
+{#-
+   field check
+  5. [DM]: networkTier: ignored as PREMIUM is the only valid value according to
+   https://cloud.google.com/compute/docs/reference/rest/v1/globalForwardingRules
+#}

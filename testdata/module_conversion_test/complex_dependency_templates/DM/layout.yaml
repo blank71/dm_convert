@@ -1,0 +1,56 @@
+resources:
+- name: compute-engine-setup
+  properties:
+    network: network-2
+    vm1_machineType: f1-micro
+    vm1_zone: us-central1-f
+    vm2_machineType: g1-small
+    vm2_zone: us-west1-a
+    vm3_machineType: e2-small
+    vm3_zone: us-central1-a
+  resources:
+  - name: vm-1
+    properties:
+      machineType: f1-micro
+      network: network-1
+      zone: us-central1-f
+    resources:
+    - name: vm-1
+      type: compute.v1.instance
+    type: vm-template.py
+  - name: vm-2
+    properties:
+      machineType: g1-small
+      network: network-1
+      zone: us-west1-a
+    resources:
+    - name: vm-2
+      type: compute.v1.instance
+    type: vm-template.py
+  - name: network-1
+    resources:
+    - name: network-1
+      type: compute.v1.network
+    type: network-template.py
+  - name: firewall-1
+    properties:
+      network: network-1
+    resources:
+    - name: firewall-1
+      type: compute.v1.firewall
+    type: firewall-template.py
+  - name: vm-3
+    properties:
+      machineType: e2-small
+      network: network-2
+      zone: us-central1-a
+    resources:
+    - name: vm-3
+      type: compute.v1.instance
+    type: vm-template.py
+  type: compute-engine-template.py
+- name: network-2
+  resources:
+  - name: network-2
+    type: compute.v1.network
+  type: network-template.py

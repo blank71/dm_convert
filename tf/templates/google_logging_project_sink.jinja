@@ -1,0 +1,27 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+
+{%- extends "google_logging_sink_base.jinja" -%}
+{%- block body -%}
+{%- if 'parent' in properties %}
+{%- set project_value = properties['parent'].split('/')[-1] -%}
+{%- else %}
+{%- set project_value = properties['project'] -%}
+{%- endif %}
+#tfimport-terraform import google_logging_project_sink.{{ macros.get_name(resource, properties) }} projects/{{ project_value }}/sinks/{{ properties['name'] }}
+resource "google_logging_project_sink" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- write_field_name('project', 'project') }}
+  {{- macros.fields(properties, {
+    'uniqueWriterIdentity': 'unique_writer_identity',
+    'project': 'project',
+    'disabled': 'disabled',
+    'description': 'description',
+    'customWriterIdentity': 'custom_writer_identity',
+  }, ' ' * 2) }}
+{%- endblock %}
+
+{#-
+1. uniqueWriterIdentity is only applicable to project sinks, and only supported
+  in TF by google_logging_project_sink resources.
+#}

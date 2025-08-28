@@ -1,0 +1,7 @@
+module "compute_engine_setup"{
+    vm1_machineType = "f1-micro"
+    vm1_zone = "us-central1-f"
+    vm2_machineType = "g1-small"
+    vm2_zone = "us-west1-a"
+    source = "./modules/compute_engine_template"
+}

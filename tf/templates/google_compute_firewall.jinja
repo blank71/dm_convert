@@ -1,0 +1,47 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set resource_name = resource.get('name') -%}
+#tfimport-terraform import google_compute_firewall.{{ macros.get_name(resource, properties) }}  __project__/{{ resource_name }}
+resource "google_compute_firewall" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  name = "{{ resource_name }}"
+  {{- macros.fields(properties, {
+  'description': 'description',
+  'disabled': 'disabled',
+  'direction': 'direction',
+  'priority': 'priority',
+  'destinationRanges': 'destination_ranges',
+  'sourceRanges': 'source_ranges',
+  'sourceTags': 'source_tags',
+  'targetTags': 'target_tags',
+  'sourceServiceAccounts': 'source_service_accounts',
+  'targetServiceAccounts': 'target_service_accounts',
+  'logConfig': {
+    'map_name': 'log_config',
+    'metadata': 'metadata'
+  },
+    'project': 'project',
+    'enableLogging': 'enable_logging',
+  }, ' ' * 2) }}
+  {%- if 'network' in properties %}
+  {%- set network = resource['properties']['network'] %}
+  {%- if network == "global/networks/default" %}
+  network = "default"
+  {%- else %}
+  {{ 'network = ' + macros.normalize(network) }}
+  {%- endif %}
+  {%- endif %}{% for allow_rule in resource['properties']['allowed'] %}
+  allow {
+    protocol = "{{allow_rule.IPProtocol}}"
+    {%- if 'ports' in allow_rule %}
+    ports = {{macros.normalize(allow_rule.ports)}}
+    {%- endif %}
+  }{% endfor %}{% for deny_rule in resource['properties']['denied'] %}
+  deny {
+    protocol = "{{deny_rule.IPProtocol}}"
+    {%- if 'ports' in deny_rule %}
+    ports = {{macros.normalize(deny_rule.ports)}}
+    {%- endif %}
+  }{% endfor %}
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}

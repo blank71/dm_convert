@@ -1,0 +1,319 @@
+{%- import 'macros.jinja' as macros %}
+apiVersion: container.cnrm.cloud.google.com/v1beta1
+kind: ContainerCluster
+metadata:
+{%- set properties = resource.get('properties', {}) %}
+  annotations:
+    cnrm.cloud.google.com/remove-default-node-pool: {{ '\'true\'' if resource['properties']['cluster']['nodePools'] is defined else '\'false\'' }}
+{%- if 'project' in properties %}
+    cnrm.cloud.google.com/project-id: {{ properties['project'] | arbitrary_reference }}
+{%- endif %}
+{%- set cluster = properties.get('cluster', {}) %}
+{{- macros.fields(cluster, {'resourceLabels': 'labels'}, ' ' * 2) }}
+{%- if 'name' in cluster %}
+  name: {{ cluster['name'] | arbitrary_reference }}
+{%- else %}
+  name: {{ resource['name'] | arbitrary_reference }}
+{%- endif %}
+{%- if properties | set_difference(['project']) or cluster | set_difference(['name', 'labels']) %}
+{# At least one field of cluster or properties was not converted to metadata and will be converted to spec. #}
+spec:
+  {{- macros.fields(cluster, {
+    'clusterIpv4Cidr': 'clusterIpv4Cidr',
+    'clusterTelemetry': 'clusterTelemetry',
+    'confidentialNodes': 'confidentialNodes',
+    'databaseEncryption': 'databaseEncryption',
+    'description': 'description',
+    'enableKubernetesAlpha': 'enableKubernetesAlpha',
+    'enableTpu': 'enableTpu',
+    'loggingService': 'loggingService',
+    'monitoringService': 'monitoringService',
+    'networkPolicy': 'networkPolicy',
+    'network': 'networkRef',
+    'podSecurityPolicyConfig': 'podSecurityPolicyConfig',
+    'releaseChannel': 'releaseChannel',
+    'subnetwork': 'subnetworkRef',
+    'verticalPodAutoscaling': 'verticalPodAutoscaling',
+  }, ' ' * 2) }}
+  {%- if 'addonsConfig' in cluster %}
+    {%- set addons_config = cluster['addonsConfig'] %}
+  addonsConfig:
+    {{- macros.fields(addons_config, {
+      'cloudRunConfig': 'cloudrunConfig',
+      'configConnectorConfig': 'configConnectorConfig',
+      'dnsCacheConfig': 'dnsCacheConfig',
+      'gcePersistentDiskCsiDriverConfig': 'gcePersistentDiskCsiDriverConfig',
+      'horizontalPodAutoscaling': 'horizontalPodAutoscaling',
+      'httpLoadBalancing': 'httpLoadBalancing',
+      'istioConfig': 'istioConfig',
+      'kalmConfig': 'kalmConfig',
+      'networkPolicyConfig': 'networkPolicyConfig',
+    }, ' ' * 4) }}
+  {%- endif %}
+  {%- if 'authenticatorGroupsConfig' in cluster %}
+    {%- set authenticator_groups_config = cluster['authenticatorGroupsConfig'] %}
+    {%- if authenticator_groups_config.get('enabled') %}
+  authenticatorGroupsConfig:
+      {{- macros.fields(authenticator_groups_config, {
+        'securityGroup': 'securityGroup',
+      }, ' ' * 4) }}
+    {%- endif %}
+  {%- endif %}
+  {%- if 'autoscaling' in cluster %}
+    {%- set autoscaling = cluster['autoscaling'] %}
+  clusterAutoscaling:
+    {{- macros.fields(autoscaling, {
+      'enableNodeAutoprovisioning': 'enabled',
+      'resourceLimits': 'resourceLimits',
+    }, ' ' * 4) }}
+    {%- if 'autoprovisioningNodePoolDefaults' in autoscaling %}
+      {{- macros.fields(autoscaling['autoprovisioningNodePoolDefaults'], {
+        'minCpuPlatform': 'minCpuPlatform',
+        'oauthScopes': 'oauthScopes',
+        'serviceAccount': 'serviceAccountRef',
+      }, ' ' * 6) }}
+    {%- endif %}
+  {%- endif %}
+  {%- if 'defaultMaxPodsConstraint' in cluster %}
+    {{- macros.fields(cluster['defaultMaxPodsConstraint'], {'maxPodsPerNode': 'defaultMaxPodsPerNode'}, ' ' * 2) }}
+  {%- endif %}
+  {%- if 'binaryAuthorization' in cluster %}
+    {{- macros.fields(cluster['binaryAuthorization'], {'enabled': 'enableBinaryAuthorization'}, ' ' * 2) }}
+  {%- endif %}
+  {%- if 'legacyAbac' in cluster %}
+    {{- macros.fields(cluster['legacyAbac'], {'enabled': 'enableLegacyAbac'}, ' ' * 2) }}
+  {%- endif %}
+  {%- if 'shieldedNodes' in cluster %}
+    {{- macros.fields(cluster['shieldedNodes'], {'enabled': 'enableShieldedNodes'}, ' ' * 2) }}
+  {%- endif %}
+  {%- if 'initialNodeCount' in cluster %}
+  initialNodeCount: {{ cluster['initialNodeCount'] }}
+  {%- elif 'nodePools' in cluster %}
+  initialNodeCount: {{ resource['properties']['cluster']['nodePools'] | sum('initialNodeCount') }}
+  {%- endif %}
+  {%- if 'ipAllocationPolicy' in cluster %}
+    {%- set ip_allocation_policy = cluster['ipAllocationPolicy'] %}
+  ipAllocationPolicy:
+    {{- macros.fields(ip_allocation_policy, {
+      'clusterIpv4CidrBlock': 'clusterIpv4CidrBlock',
+      'clusterSecondaryRangeName': 'clusterSecondaryRangeName',
+      'servicesIpv4CidrBlock': 'servicesIpv4CidrBlock',
+      'servicesSecondaryRangeName': 'servicesSecondaryRangeName',
+    }, ' ' * 4) }}
+  {%- endif %}
+  {%- if 'maintenancePolicy' in cluster %}
+    {{- macros.fields(cluster['maintenancePolicy'], {'window': 'maintenancePolicy'}, ' ' * 2) }}
+  {%- endif %}
+  {%- if 'masterAuth' in cluster %}
+    {%- set master_auth = cluster['masterAuth'] %}
+  masterAuth:
+    {{- macros.fields(master_auth, {
+      'clientCertificateConfig': 'clientCertificateConfig',
+      'clusterCaCertificate': 'clusterCaCertificate',
+      'username': 'username',
+    }, ' ' * 4) }}
+    {%- if 'password' in master_auth %}
+    password:
+      {{- macros.fields(master_auth, {'password': 'value'}, ' ' * 6) }}
+    {%- endif %}
+  {%- endif %}
+  {%- if 'masterAuthorizedNetworksConfig' in cluster %}
+    {%- set master_authorized_networks_config = cluster['masterAuthorizedNetworksConfig'] %}
+    {%- if master_authorized_networks_config.get('enabled') %}
+  masterAuthorizedNetworksConfig:
+      {{- macros.fields(master_authorized_networks_config, {
+        'cidrBlocks': 'cidrBlocks',
+      }, ' ' * 4) }}
+    {%- endif %}
+  {%- endif %}
+  {%- if 'networkConfig' in cluster %}
+    {%- set network_config = cluster['networkConfig'] %}
+    {{- macros.fields(network_config, {
+      'defaultSnatStatus': 'defaultSnatStatus',
+      'enableIntraNodeVisibility': 'enableIntraNodeVisibility',
+    }, ' ' * 2) }}
+  {%- endif %}
+  {%- if 'nodeConfig' in cluster %}
+    {%- set node_config = cluster['nodeConfig'] %}
+  nodeConfig:
+    {{- macros.fields(node_config, {
+      'bootDiskKmsKey': 'bootDiskKMSCryptoKeyRef',
+      'diskSizeGb': 'diskSizeGb',
+      'diskType': 'diskType',
+      'imageType': 'imageType',
+      'kubeletConfig': 'kubeletConfig',
+      'localSsdCount': 'localSsdCount',
+      'machineType': 'machineType',
+      'minCpuPlatform': 'minCpuPlatform',
+      'oauthScopes': 'oauthScopes',
+      'preemptible': 'preemptible',
+      'serviceAccount': 'serviceAccountRef',
+      'shieldedInstanceConfig': 'shieldedInstanceConfig',
+      'tags': 'tags',
+      'taints': 'taint',
+    }, ' ' * 4) }}
+    {{- macros.lists(node_config, {'accelerators': {
+      'list_name': 'guestAccelerator',
+      'acceleratorCount': 'count',
+      'acceleratorType': 'type',
+    }}, ' ' * 4) }}
+    {%- if 'linuxNodeConfig' in node_config %}
+      {%- set linux_node_config = node_config['linuxNodeConfig'] %}
+    linuxNodeConfig:
+    {%- endif %}
+    {%- if 'sandboxConfig' in node_config %}
+      {%- set sandbox_config = node_config['sandboxConfig'] %}
+    sandboxConfig:
+      {{- macros.fields(sandbox_config, {
+        'type': 'sandboxType',
+      }, ' ' * 6) }}
+    {%- endif %}
+    {%- if 'workloadMetadataConfig' in node_config %}
+      {%- set workload_metadata_config = node_config['workloadMetadataConfig'] %}
+    workloadMetadataConfig:
+      {{- macros.fields(workload_metadata_config, {
+        'mode': 'nodeMetadata',
+      }, ' ' * 6) }}
+    {%- endif %}
+  {%- endif %}
+  {%- if 'notificationConfig' in cluster %}
+    {%- set notification_config = cluster['notificationConfig'] %}
+  notificationConfig:
+    {%- if 'pubsub' in notification_config %}
+      {%- set pubsub = notification_config['pubsub'] %}
+    pubsub:
+      {{- macros.fields(pubsub, {
+        'enabled': 'enabled',
+        'topic': 'topicRef',
+      }, ' ' * 6) }}
+    {%- endif %}
+  {%- endif %}
+  {%- if 'privateClusterConfig' in cluster %}
+    {%- set private_cluster_config = cluster['privateClusterConfig'] %}
+  privateClusterConfig:
+    {{- macros.fields(private_cluster_config, {
+      'enablePrivateEndpoint': 'enablePrivateEndpoint',
+      'enablePrivateNodes': 'enablePrivateNodes',
+      'masterGlobalAccessConfig': 'masterGlobalAccessConfig',
+      'masterIpv4CidrBlock': 'masterIpv4CidrBlock',
+    }, ' ' * 4) }}
+  {%- endif %}
+  {%- if 'resourceUsageExportConfig' in cluster %}
+    {%- set resource_usage_export_config = cluster['resourceUsageExportConfig'] %}
+  resourceUsageExportConfig:
+    {{- macros.fields(resource_usage_export_config, {
+      'bigqueryDestination': 'bigqueryDestination',
+      'enableNetworkEgressMetering': 'enableNetworkEgressMetering',
+    }, ' ' * 4) }}
+    {{- macros.fields(resource_usage_export_config['consumptionMeteringConfig'], {
+      'enabled': 'enableResourceConsumptionMetering'
+    }, ' ' * 4) }}
+  {%- endif %}
+  {%- if 'workloadIdentityConfig' in cluster %}
+    {%- set workload_identity_config = cluster['workloadIdentityConfig'] %}
+  workloadIdentityConfig:
+    {{- macros.fields(workload_identity_config, {
+      'workloadPool': 'identityNamespace',
+    }, ' ' * 4) }}
+  {%- endif %}
+{%- endif %}
+{%- if 'parent' in properties %}
+  {{- macros.fields(properties, {'parent': 'location'}, ' ' * 2) }}
+{%- elif 'zone' in properties %}
+  {{- macros.fields(properties, {'zone': 'location'}, ' ' * 2) }}
+{%- endif %}
+{%- set unconvertable = properties | missing_fields((
+  'cluster.addonsConfig.kubernetesDashboard',
+  'cluster.autopilot',
+  'cluster.initialClusterVersion',
+  'cluster.ipAllocationPolicy.allowRouteOverlap',
+  'cluster.ipAllocationPolicy.clusterIpv4Cidr',
+  'cluster.ipAllocationPolicy.createSubnetwork',
+  'cluster.ipAllocationPolicy.nodeIpv4Cidr',
+  'cluster.ipAllocationPolicy.nodeIpv4CidrBlock',
+  'cluster.ipAllocationPolicy.subnetworkName',
+  'cluster.ipAllocationPolicy.useIpAliases',
+  'cluster.ipAllocationPolicy.useRoutes',
+  'cluster.maintenancePolicy.resourceVersion',
+  'cluster.nodeConfig.nodeGroup',
+  'cluster.nodeConfig.reservationAffinity',
+  'cluster.nodeConfig.ephemeralStorageConfig',
+)) %}
+{%- if unconvertable %}
+# Unconvertable fields found:
+# {{ unconvertable | join('\n# ') }}
+{%- endif %}
+{%- if 'nodePools' in cluster %}
+  {%- for node_pool in cluster['nodePools'] %}
+---
+apiVersion: container.cnrm.cloud.google.com/v1beta1
+kind: ContainerNodePool
+metadata:
+  name: {{ node_pool['name'] }}
+spec:
+    {{- macros.fields(node_pool, {
+      'initialNodeCount': 'initialNodeCount',
+      'management': 'management',
+      'upgradeSettings': 'upgradeSettings',
+      'version': 'version',
+    }, ' ' * 2) }}
+    {%- if 'autoscaling' in node_pool %}
+      {%- set autoscaling = node_pool['autoscaling'] %}
+      {%- if autoscaling.get('enabled') %}
+  autoscaling:
+        {{- macros.fields(autoscaling, {
+          'maxNodeCount': 'maxNodeCount',
+          'minNodeCount': 'minNodeCount',
+        }, ' ' * 4) }}
+      {%- endif %}
+    {%- endif %}
+  clusterRef:
+    {%- if 'name' in cluster %}
+    name: {{ cluster['name'] | arbitrary_reference }}
+    {%- else %}
+    name: {{ resource['name'] | arbitrary_reference }}
+    {%- endif %}
+    {%- if 'parent' in properties %}
+      {{- macros.fields(properties, {'parent': 'location'}, ' ' * 2) }}
+    {%- elif 'zone' in properties %}
+      {{- macros.fields(properties, {'zone': 'location'}, ' ' * 2) }}
+    {%- endif %}
+    {%- if 'maxPodsConstraint' in node_pool %}
+      {{- macros.fields(node_pool['maxPodsConstraint'], {'maxPodsPerNode': 'maxPodsPerNode'}, ' ' * 2) }}
+    {%- endif %}
+    {%- if 'config' in node_pool %}
+      {%- set config = node_pool['config'] %}
+  nodeConfig:
+      {{- macros.fields(config, {
+        'bootDiskKmsKey': 'bootDiskKMSCryptoKeyRef',
+        'diskSizeGb': 'diskSizeGb',
+        'diskType': 'diskType',
+        'imageType': 'imageType',
+        'labels': 'labels',
+        'localSsdCount': 'localSsdCount',
+        'machineType': 'machineType',
+        'metadata': 'metadata',
+        'minCpuPlatform': 'minCpuPlatform',
+        'oauthScopes': 'oauthScopes',
+        'preemptible': 'preemptible',
+        'serviceAccount': 'serviceAccountRef',
+        'sheildedInstanceConfig': 'sheildedInstanceConfig',
+        'tags': 'tags',
+        'taints': 'taint',
+      }, ' ' * 4) }}
+      {{- macros.lists(config, {'accelerators': {
+        'list_name': 'guestAccelerator',
+        'acceleratorCount': 'count',
+        'acceleratorType': 'type',
+      }}, ' ' * 4) }}
+      {%- if 'sandboxConfig' in config %}
+    sandboxConfig:
+        {{- macros.fields(config['sandboxConfig'], {'type': 'sandboxType'}, ' ' * 6) }}
+      {%- endif %}
+      {%- if 'workloadMetadataConfig' in config %}
+    workloadMetadataConfig:
+        {{- macros.fields(config['workloadMetadataConfig'], {'mode': 'nodeMetadata'}, ' ' * 6) }}
+      {%- endif %}
+    {%- endif %}
+  {%- endfor %}
+{%- endif %}

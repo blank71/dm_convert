@@ -1,0 +1,6 @@
+resources:
+- name: rm-folder
+  properties:
+    displayName: rm-folder
+    parent: organizations/128653134652
+  type: gcp-types/cloudresourcemanager-v2:folders

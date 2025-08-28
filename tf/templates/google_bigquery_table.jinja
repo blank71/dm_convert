@@ -1,0 +1,172 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set datasetId = macros.hydrate_ref(properties['datasetId']) -%}
+#tfimport-terraform import google_bigquery_table.{{ macros.get_name(resource, properties) }}  {{macros.import_project(properties['tableReference']['projectId'])}}/{{ datasetId }}/{{properties['tableReference']['tableId']}}
+resource "google_bigquery_table" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.write_labels(properties) }}
+  {{- macros.fields(properties, {
+    'datasetId': 'dataset_id',
+    'friendlyName': 'friendly_name',
+    'description': 'description',
+    'expirationTime': 'expiration_time',
+    'resourceTags': 'resource_tags',
+    'project': 'project',
+    'maxStaleness': 'max_staleness',
+    'deletionProtection': 'deletion_protection',
+    'allowResourceTagsOnDeletion': 'allow_resource_tags_on_deletion',
+  }, ' ' * 2) }}
+
+  {{- macros.fields(properties.get('tableReference'), {
+    'projectId': 'project',
+    'tableId': 'table_id'
+  }, ' ' * 2) }}
+
+  {%- if 'schema' in properties and 'fields' in properties['schema'] %}
+  schema = "{{ properties['schema']['fields'] | replace('\'', '\\\"') }}"
+  {%- endif %}
+
+  {%- if 'clustering' in properties %}
+  {{- macros.fields(properties['clustering'], {'fields': 'clustering'}, ' ' * 2) }}
+  {%- endif %}
+
+  {%- if 'timePartitioning' in properties %}
+  time_partitioning {
+    {{- macros.fields(properties['timePartitioning'], {
+      'type': 'type',
+      'expirationMs': 'expiration_ms',
+      'field': 'field'
+    }, ' ' * 4) }}
+    {%- if not 'type' in properties['timePartitioning'] %}
+    type = "DAY"
+    {%- endif %}
+  }
+  {%- endif %}
+
+  {{- macros.dict(properties, {
+    'rangePartitioning': {
+      'dict_name': 'range_partitioning',
+      'field': 'field',
+      'range': {
+        'start': 'start',
+        'end': 'end',
+        'interval': 'interval',
+      }
+    },
+    'view': {
+      'query': 'query',
+      'useLegacySql': 'use_legacy_sql'
+    },
+    'materializedView': {
+      'dict_name': 'materialized_view',
+      'query': 'query',
+      'enableRefresh': 'enable_refresh',
+      'refreshIntervalMs': 'refresh_interval_ms'
+    },
+  }) | indent(2) }}
+
+  {%- if 'externalDataConfiguration' in properties %}
+  {%- set config = properties['externalDataConfiguration'] %}
+  {%- if 'schema' in config and 'fields' in config['schema']  and 'schema' not in properties %}
+  schema = "{{ config['schema']['fields'] | replace('\'', '\\\"') }}"
+  {%- endif %}
+  external_data_configuration {
+    {%- if 'autodetect' not in config %}
+    autodetect = false
+    {%- endif %}
+    {{- macros.fields(config, {
+      'sourceUris': 'source_uris',
+      'sourceFormat': 'source_format',
+      'maxBadRecords': 'max_bad_records',
+      'autodetect': 'autodetect',
+      'ignoreUnknownValues': 'ignore_unknown_values',
+      'compression': 'compression'
+    }, ' ' * 4) }}
+
+    {{- macros.dict(config, {
+      'csvOptions': {
+        'dict_name': 'csv_options',
+        'fieldDelimiter': 'field_delimiter',
+        'skipLeadingRows': 'skip_leading_rows',
+        'quote': 'quote',
+        'allowQuotedNewlines': 'allow_quoted_newlines',
+        'allowJaggedRows': 'allow_jagged_rows',
+        'encoding': 'encoding',
+      },
+    }) | indent(4) }}
+
+    {{- macros.dict(config, {
+      'avroOptions': {
+        'dict_name': 'avro_options',
+        'useAvroLogicalTypes': 'use_avro_logical_types',
+      },
+    }) | indent(4) }}
+
+    {{- macros.dict(config, {
+      'googleSheetsOptions': {
+        'dict_name': 'google_sheets_options',
+        'range': 'range',
+        'skipLeadingRows': 'skip_leading_rows',
+      },
+    }) | indent(4) }}
+
+    {{- macros.dict(config, {
+      'hivePartitioningOptions': {
+        'dict_name': 'hive_partitioning_options',
+        'mode': 'mode',
+        'sourceUriPrefix': 'source_uri_prefix',
+        'requirePartitionFilter': 'require_partition_filter',
+      },
+    }) | indent(4) }}
+  }
+  {%- endif %}
+
+  {{- macros.dict(properties, {
+    'encryptionConfiguration': {
+      'dict_name': 'encryption_configuration',
+      'kmsKeyName': 'kms_key_name',
+    },
+  }) | indent(2) }}
+
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}
+
+{%- set unconvertible_fields = resource | match_missing_fields([
+  'properties.tableReference.datasetId',
+  'properties.timePartitioning.requirePartitionFilter',
+  'properties.requirePartitionFilter',
+  'properties.numBytes',
+  'properties.numLongTermBytes',
+  'properties.numRows',
+  'properties.view.userDefinedFunctionResources',
+  'properties.externalDataConfiguration.fileSetSpecType',
+  'properties.externalDataConfiguration.csvOptions.preserveAsciiControlCharacters',
+  'properties.externalDataConfiguration.jsonOptions',
+  'properties.externalDataConfiguration.bigtableOptions',
+  'properties.externalDataConfiguration.connectionId',
+  'properties.externalDataConfiguration.decimalTargetTypes',
+  'properties.externalDataConfiguration.parquetOptions',
+  'properties.externalDataConfiguration.referenceFileSchemaUri',
+  'properties.externalDataConfiguration.metadataCacheMode',
+  'properties.externalDataConfiguration.objectMetadata',
+  'properties.defaultCollation',
+  'properties.defaultRoundingMode',
+  'properties.cloneDefinition',
+  'properties.maxStaleness',
+  'properties.tableConstraints'
+  ]) %}
+{#-
+2. [DM] view.userDefinedFunctionResources - no such field in TF
+3. [DM] requirePartitionFilter - not found in TF
+4. [DM] externalDataConfiguration.bigtableOptions - no such field in TF
+5. [DM] externalDataConfiguration.decimalTargetTypes - no such field in TF
+6. [DM] externalDataConfiguration.parquetOptions - no such field in TF
+
+Need more samples to test:
+1. [DM] $.rangePartitioning
+2. [DM] $.schema property
+3. [DM] $.view
+
+deprecated:
+1. timePartitioning.requirePartitionFilter
+#}

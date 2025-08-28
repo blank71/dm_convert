@@ -1,0 +1,19 @@
+resources:
+- name: notification-sample
+  properties:
+    bucket: bucket-svc
+    event_types:
+    - OBJECT_FINALIZE
+    metadata:
+      dependsOn:
+      - bucket-svc-resource
+    payload_format: JSON_API_V1
+    topic: //pubsub.googleapis.com/projects/test/topics/test-file-upload
+  type: gcp-types/storage-v1:notifications
+- name: bucket-svc-resource
+  properties:
+    location: US
+    name: bucket-svc
+    versioning:
+      enabled: false
+  type: gcp-types/storage-v1:buckets

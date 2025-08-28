@@ -1,0 +1,31 @@
+resources:
+- name: container-cluster
+  properties:
+    cluster:
+      autoscaling:
+        enableNodeAutoprovisioning: false
+      binaryAuthorization:
+        evaluationMode: DISABLED
+      initialNodeCount: 1
+      location: us-central1-a
+      loggingService: logging.googleapis.com/kubernetes
+      masterAuth:
+        clientCertificateConfig:
+          issueClientCertificate: false
+      masterAuthorizedNetworksConfig: {}
+      monitoringService: monitoring.googleapis.com/kubernetes
+      networkConfig:
+        defaultSnatStatus:
+          disabled: false
+      nodeConfig:
+        oauthScopes:
+        - https://www.googleapis.com/auth/devstorage.read_only
+        - https://www.googleapis.com/auth/logging.write
+        - https://www.googleapis.com/auth/monitoring
+        - https://www.googleapis.com/auth/service.management.readonly
+        - https://www.googleapis.com/auth/servicecontrol
+        - https://www.googleapis.com/auth/trace.append
+      resourceLabels:
+        label-one: value-one
+    zone: us-central1-a
+  type: container.v1.cluster

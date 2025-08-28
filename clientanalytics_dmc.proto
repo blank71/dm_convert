@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+message LogEvent {
+  int64 event_time_ms = 1;
+  int32 event_code = 11;
+  bytes source_extension = 6;
+}
+
+message ClientInfo {
+  enum ClientType {
+    UNKNOWN = 0;
+    PYTHON = 6;
+  }
+
+  optional ClientType client_type = 1;
+}
+
+message BatchedLogRequest {
+  repeated LogRequest log_request = 1;
+}
+
+message LogRequest {
+  int64 request_time_ms = 4;
+  ClientInfo client_info = 1;
+  int32 log_source = 2;
+  repeated LogEvent log_event = 3;
+  QosTierConfiguration.QosTier qos_tier = 9;
+}
+
+message QosTierConfiguration {
+  enum QosTier {
+    DEFAULT = 0;
+    UNMETERED_ONLY = 1;
+    UNMETERED_OR_DAILY = 2;
+    FAST_IF_RADIO_AWAKE = 3;
+    NEVER = 4;
+  }
+
+  QosTier qos_tier = 2;
+  int32 log_source = 3;
+}
+
+message QosTiersOverride {
+  repeated QosTierConfiguration qos_tier_configuration = 1;
+  int64 qos_tier_fingerprint = 2;
+}
+
+message LogResponse {
+  optional int64 next_request_wait_millis = 1;
+  QosTiersOverride qos_tier = 3;
+}

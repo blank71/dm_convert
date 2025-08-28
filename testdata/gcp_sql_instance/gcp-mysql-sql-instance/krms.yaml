@@ -1,0 +1,17 @@
+apiVersion: sql.cnrm.cloud.google.com/v1beta1
+kind: SQLInstance
+metadata:
+  name: sql-instance
+spec:
+  databaseVersion: MYSQL_5_7
+  region: us-central1
+  settings:
+    backupConfiguration:
+      binaryLogEnabled: false
+      pointInTimeRecoveryEnabled: false
+    diskSize: 10
+    ipConfiguration:
+      ipv4Enabled: true
+    locationPreference:
+      zone: us-central1-a
+    tier: db-f1-micro

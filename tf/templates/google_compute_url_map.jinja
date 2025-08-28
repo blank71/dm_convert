@@ -1,0 +1,36 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set resource_name = resource.get('name') -%}
+#tfimport-terraform import google_compute_url_map.{{ macros.get_name(resource, properties) }}  __project__/{{ resource_name }}
+resource "google_compute_url_map" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  name = "{{ resource_name }}"
+  default_service = {{ macros.normalize(properties.get('defaultService')) }}
+  {%- if 'hostRules' in properties %}
+  {%- for host_rule in properties.get('hostRules', {}) %}
+  host_rule{
+    {%- if 'description' in host_rule %}
+    description = "{{host_rule.get('description')}}"
+    {%- endif %}
+    path_matcher = "{{host_rule.get('pathMatcher')}}"
+    hosts = [
+    {%- for host in host_rule.get('hosts',{}) %}
+    "{{host}}"
+    {%- endfor %}
+    ]
+  }
+  {%- endfor %}
+  {%- endif %}
+
+  {%- if 'pathMatchers' in properties %}
+  {%- for path_matcher in properties.get('pathMatchers', {}) %}
+  path_matcher{
+    {%- if 'description' in path_matcher %}
+    description = "{{path_matcher.get('description')}}"
+    {%- endif %}
+    name = "{{path_matcher.get('name')}}"
+    default_service = {{ macros.normalize(path_matcher.get('defaultService')) }}
+  }
+  {%- endfor %}
+  {%- endif %}
+}

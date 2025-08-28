@@ -1,0 +1,27 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set resource_name = resource.get('name') -%}
+#tfimport-terraform import google_compute_address.{{ macros.get_name(resource, properties) }}  {{macros.import_project(properties['project'])}}/{{properties['region']}}/{{ resource_name }}
+resource "google_compute_address" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.write_labels(properties) }}
+  name = "{{ resource_name }}"
+  {{- macros.fields(properties, {
+    'address': 'address',
+    'addressType': 'address_type',
+    'description': 'description',
+    'purpose': 'purpose',
+    'networkTier': 'network_tier',
+    'region': 'region',
+    'project': 'project',
+    'prefixLength': 'prefix_length',
+    'network': 'network',
+    'ipv6EndpointType': 'ipv6_endpoint_type',
+    'ipVersion': 'ip_version',
+  }, ' ' * 2) }}
+  {%- if 'subnetwork' in properties %}
+  {%- set subnetwork = resource['properties']['subnetwork'] %}
+  {{ 'subnetwork = ' + macros.normalize(subnetwork) }}
+  {%- endif %}
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}

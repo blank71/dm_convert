@@ -1,0 +1,6 @@
+resources:
+- name: compute-sslpolicy
+  properties:
+    minTlsVersion: TLS_1_2
+    profile: COMPATIBLE
+  type: gcp-types/compute-v1:sslPolicies

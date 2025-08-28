@@ -1,0 +1,168 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set template_properties = properties.get('properties', {}) -%}
+#tfimport-terraform import google_compute_instance_template.{{ macros.get_name(resource, properties) }}  __project__/{{ macros.get_resource_name(resource,properties) }}
+resource "google_compute_instance_template" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.fields(properties, {
+    'name': 'name',
+    'description': 'description',
+    'tags': 'tags',
+    'resourceManagerTags': 'resource_manager_tags',
+    'region': 'region',
+    'project': 'project',
+    'namePrefix': 'name_prefix',
+    'metadataStartupScript': 'metadata_startup_script',
+    'labels': 'labels',
+    'instanceDescription': 'instance_description',
+  }, ' ' * 2) }}
+
+  {%- if 'description' in template_properties %}
+  {{- macros.fields(template_properties,{
+    'description': 'instance_description'
+  }, ' ' * 2)}}
+  {%- endif %}
+
+  {{- macros.fields(template_properties.get('tags', {}), {
+    'items': 'tags'
+  }, ' ' * 2) }}
+
+  {{- macros.fields(template_properties, {
+    'machineType': 'machine_type',
+    'canIpForward': 'can_ip_forward',
+    'minCpuPlatform': 'min_cpu_platform',
+  }, ' ' * 2) }}
+
+  {{- macros.write_labels(template_properties) }}
+
+  {%- if 'metadata' in template_properties %}
+  metadata = {
+    {%- for kv in template_properties.get('metadata', {}).get('items') %}
+    {{ kv.get('key') }} = {{ macros.normalize(kv.get('value')) }}
+    {%- endfor %}
+  }
+  {%- endif %}
+
+  {%- for network_interface in template_properties.get('networkInterfaces', {}) %}
+  network_interface {
+    {%- if 'network' in network_interface %}
+      {%- if network_interface.get('network') == "global/networks/default" %}
+    network = "default"
+      {%- else %}
+    network = {{macros.normalize(network_interface.get('network'))}}
+      {%- endif %}
+    {%- endif %}
+    {{- macros.fields(network_interface, {
+        'subnetwork': 'subnetwork',
+        'networkIP': 'network_ip',
+        'subnetworkProject': 'subnetwork_project',
+        'nicType': 'nic_type',
+      }, ' ' * 4) }}
+    {{- macros.lists(network_interface, {
+      'accessConfigs': {
+        'list_name': 'access_config',
+        'natIP': 'nat_ip',
+        'networkTier': 'network_tier',
+        'publicPtrDomainName': 'public_ptr_domain_name'}
+    }, ' ' * 4) }}
+    {{- macros.lists(network_interface, {
+      'aliasIpRanges': {
+        'list_name': 'alias_ip_range',
+        'ipCidrRange': 'ip_cidr_range',
+        'subnetworkRangeName': 'subnetwork_range_name',
+      }
+    }, ' ' * 4) }}
+  }
+  {%- endfor %}
+
+  {%- for disk in template_properties.get('disks', {}) %}
+  disk {
+    {{- macros.fields(disk, {
+      'autoDelete': 'auto_delete',
+      'type': 'type',
+      'mode': 'mode',
+      'source': 'source',
+      'deviceName': 'device_name',
+      'boot': 'boot',
+      'description': 'description',
+      'resourcePolicies': 'resource_policies',
+      'interface': 'interface',
+      'diskEncryptionKey': 'disk_encryption_key',
+      'diskSizeGb': 'disk_size_gb',
+
+    }, ' ' * 4) }}
+
+    {{- macros.fields(disk.get('initializeParams', {}), {
+      'diskName': 'disk_name',
+      'sourceImage': 'source_image',
+      'diskSizeGb': 'disk_size_gb',
+      'diskType': 'disk_type'
+    }, ' ' * 4) }}
+
+    {{- macros.write_labels(template_properties, 4) }}
+  }
+  {%- endfor %}
+
+  {%- if 'serviceAccounts' in template_properties %}
+  service_account {
+    {%- set service_account = template_properties['serviceAccounts'][0] %}
+    {{- macros.fields(service_account, {
+      'email': 'email',
+      'scopes': 'scopes'
+    }, ' ' * 4) }}
+  }
+  {%- endif %}
+
+  {{- macros.lists(template_properties, {
+    'scheduling': {
+      'onHostMaintenance': 'on_host_maintenance',
+      'automaticRestart': 'automatic_restart',
+      'preemptible': 'preemptible',
+      'minNodeCpus': 'min_node_cpus',
+      'nodeAffinities': 'node_affinities'
+    }
+  }, ' ' * 2) }}
+
+  {{- macros.unroll_dict(template_properties.get('guestAccelerators', {}), 'guest_accelerator', {
+    'acceleratorType': 'type',
+    'acceleratorCount': 'count'
+  }) }}
+
+  {%- if 'reservationAffinity' in template_properties %}
+  reservation_affinity {
+    type = "{{ template_properties['reservationAffinity'].get('consumeReservationType', 'ANY_RESERVATION') }}"
+    specific_reservation {
+      {{- macros.fields(template_properties['reservationAffinity'], {
+        'key': 'key',
+        'values': 'values'
+      }, ' ' * 6) }}
+    }
+  }
+  {%- endif %}
+
+  {{- macros.lists(template_properties, {
+    'shieldedInstanceConfig': {
+      'list_name': 'shielded_instance_config',
+      'enableSecureBoot': 'enable_secure_boot',
+      'enableVtpm': 'enable_vtpm',
+      'enableIntegrityMonitoring': 'enable_integrity_monitoring'
+    }
+  }, ' ' * 2) }}
+
+  {{- macros.lists(template_properties, {
+    'confidentialInstanceConfig': {
+      'list_name': 'confidential_instance_config',
+      'enableConfidentialCompute': 'enable_confidential_compute'
+    }
+  }, ' ' * 2) }}
+
+  {{- macros.lists(template_properties, {
+    'advancedMachineFeatures': {
+      'list_name': 'advanced_machine_features',
+      'enableNestedVirtualization': 'enable_nested_virtualization',
+      'threadsPerCore': 'threads_per_core'
+    }
+  }, ' ' * 2) }}
+
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}

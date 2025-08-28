@@ -1,0 +1,18 @@
+resources:
+- name: resource-get-action
+  action: gcp-types/storage-v1:storage.buckets.getIamPolicy
+  properties:
+    location: US
+- name: resource-set-action
+  action: gcp-types/storage-v1:storage.buckets.setIamPolicy
+  properties:
+    gcpIamPolicyPatch:
+      add:
+      - members:
+        - user:myuser@testemail.com
+        role: roles/storage.legacyBucketWriter
+  metadata:
+    dependsOn:
+    - resource-get-action
+    runtimePolicy:
+    - CREATE

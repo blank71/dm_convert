@@ -1,0 +1,37 @@
+apiVersion: bigquery.cnrm.cloud.google.com/v1beta1
+kind: BigQueryDataset
+metadata:
+  name: bigquerydataset
+spec:
+  access:
+  - role: OWNER
+    userByEmail: thomasrodgers@google.com
+  defaultTableExpirationMs: 3600000
+  location: us-west1
+  resourceID: bigquerydataset
+---
+apiVersion: bigquery.cnrm.cloud.google.com/v1beta1
+kind: BigQueryTable
+metadata:
+  labels:
+    data-source: external
+    schema-type: auto-junk
+  name: bigquerytable
+spec:
+  datasetRef:
+    name: bigquerydataset
+  resourceID: bigquerytable
+---
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMPolicy
+metadata:
+  name: iam-policy-for-bigquerytable
+spec:
+  bindings:
+  - members:
+    - serviceAccount:service-acct1@gs-project-accounts.iam.gserviceaccount.com
+    role: roles/pubsub.publisher
+  resourceRef:
+    apiVersion: bigquery.cnrm.cloud.google.com/v1beta1
+    kind: BigQueryTable
+    name: bigquerytable

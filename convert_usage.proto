@@ -1,0 +1,121 @@
+syntax = "proto3";
+
+import "timestamp.proto";
+
+message ConvertUsage {
+  // The time of when the conversion
+  // execution starts
+  Timestamp start_time = 1
+     ;
+
+  // The time of when the conversion execution ends
+  Timestamp end_time = 2
+     ;
+
+  // The input of the execution
+  ConversionInput conversion_input = 3;
+
+  // The result of the execution
+  ConversionResult conversion_result = 4;
+}
+
+message ConversionInput {
+  reserved 1;
+
+  // The conversion format, it could be either KRM or TF
+  enum ConversionFormat {
+    FORMAT_UNSPECIFIED = 0;
+    KRM = 1;
+    TF = 2;
+  }
+
+  ConversionFormat conversion_format = 2;
+
+  // The bool fields below are to record whether the input flags are specified
+  // in the command, without recording the actual value of these flags.
+  bool is_config_specified = 3;
+  bool is_project_id_specified = 4;
+  bool is_project_number_specified = 5;
+  bool is_output_file_specified = 6;
+  bool is_deployment_name_specified = 7;
+}
+
+message ConversionResult {
+  reserved 1, 2;
+
+  enum Status {
+    STATUS_UNSPECIFIED = 0;
+    SUCCESS = 1;
+    FAILURE = 2;
+  }
+
+  Status status = 3;
+  repeated ConversionMessage conversion_message = 4;
+}
+
+message ConversionMessage {
+  // (-- Next available tag: 14 --)
+  enum ErrorCode {
+    STATUS_UNSPECIFIED = 0;
+    USER_ERROR_CORRUPTED_INPUT = 1;
+    USER_ERROR_INVALID_RESOURCE = 12;
+    USER_ERROR_CONTAINS_ACTION = 2;
+    USER_ERROR_CONTAINS_COMPOSITE_TYPE = 3;
+    USER_ERROR_CONTAINS_CUSTOM_TYPE = 4;
+    USER_ERROR_UNSUPPORTED_TYPE = 5;
+    USER_ERROR_UNSUPPORTED_REFERENCE = 6;
+    USER_ERROR_UNSUPPORTED_DEPENDENCY = 7;
+    USER_ERROR_UNCONVERTIBLE_PROPERTY = 8;
+    USER_ERROR_UNKNOWN_PROPERTY = 9;
+    USER_ERROR_EXPANSION_FAILED = 13;
+    SYSTEM_ERROR_UNHANDLED_EXCEPTION = 10;
+
+    reserved 11;
+  }
+
+  ErrorCode error_code = 1;
+
+  enum Level {
+    LEVEL_UNSPECIFIED =
+        0;  // It's good practice for proto3 enums to have a 0 default value.
+    // non-blocking error
+    WARNING = 1;
+
+    // blocking error
+    ERROR = 2;
+  }
+
+  Level level = 2;
+
+  oneof details {
+    // If the error is USER_ERROR_CONTAINS_ACTION, the action name will be
+    // included.
+    string action_name = 3;
+
+    // If the error is USER_ERROR_UNSUPPORTED_TYPE, the unsupported type will be
+    // included.
+    string unsupported_type = 4;
+
+    // If the error is USER_ERROR_UNSUPPORTED_REFERENCE, the unsupported
+    // reference details will be included.
+    UnsupportedReferenceDetails unsupported_reference = 5;
+
+    // If there is an error, the exception type will be included.
+    string exception_type = 6;
+  }
+}
+
+message UnsupportedReferenceDetails {
+  // If the resource A is the referrer and resource B is the referee and
+  // resource A looks like below:
+  // - type: a
+  //   ...
+  //   properties:
+  //     field_a: $(ref.b.field_b)
+  //     ...
+  // Then record the type of resource A, the type of resource B and the field
+  // of A that uses the reference.
+  string type_referrer = 1;
+  string type_referee = 2;
+  string field_referrer = 3;
+}

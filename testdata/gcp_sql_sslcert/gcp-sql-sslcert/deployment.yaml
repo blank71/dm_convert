@@ -1,0 +1,24 @@
+resources:
+- name: sql-instance
+  properties:
+    databaseVersion: MYSQL_5_7
+    region: us-central1
+    settings:
+      backupConfiguration:
+        binaryLogEnabled: false
+        pointInTimeRecoveryEnabled: false
+        replicationLogArchivingEnabled: false
+      ipConfiguration:
+        requireSsl: false
+      locationPreference:
+        zone: us-central1-a
+      tier: db-f1-micro
+  type: gcp-types/sqladmin-v1beta4:instances
+- metadata:
+    dependsOn:
+    - sql-instance
+  name: sql-sslcert
+  properties:
+    commonName: sql-sslcert
+    instance: sql-instance
+  type: gcp-types/sqladmin-v1beta4:sslCerts

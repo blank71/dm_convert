@@ -1,0 +1,25 @@
+resources:
+- name: tjr-dm-test-1-bucket
+  properties:
+    cors:
+    - maxAgeSeconds: 3600
+      method:
+      - GET
+      - HEAD
+      - DELETE
+      origin:
+      - http://example.appspot.com
+      responseHeader:
+      - Content-Type
+    labels:
+      label-one: value-one
+    lifecycle:
+      rule:
+      - action:
+          type: Delete
+        condition:
+          age: 7
+    versioning:
+      enabled: true
+    location: US
+  type: storage.v1.bucket

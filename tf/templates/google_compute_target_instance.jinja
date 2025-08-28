@@ -1,0 +1,19 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set name_value = macros.if_null('name', properties, resource) -%}
+#tfimport-terraform import google_compute_target_instance.{{ macros.get_name(resource, properties) }} __project__/{{ properties['zone'] }}/{{ name_value | replace("\"", "") }}
+resource "google_compute_target_instance" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.write_labels(properties) }}
+  name = {{ name_value }}
+  {{- macros.fields(properties, {
+    'description': 'description',
+    'instance': 'instance',
+    'natPolicy': 'nat_policy',
+    'zone': 'zone',
+    'network': 'network',
+    'project': 'project',
+  }, ' ' * 2) }}
+
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}

@@ -1,0 +1,32 @@
+{%- import 'action_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+
+{%- if properties.get('deletions', []) | length > 0 -%}
+{% set error_message = 'Cannot convert action: gcp-types/dns-v1:dns.changes.create '
+                        'to a declarative equivalent because it contains a non-empty '
+                        '"deletions" field. Consider removing the '
+                        '"deletions" field before continuing conversion.' -%}
+  {{ raise_unsupported_action_state(error_message) }}
+{%- endif -%}
+
+{%- for item in properties.get('additions', []) %}
+  {%- set prefix_resource_name = properties.get('name', resource.get('name')) %}
+  {%- set nested_resource_name = prefix_resource_name ~ "_" ~ loop.index | string %}
+- name: {{ nested_resource_name }}
+  type: gcp-types/dns-v1:resourceRecordSets
+  properties:
+  {{- macros.fields(properties, {
+    'managedZone': 'managedZone',
+    'project': 'project',
+    'name': 'name',
+  }, ' ' * 4) }}
+  {{- macros.fields(item, {
+    'type': 'type',
+    'ttl': 'ttl',
+    'rrdatas': 'rrdatas'
+  }, ' ' * 4) }}
+{%- endfor %}
+
+{{- macros.fields(resource, {
+    'metadata': 'metadata'
+  }, ' ' * 2) -}}

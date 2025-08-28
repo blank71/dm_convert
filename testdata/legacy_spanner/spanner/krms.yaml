@@ -1,0 +1,11 @@
+apiVersion: spanner.cnrm.cloud.google.com/v1beta1
+kind: SpannerInstance
+metadata:
+  labels:
+    created: anthos
+  name: spanner-instance
+  namespace: dm-convert-prow
+spec:
+  config: regional-us-west1
+  displayName: ACM Spanner A1
+  numNodes: 1

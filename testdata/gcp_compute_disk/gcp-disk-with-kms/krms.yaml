@@ -1,0 +1,31 @@
+apiVersion: kms.cnrm.cloud.google.com/v1beta1
+kind: KMSKeyRing
+metadata:
+  name: kms-keyring
+spec:
+  location: us-west1
+---
+apiVersion: kms.cnrm.cloud.google.com/v1beta1
+kind: KMSCryptoKey
+metadata:
+  labels:
+    key-one: value-one
+  name: kms-cryptokey
+spec:
+  keyRingRef:
+    name: kms-keyring
+  purpose: ENCRYPT_DECRYPT
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeDisk
+metadata:
+  name: compute-disk
+spec:
+  description: a sample encrypted, blank disk
+  diskEncryptionKey:
+    kmsKeyRef:
+      name: kms-cryptokey
+  location: us-west1-c
+  physicalBlockSizeBytes: 4096
+  size: 1
+  type: pd-ssd

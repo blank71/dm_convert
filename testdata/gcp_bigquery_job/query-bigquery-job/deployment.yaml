@@ -1,0 +1,60 @@
+resources:
+- name: bigquerydataset1
+  properties:
+    datasetReference:
+      datasetId: bigquerydataset1
+    description: Default Source BigQueryDataset
+    friendlyName: bigqueryjob-dep1-query
+  type: gcp-types/bigquery-v2:datasets
+- name: bigquerydataset2
+  properties:
+    datasetReference:
+      datasetId: $(ref.bigquerydataset2.name)
+    description: Destination BigQueryDataset
+    friendlyName: bigqueryjob-dep2-query
+  type: gcp-types/bigquery-v2:datasets
+- metadata:
+    dependsOn:
+    - bigquerydataset2
+  name: bigquerytable
+  properties:
+    datasetId: $(ref.bigquerydataset2.name)
+    description: Destination BigQueryTable
+    friendlyName: bigqueryjob-dep-query
+    tableReference:
+      tableId: bigquerytable
+  type: gcp-types/bigquery-v2:tables
+- metadata:
+    dependsOn:
+    - bigquerytable
+  name: bigqueryjob
+  properties:
+    configuration:
+      labels:
+        label-one: value-one
+      query:
+        query: SELECT state FROM [lookerdata:cdc.project_tycho_reports]
+        useLegacySql: true
+        createDisposition: CREATE_NEVER
+        defaultDataset:
+          datasetId: $(ref.bigquerydataset1.name)
+          projectId: dm-convert-prow
+        destinationTable:
+          datasetId: $(ref.bigquerydataset2.name)
+          projectId: dm-convert-prow
+          tableId: $(ref.bigquerytable.name)
+        allowLargeResults: true
+        flattenResults: true
+        useQueryCache: true
+        priority: INTERACTIVE
+        writeDisposition: WRITE_APPEND
+        schemaUpdateOptions:
+        - ALLOW_FIELD_ADDITION
+        - ALLOW_FIELD_RELAXATION
+        scriptOptions:
+          statementTimeoutMs: '300000'
+          keyResultStatement: LAST
+    jobReference:
+      jobId: bigqueryjob
+      projectId: dm-convert-prow
+  type: gcp-types/bigquery-v2:jobs

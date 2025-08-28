@@ -1,0 +1,21 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set resource_name = macros.get_resource_name(resource,properties) -%}
+#tfimport-terraform import google_sql_database.{{ macros.get_name(resource, properties) }}  __project__/{{macros.hydrate_ref(properties.get('instance'))}}/{{ resource_name }}
+resource "google_sql_database" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  name = "{{resource_name}}"
+  {{- macros.fields(properties, {
+    'instance': 'instance',
+    'charset': 'charset',
+    'collation': 'collation',
+    'project': 'project',
+    'deletionPolicy': 'deletion_policy',
+  }, ' ' * 2) }}
+}
+
+{%- set unconvertible_fields = resource | match_missing_fields([
+  'properties.etag',
+  'properties.selfLink',
+  'properties.sqlserverDatabaseDetails',
+]) %}

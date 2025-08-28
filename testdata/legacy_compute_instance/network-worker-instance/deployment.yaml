@@ -1,0 +1,86 @@
+resources:
+- name: compute-network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+  type: compute.v1.network
+- name: compute-disk
+  properties:
+    description: a sample encrypted, blank disk
+    diskEncryptionKey:
+      rawKey: SGVsbG8gZnJvbSBHb29nbGUgQ2xvdWQgUGxhdGZvcm0=
+    physicalBlockSizeBytes: 4096
+    sizeGb: 1
+    type: projects/tjr-dm-test-1/zones/us-west1-a/diskTypes/pd-ssd
+    zone: us-west1-a
+  type: compute.v1.disk
+- name: compute-address
+  properties:
+    description: a sample external address
+    region: us-west1
+  type: compute.v1.address
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-subnetwork
+  properties:
+    description: a sample subnetwork
+    ipCidrRange: 10.2.0.0/16
+    logConfig:
+      aggregationInterval: INTERVAL_10_MIN
+      enable: true
+      filterExpr: 'true'
+      flowSampling: 0.5
+      metadata: INCLUDE_ALL_METADATA
+    network: $(ref.compute-network.selfLink)
+    privateIpGoogleAccess: false
+    region: us-west1
+  type: compute.v1.subnetwork
+- metadata:
+    dependsOn:
+    - compute-address
+    - compute-disk
+    - compute-network
+    - compute-subnetwork
+  name: compute-instance
+  properties:
+    canIpForward: true
+    disks:
+    - autoDelete: false
+      boot: true
+      deviceName: proxycontroldisk
+      diskEncryptionKey:
+        rawKey: SGVsbG8gZnJvbSBHb29nbGUgQ2xvdWQgUGxhdGZvcm0=
+      mode: READ_ONLY
+      source: $(ref.compute-disk.selfLink)
+    - autoDelete: true
+      initializeParams:
+        diskType: projects/tjr-dm-test-1/zones/us-west1-a/diskTypes/local-ssd
+      interface: SCSI
+      type: SCRATCH
+    - autoDelete: true
+      initializeParams:
+        diskType: projects/tjr-dm-test-1/zones/us-west1-a/diskTypes/local-ssd
+      interface: NVME
+      type: SCRATCH
+    guestAccelerators:
+    - acceleratorCount: 1
+      acceleratorType: projects/tjr-dm-test-1/zones/us-west1-a/acceleratorTypes/nvidia-tesla-v100
+    labels:
+      created-from: disk
+      network-type: global
+    machineType: projects/tjr-dm-test-1/zones/us-west1-a/machineTypes/n1-standard-1
+    networkInterfaces:
+    - accessConfigs:
+      - natIP: $(ref.compute-address.address)
+        type: ONE_TO_ONE_NAT
+      network: $(ref.compute-network.selfLink)
+      networkIP: 10.2.0.4
+      subnetwork: $(ref.compute-subnetwork.selfLink)
+    scheduling:
+      automaticRestart: false
+      onHostMaintenance: TERMINATE
+      preemptible: true
+    zone: us-west1-a
+  type: compute.v1.instance

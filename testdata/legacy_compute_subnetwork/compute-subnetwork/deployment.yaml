@@ -1,0 +1,45 @@
+resources:
+- name: compute-network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+  type: compute.v1.network
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-subnetwork
+  properties:
+    description: My subnet
+    ipCidrRange: 192.168.0.0/24
+    labels:
+      label-one: value-one
+    logConfig:
+      aggregationInterval: INTERVAL_10_MIN
+      enable: true
+      filterExpr: 'true'
+      flowSampling: 0.5
+      metadata: INCLUDE_ALL_METADATA
+    network: $(ref.compute-network.selfLink)
+    privateIpGoogleAccess: false
+    region: us-west1
+  type: compute.v1.subnetwork
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-subnetworks
+  properties:
+    description: My subnet
+    ipCidrRange: 192.168.0.0/24
+    labels:
+      label-one: value-one
+    logConfig:
+      aggregationInterval: INTERVAL_10_MIN
+      enable: true
+      filterExpr: 'true'
+      flowSampling: 0.5
+      metadata: INCLUDE_ALL_METADATA
+    network: $(ref.compute-network.selfLink)
+    privateIpGoogleAccess: false
+    region: us-west1
+  type: compute.v1.subnetworks

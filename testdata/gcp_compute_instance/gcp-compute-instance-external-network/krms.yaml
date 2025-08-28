@@ -1,0 +1,16 @@
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeInstance
+metadata:
+  name: vm-created-by-deployment-manager
+spec:
+  bootDisk:
+    autoDelete: true
+    deviceName: boot
+    initializeParams:
+      sourceImageRef:
+        external: projects/debian-cloud/global/images/family/debian-11
+  machineType: n1-standard-1
+  networkInterface:
+  - networkRef:
+      external: default
+  zone: us-central1-a

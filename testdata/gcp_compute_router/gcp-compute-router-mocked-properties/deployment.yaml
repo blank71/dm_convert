@@ -1,0 +1,98 @@
+resources:
+- name: compute-network
+  properties:
+    autoCreateSubnetworks: false
+    labels:
+      label-one: value-one
+    routingConfig:
+      routingMode: REGIONAL
+  type: gcp-types/compute-v1:networks
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-router
+  properties:
+    description: a mocked config sample for testing only
+    region: us-west1
+    network: $(ref.compute-network.selfLink)
+    project: my-test-project
+    bgp:
+      asn: 64514
+      advertiseMode: CUSTOM
+      advertisedGroups:
+      - ALL_SUBNETS
+      - ALL_VPC_SUBNETS
+      advertisedIpRanges:
+      - description: ''
+        range: 1.2.3.4
+
+    interfaces:
+    - name: test-interface-1
+      linkedInterconnectAttachment: linkedInterconnectAttachment-prop-1
+      ipRange: 123.456.789.0
+    - name: test-interface-2
+      linkedVpnTunnel: linkedVpnTunnel-prop-2
+      ipRange: 9.9.9.9
+
+    bgpPeers:
+    - name: peer-1
+      interfaceName: test-interface-1
+      peerIpAddress: 1.1.1.1
+      peerAsn: 20300
+      advertisedRoutePriority: 1
+      advertiseMode: DEFAULT
+      ipAddress: 127.0.0.10
+      enable: false
+      managementType: MANAGED_BY_USER
+      advertisedGroups:
+      - ALL_SUBNETS
+      - ALL_VPC_SUBNETS
+    - name: peer-2
+      interfaceName: test-interface-1
+      peerIpAddress: 2.2.2.2
+      peerAsn: 20300
+      advertisedRoutePriority: 1
+      advertiseMode: DEFAULT
+      ipAddress: 127.0.0.10
+      enable: true
+      managementType: MANAGED_BY_USER
+      advertisedGroups:
+      - ALL_SUBNETS
+      - ALL_VPC_SUBNETS
+
+    nats:
+    - name: nat-1
+      sourceSubnetworkIpRangesToNat: ALL_SUBNETWORKS_ALL_IP_RANGES
+      natIps:
+      - 10.10.10.1
+      - 10.10.10.2
+      drainNatIps:
+      - 10.10.20.1
+      - 10.10.20.2
+      natIpAllocateOption: AUTO_ONLY
+      minPortsPerVm: 50
+      udpIdleTimeoutSec: 100
+      icmpIdleTimeoutSec: 200
+      tcpEstablishedIdleTimeoutSec: 300
+      tcpTransitoryIdleTimeoutSec: 400
+      enableEndpointIndependentMapping: false
+      logConfig:
+        enable: false
+        filter: TRANSLATIONS_ONLY
+      subnetworks:
+      - name: $(ref.compute-network.selfLink)
+        sourceIpRangesToNat:
+        - PRIMARY_IP_RANGE
+        - LIST_OF_SECONDARY_IP_RANGES
+        secondaryIpRangeNames:
+        - subnetwork-1
+        - subnetwork-2
+        - subnetwork-3
+      - name: my_sub_net_1
+        sourceIpRangesToNat:
+        - ALL_IP_RANGES
+        secondaryIpRangeNames:
+        - subnetwork-10
+        - subnetwork-20
+        - subnetwork-30
+  type: gcp-types/compute-v1:routers

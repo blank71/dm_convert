@@ -1,0 +1,7 @@
+resources:
+- name: virtual-iam-member-binding-storage-bucket
+  type: gcp-types/storage-v1:virtual.buckets.iamMemberBinding
+  properties:
+    bucket: my-test-bucket
+    member: user:user1@google.com
+    role: roles/storage.objectViewer

@@ -1,0 +1,49 @@
+resources:
+- name: bigquerydataset
+  properties:
+    datasetReference:
+      datasetId: bigquerydataset
+    friendlyName: bigqueryjob-dep-load
+  type: gcp-types/bigquery-v2:datasets
+- metadata:
+    dependsOn:
+    - bigquerydataset
+  name: bigquerytable
+  properties:
+    datasetId: $(ref.bigquerydataset.datasetId)
+    friendlyName: bigqueryjob-dep-load
+    tableReference:
+      tableId: bigquerytable
+      projectId: dm-convert-prow
+  type: gcp-types/bigquery-v2:tables
+- metadata:
+    dependsOn:
+    - bigquerydataset
+    - bigquerytable
+  name: bigqueryjob
+  properties:
+    configuration:
+      labels:
+        label-one: value-one
+      load:
+        autodetect: true
+        createDisposition: CREATE_NEVER
+        destinationTable:
+          datasetId: bigquerydataset
+          projectId: dm-convert-prow
+          tableId: $(ref.bigquerytable.tableReference.tableId)
+        encoding: UTF-8
+        fieldDelimiter: ','
+        quote: '"'
+        schemaUpdateOptions:
+        - ALLOW_FIELD_ADDITION
+        - ALLOW_FIELD_RELAXATION
+        skipLeadingRows: 1
+        sourceFormat: CSV
+        sourceUris:
+        - gs://cloud-samples-data/bigquery/us-states/us-states-by-date.csv
+        writeDisposition: WRITE_APPEND
+    jobReference:
+      jobId: bigqueryjob
+      projectId: dm-convert-prow
+  type: gcp-types/bigquery-v2:jobs

@@ -1,0 +1,18 @@
+resources:
+- metadata:
+    dependsOn:
+    - compute-nodetemplate
+  name: compute-nodegroup
+  properties:
+    description: A single sole-tenant node in the us-west1-a zone.
+    initialNodeCount: 1
+    name: compute-nodegroup
+    nodeTemplate: $(ref.compute-nodetemplate.selfLink)
+    zone: us-west1-a
+  type: gcp-types/compute-v1:nodeGroups
+- name: compute-nodetemplate
+  properties:
+    name: compute-nodetemplate
+    nodeType: n1-node-96-624
+    region: us-west1
+  type: gcp-types/compute-beta:nodeTemplates

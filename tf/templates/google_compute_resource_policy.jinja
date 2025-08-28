@@ -1,0 +1,74 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set resource_name = resource.get('name') -%}
+#tfimport-terraform import google_compute_resource_policy.{{ macros.get_name(resource, properties) }}  __project__/{{ properties['region'] }}/{{ resource_name }}
+resource "google_compute_resource_policy" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  name = "{{ resource_name }}"
+  {{- macros.fields(properties, {
+      'description': 'description',
+      'region': 'region',
+    'project': 'project',
+  }, ' ' * 2) }}
+  {%- if 'groupPlacementPolicy' in properties %}
+  {%- set groupPolicy = properties['groupPlacementPolicy'] %}
+  group_placement_policy {
+    {{- macros.fields(groupPolicy, {
+      'vmCount': 'vm_count',
+      'availabilityDomainCount': 'availability_domain_count',
+      'collocation': 'collocation',
+    }, ' ' * 4) }}
+  }
+  {%- endif %}
+  {%- if 'snapshotSchedulePolicy' in properties %}
+  {%- set snapshot_policy = properties['snapshotSchedulePolicy'] %}
+  {%- set snap_schedule = snapshot_policy['schedule'] %}
+  snapshot_schedule_policy {
+    {{- macros.dict(snapshot_policy, {
+      'retentionPolicy': {
+        'dict_name': 'retention_policy',
+        'maxRetentionDays': 'max_retention_days',
+        'onSourceDiskDelete': 'on_source_disk_delete'
+      }
+    }) | indent(4) }}
+    schedule {
+    {{- macros.dict(snap_schedule, {
+      'hourlySchedule': {
+        'dict_name': 'hourly_schedule',
+        'hoursInCycle': 'hours_in_cycle',
+        'startTime': 'start_time'
+      },
+      'dailySchedule': {
+          'dict_name': 'daily_schedule',
+          'daysInCycle': 'days_in_cycle',
+          'startTime': 'start_time'
+      }
+    }) | indent(6) }}
+    {%- if 'weeklySchedule' in snap_schedule %}
+      weekly_schedule {
+      {%- set daily_schedules = snap_schedule['weeklySchedule'].get('dayOfWeeks') %}
+      {%- for item in daily_schedules %}
+        day_of_weeks {
+        {{- macros.fields(item, {
+           'day': 'day',
+           'startTime': 'start_time',
+        }, ' ' * 10) }}
+        }
+      {%- endfor %}
+      }
+    {%- endif %}
+    }
+    {%- if 'snapshotProperties' in snapshot_policy %}
+    snapshot_properties {
+    {{- macros.fields(snapshot_policy['snapshotProperties'], {
+        'storageLocations': 'storage_locations',
+        'guestFlush': 'guest_flush'
+    }, ' ' * 6) }}
+    {{- macros.write_labels(snapshot_policy['snapshotProperties']) | indent(4) }}
+    }
+    {%- endif %}
+  }
+  {%- endif %}
+
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}

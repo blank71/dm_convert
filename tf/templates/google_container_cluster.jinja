@@ -1,0 +1,572 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) %}
+{%- set cluster = properties.get('cluster', {}) %}
+{%- if 'region' in properties %}
+{%- set location_value = properties['region'] %}
+{%- elif 'location' in cluster %}
+{%- set location_value = cluster['location'] %}
+{%- endif %}
+{%- if 'name' in resource  %}
+{%- set name_value = resource['name'] %}
+{%- else %}
+{%- set name_value = properties['name'] %}
+{%- endif %}
+#tfimport-terraform import google_container_cluster.{{ macros.get_name(resource, properties) }} __project__/{{ location_value }}/{{ name_value }}
+resource "google_container_cluster" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  name = "{{ name_value }}"
+  {{- macros.fields(cluster, {
+    'description': 'description',
+    'loggingService': 'logging_service',
+    'monitoringService': 'monitoring_service',
+    'network': 'network',
+    'clusterIpv4Cidr': 'cluster_ipv4_cidr',
+    'subnetwork': 'subnetwork',
+    'locations': 'node_locations',
+    'enableKubernetesAlpha': 'enable_kubernetes_alpha',
+    'endpoint': 'endpoint',
+    'initialClusterVersion': 'min_master_version',
+    'currentMasterVersion': 'master_version',
+    'enableTpu': 'enable_tpu',
+    'initialNodeCount': 'initial_node_count',
+    'removeDefaultNodePool': 'remove_default_node_pool',
+    'project': 'project',
+    'nodeVersion': 'node_version',
+    'nodeLocations': 'node_locations',
+    'networkingMode': 'networking_mode',
+    'minMasterVersion': 'min_master_version',
+    'enableShieldedNodes': 'enable_shielded_nodes',
+    'enableMultiNetworking': 'enable_multi_networking',
+    'enableLegacyAbac': 'enable_legacy_abac',
+    'enableL4IlbSubsetting': 'enable_l4_ilb_subsetting',
+    'enableIntranodeVisibility': 'enable_intranode_visibility',
+    'enableCiliumClusterwideNetworkPolicy': 'enable_cilium_clusterwide_network_policy',
+    'enableAutopilot': 'enable_autopilot',
+    'deletionProtection': 'deletion_protection',
+    'defaultMaxPodsPerNode': 'default_max_pods_per_node',
+    'allowNetAdmin': 'allow_net_admin',
+  }, ' ' * 2) }}
+  location = "{{ location_value }}"
+
+  {%- if 'legacyAbac' in cluster %}
+  {{- macros.fields(cluster['legacyAbac'], {
+    'enabled': 'enable_legacy_abac',
+  }, ' ' * 2) }}
+  {%- endif %}
+
+  {%- if 'binaryAuthorization' in cluster %}
+  binary_authorization {
+    {{- macros.fields(cluster['binaryAuthorization'], {
+      'enabled': 'enabled',
+      'evaluationMode': 'evaluation_mode'
+    }, ' ' * 4) }}
+  }
+  {%- endif %}
+
+  {%- if 'defaultMaxPodsConstraint' in cluster %}
+  {{- macros.fields(cluster['defaultMaxPodsConstraint'], {
+    'maxPodsPerNode': 'default_max_pods_per_node',
+  }, ' ' * 2) }}
+  {%- endif %}
+
+  {%- if 'shieldedNodes' in cluster %}
+  {{- macros.fields(cluster['shieldedNodes'], {
+    'enabled': 'enable_shielded_nodes',
+  }, ' ' * 2) }}
+  {%- endif %}
+
+  {%- if 'autopilot' in cluster %}
+  {{- macros.fields(cluster['autopilot'], {
+    'enabled': 'enable_autopilot',
+  }, ' ' * 2) }}
+  {%- endif %}
+
+  {%- if 'nodeConfig' in cluster %}
+  {%- set node_config = cluster['nodeConfig'] %}
+  node_config {
+    {{- macros.fields(node_config, {
+      'machineType': 'machine_type',
+      'diskSizeGb': 'disk_size_gb',
+      'oauthScopes': 'oauth_scopes',
+      'serviceAccount': 'service_account',
+      'imageType': 'image_type',
+      'localSsdCount': 'local_ssd_count',
+      'tags': 'tags',
+      'preemptible': 'preemptible',
+      'diskType': 'disk_type',
+      'minCpuPlatform': 'min_cpu_platform',
+      'bootDiskKmsKey': 'boot_disk_kms_key'
+    }, ' ' * 4) }}
+
+    {{- macros.unroll_dict(node_config.get('accelerators'), 'guest_accelerator', {
+      'acceleratorCount': 'count',
+      'acceleratorType': 'type'
+    }) | indent(2) }}
+
+    {{- macros.dict(node_config, {
+      'shieldedInstanceConfig': {
+        'dict_name': 'shielded_instance_config',
+        'enableSecureBoot': 'enable_secure_boot',
+        'enableIntegrityMonitoring': 'enable_integrity_monitoring'
+        }
+    }) | indent(4) }}
+
+    {{- macros.unroll_dict(node_config.get('taints'), 'taint', {
+      'key': 'key',
+      'value': 'value',
+      'effect': 'effect'
+    }) | indent(2) }}
+
+    {{- macros.dict(node_config, {
+      'workloadMetadataConfig': {
+        'dict_name': 'workload_metadata_config',
+        'mode': 'mode'
+      }
+    }) | indent(4) }}
+
+    {{- macros.dict(node_config, {
+      'sandboxConfig': {
+        'dict_name': 'sandbox_config',
+        'type': 'sandbox_type'
+      }
+    }) | indent(4) }}
+
+    {%- if 'linuxNodeConfig' in node_config %}
+    linux_node_config {
+      {{- macros.map(node_config['linuxNodeConfig'].get('sysctls'), 'sysctls') | indent(6) }}
+    }
+    {%- endif %}
+
+    {{- macros.dict(node_config, {
+      'kubeletConfig': {
+        'dict_name': 'kubelet_config',
+        'cpuManagerPolicy': 'cpu_manager_policy',
+        'cpuCfsQuota': 'cpu_cfs_quota',
+        'cpuCfsQuotaPeriod': 'cpu_cfs_quota_period'
+      }
+    }) | indent(4) }}
+
+    {{- macros.map(node_config.get('metadata'), 'metadata') | indent(4) }}
+    {{- macros.write_labels(node_config, 4) }}
+  }
+  {%- endif %}
+
+  {%- if 'networkConfig' in cluster %}
+  {%- set network_config = cluster['networkConfig'] %}
+  {%- if 'enableIntraNodeVisibility' in network_config %}
+  {{- macros.fields(network_config, {
+  }, ' ' * 2) }}
+  {%- endif %}
+
+  {%- if 'defaultSnatStatus' in network_config and 'disabled' in network_config['defaultSnatStatus'] %}
+  {%- set snat_status = network_config['defaultSnatStatus'] %}
+  default_snat_status {
+    {{- macros.fields(snat_status, {
+      'disabled': 'disabled',
+    }, ' ' * 4) }}
+  }
+  {%- endif %}
+
+  {{- macros.fields(network_config, {
+    'datapathProvider': 'datapath_provider',
+    'privateIpv6GoogleAccess': 'private_ipv6_google_access',
+    'enableIntraNodeVisibility': 'enable_intranode_visibility',
+    'enableL4ilbSubsetting': 'enable_l4_ilb_subsetting',
+  }, ' ' * 2) }}
+
+  {{- macros.dict(network_config, {
+    'dnsConfig': {
+      'dict_name': 'dns_config',
+      'clusterDns': 'cluster_dns',
+      'clusterDnsScope': 'cluster_dns_scope',
+      'clusterDnsDomain': 'cluster_dns_domain'
+    }
+  }) | indent(2) }}
+  {%- endif %}
+
+  {{- macros.dict(cluster, {
+    'masterAuth': {
+      'dict_name': 'master_auth',
+      'username': 'username',
+      'password': 'password',
+      'clientCertificateConfig': {
+        'dict_name': 'client_certificate_config',
+        'issueClientCertificate': 'issue_client_certificate'
+        },
+      }
+  }) | indent(2) }}
+
+  {{- macros.dict(cluster, {
+    'addonsConfig': {
+      'dict_name': 'addons_config',
+      'httpLoadBalancing': {
+        'dict_name': 'http_load_balancing',
+        'disabled': 'disabled'
+        },
+      'horizontalPodAutoscaling': {
+        'dict_name': 'horizontal_pod_autoscaling',
+        'disabled': 'disabled'
+        },
+      'networkPolicyConfig': {
+        'dict_name': 'network_policy_config',
+        'disabled': 'disabled'
+        },
+      'istioConfig': {
+        'dict_name': 'istio_config',
+        'disabled': 'disabled',
+        'auth': 'auth'
+        },
+      'cloudRunConfig': {
+        'dict_name': 'cloudrun_config',
+        'disabled': 'disabled',
+        'loadBalancerType': 'load_balancer_type'
+        },
+      'dnsCacheConfig': {
+        'dict_name': 'dns_cache_config',
+        'enabled': 'enabled'
+        },
+      'configConnectorConfig': {
+        'dict_name': 'config_connector_config',
+        'enabled': 'enabled'
+        },
+      'gcePersistentDiskCsiDriverConfig': {
+        'dict_name': 'gce_persistent_disk_csi_driver_config',
+        'enabled': 'enabled'
+        },
+      }
+  }) | indent(2) }}
+
+  {%- if 'nodePools' in cluster %}
+  {%- for node in cluster.get('nodePools') %}
+  node_pool {
+    {{- macros.fields(node, {
+      'name': 'name',
+      'initialNodeCount': 'initial_node_count',
+      'locations': 'node_locations',
+      'version': 'version',
+      'instanceGroupUrls': 'instance_group_urls'
+    }, ' ' * 4) }}
+
+    {%- if 'maxPodsConstraint' in node and 'maxPodsPerNode' in node['maxPodsConstraint'] %}
+    max_pods_per_node = "{{ node['maxPodsConstraint']['maxPodsPerNode'] }}"
+    {%- endif %}
+
+    {%- if 'config' in node %}
+    {%- set node_config = node['config'] %}
+    node_config {
+      {{- macros.fields(node_config, {
+        'machineType': 'machine_type',
+        'diskSizeGb': 'disk_size_gb',
+        'oauthScopes': 'oauth_scopes',
+        'serviceAccount': 'service_account',
+        'imageType': 'image_type',
+        'localSsdCount': 'local_ssd_count',
+        'tags': 'tags',
+        'preemptible': 'preemptible',
+        'diskType': 'disk_type',
+        'minCpuPlatform': 'min_cpu_platform',
+        'bootDiskKmsKey': 'boot_disk_kms_key',
+      }, ' ' * 6) }}
+
+      {{- macros.unroll_dict(node_config.get('accelerators'), 'guest_accelerator', {
+        'acceleratorCount': 'count',
+        'acceleratorType': 'type'
+      }) | indent(4) }}
+
+      {{- macros.dict(node_config, {
+        'shieldedInstanceConfig': {
+          'dict_name': 'shielded_instance_config',
+          'enableSecureBoot': 'enable_secure_boot',
+          'enableIntegrityMonitoring': 'enable_integrity_monitoring'
+          }
+      }) | indent(6) }}
+
+      {{- macros.unroll_dict(node_config.get('taints'), 'taint', {
+        'key': 'key',
+        'value': 'value',
+        'effect': 'effect'
+      }) | indent(4) }}
+
+      {{- macros.dict(node_config, {
+        'workloadMetadataConfig': {
+          'dict_name': 'workload_metadata_config',
+          'mode': 'mode'
+          }
+      }) | indent(6) }}
+
+      {{- macros.dict(node_config, {
+        'sandboxConfig': {
+          'dict_name': 'sandbox_config',
+          'type': 'sandbox_type'
+          }
+      }) | indent(6) }}
+
+      {%- if 'linuxNodeConfig' in node_config %}
+      linux_node_config {
+        {{- macros.map(node_config['linuxNodeConfig'].get('sysctls'), 'sysctls') | indent(8) }}
+      }
+      {%- endif %}
+
+      {{- macros.dict(node_config, {
+        'kubeletConfig': {
+          'dict_name': 'kubelet_config',
+          'cpuManagerPolicy': 'cpu_manager_policy',
+          'cpuCfsQuota': 'cpu_cfs_quota',
+          'cpuCfsQuotaPeriod': 'cpu_cfs_quota_period'
+          }
+      }) | indent(6) }}
+
+      {{- macros.map(node_config.get('metadata'), 'metadata') | indent(6) }}
+      {{- macros.write_labels(node_config, 6) }}
+    }
+    {%- endif %}
+
+    {%- if 'autoscaling' in node and node['autoscaling'].get('enabled') %}
+    {{- macros.dict(node, {
+      'autoscaling': {
+        'minNodeCount': 'min_node_count',
+        'maxNodeCount': 'max_node_count'
+      }
+    }) | indent(4) }}
+    {%- endif %}
+
+    {{- macros.dict(node, {
+      'management': {
+        'autoUpgrade': 'auto_upgrade',
+        'autoRepair': 'auto_repair'
+      }
+    }) | indent(4) }}
+
+    {{- macros.dict(node, {
+      'upgradeSettings': {
+        'dict_name': 'upgrade_settings',
+        'maxSurge': 'max_surge',
+        'maxUnavailable': 'max_unavailable'
+      }
+    }) | indent(4) }}
+  }
+  {%- endfor %}
+  {%- endif %}
+
+  {{- macros.map(cluster.get('resourceLabels'), 'resource_labels') | indent(2) }}
+
+  {{- macros.dict(cluster, {
+    'networkPolicy': {
+      'dict_name': 'network_policy',
+      'provider': 'provider',
+      'enabled': 'enabled'
+    }
+  }) | indent(2) }}
+
+  {{- macros.dict(cluster, {
+    'ipAllocationPolicy': {
+      'dict_name': 'ip_allocation_policy',
+      'clusterSecondaryRangeName': 'cluster_secondary_range_name',
+      'servicesSecondaryRangeName': 'services_secondary_range_name',
+      'clusterIpv4CidrBlock': 'cluster_ipv4_cidr_block',
+      'servicesIpv4CidrBlock': 'services_ipv4_cidr_block'
+    }
+  }) | indent(2) }}
+
+  {%- if 'masterAuthorizedNetworksConfig' in cluster %}
+  {%- set master_authorized_networks_config = cluster['masterAuthorizedNetworksConfig'] %}
+  {%- if master_authorized_networks_config.get('enabled') %}
+  master_authorized_networks_config {
+    {{- macros.unroll_dict(master_authorized_networks_config.get('cidrBlocks'), 'cidr_blocks', {
+      'cidrBlock': 'cidr_block',
+      'displayName': 'display_name'
+    }) | indent(2) }}
+  }
+  {%- endif %}
+  {%- endif %}
+
+  {%- if 'maintenancePolicy' in cluster %}
+  {%- set policy = cluster['maintenancePolicy']['window'] %}
+  maintenance_policy {
+    {{- macros.dict(policy, {
+      'dailyMaintenanceWindow': {
+        'dict_name': 'daily_maintenance_window',
+        'startTime': 'start_time',
+        'duration': 'duration'
+      }
+    }) | indent(4) }}
+
+    {%- if 'recurringWindow' in policy %}
+    recurring_window {
+      {{- macros.fields(policy['recurringWindow'], {
+        'recurrence': 'recurrence'
+      }, ' ' * 6) }}
+      {{- macros.fields(policy['recurringWindow'].get('window'), {
+        'startTime': 'start_time',
+        'endTime': 'end_time',
+      }, ' ' * 6) }}
+    }
+    {%- endif %}
+
+    {%- if 'maintenanceExclusions' in policy %}
+    {%- for exclusion in policy['maintenanceExclusions'] %}
+    maintenance_exclusion {
+      {%- for key, value in exclusion.items() %}
+      exclusion_name = "{{ key }}"
+      {{- macros.fields(value | first, {
+        'startTime': 'start_time',
+        'endTime': 'end_time',
+      }, ' ' * 6) }}
+      {%- endfor %}
+    }
+    {%- endfor %}
+    {%- endif %}
+  }
+  {%- endif %}
+
+  {%- if 'autoscaling' in cluster %}
+  {%- set autoscaling = cluster['autoscaling'] %}
+  cluster_autoscaling {
+    {{- macros.fields(autoscaling, {
+      'enableNodeAutoprovisioning': 'enabled',
+      'autoscalingProfile': 'autoscaling_profile'
+    }, ' ' * 4) }}
+
+    {{- macros.unroll_dict(autoscaling.get('resourceLimits'), 'resource_limits', {
+      'resourceType': 'resource_type',
+      'minimum': 'minimum',
+      'maximum': 'maximum',
+    }) | indent(2) }}
+
+    {{- macros.dict(policy, {
+      'autoprovisioningNodePoolDefaults': {
+        'dict_name': 'auto_provisioning_defaults',
+        'minCpuPlatform': 'min_cpu_platform',
+        'oauthScopes': 'oauth_scopes',
+        'serviceAccount': 'service_account',
+      }
+    }) | indent(4) }}
+  }
+  {%- endif %}
+
+  {%- if 'resourceUsageExportConfig' in cluster %}
+  {%- set export_config = cluster['resourceUsageExportConfig'] %}
+  resource_usage_export_config {
+    {{- macros.fields(export_config, {
+      'enableNetworkEgressMetering': 'enable_network_egress_metering'
+    }, ' ' * 4) }}
+    {{- macros.dict(export_config, {
+      'bigqueryDestination': {
+        'dict_name': 'bigquery_destination',
+        'datasetId': 'dataset_id'
+      }
+    }) | indent(4) }}
+    {{- macros.fields(export_config.get('consumptionMeteringConfig'), {
+      'enabled': 'enable_resource_consumption_metering'
+    }, ' ' * 4) }}
+  }
+  {%- endif %}
+
+  {{- macros.dict(cluster, {
+    'authenticatorGroupsConfig': {
+      'dict_name': 'authenticator_groups_config',
+      'securityGroup': 'security_group'
+    }
+  }) | indent(2) }}
+
+  {{- macros.dict(cluster, {
+    'privateClusterConfig': {
+      'dict_name': 'private_cluster_config',
+      'enablePrivateNodes': 'enable_private_nodes',
+      'enablePrivateEndpoint': 'enable_private_endpoint',
+      'masterIpv4CidrBlock': 'master_ipv4_cidr_block',
+      'privateEndpoint': 'private_endpoint',
+      'publicEndpoint': 'public_endpoint',
+      'peeringName': 'peering_name',
+      'masterGlobalAccessConfig': {
+        'dict_name': 'master_global_access_config',
+        'enabled': 'enabled',
+      },
+    }
+  }) | indent(2) }}
+
+  {{- macros.dict(cluster, {
+    'databaseEncryption': {
+      'dict_name': 'database_encryption',
+      'state': 'state',
+      'keyName': 'key_name',
+    }
+  }) | indent(2) }}
+
+  {{- macros.dict(cluster, {
+    'verticalPodAutoscaling': {
+      'dict_name': 'vertical_pod_autoscaling',
+      'enabled': 'enabled',
+    }
+  }) | indent(2) }}
+
+  {{- macros.dict(cluster, {
+    'releaseChannel': {
+      'dict_name': 'release_channel',
+      'channel': 'channel',
+    }
+  }) | indent(2) }}
+
+  {{- macros.dict(cluster, {
+    'notificationConfig': {
+      'dict_name': 'notification_config',
+      'pubsub': {
+        'enabled': 'enabled',
+        'topic': 'topic'
+      },
+    }
+  }) | indent(2) }}
+
+  {{- macros.dict(cluster, {
+    'podSecurityPolicyConfig': {
+      'dict_name': 'pod_security_policy_config',
+      'enabled': 'enabled'
+    }
+  }) | indent(2) }}
+
+  {{- macros.dict(cluster, {
+    'clusterTelemetry': {
+      'dict_name': 'cluster_telemetry',
+      'type': 'type'
+    }
+  }) | indent(2) }}
+
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}
+
+{#-
+Not found in TF
+1. [DM] nodePools
+  1. config.nodeGroup
+  2. config.reservationAffinity
+  3. autoscaling.autoprovisioned
+  4. conditions
+  5. management.upgradeOptions
+6. [DM] ipAllocationPolicy:
+  1. createSubnetwork
+  2. subnetworkName
+  3. clusterIpv4Cidr
+  4. nodeIpv4Cidr
+  5. servicesIpv4Cidr
+  6. nodeIpv4CidrBlock
+7. [DM] autoscaling.autoprovisioningLocations
+8. [DM] autoscaling.autoprovisioningNodePoolDefaults:
+  1. upgradeSettings
+  2. management
+  3. diskSizeGb
+  4. diskType
+  5. shieldedInstanceConfig
+  6. bootDiskKmsKey
+  7. imageType
+9. [DM] workloadIdentityConfig.workloadPool
+10. [DM] confidentialNodes
+11. [DM] conditions
+12. [DM] maintenancePolicy.resourceVersion
+13. [DM] networkConfig.enableL4ilbSubsetting
+
+TF Beta:
+1. networking_mode - computed field and not found on GCP API page
+2. KalmConfig is deprecated
+3. ephemeral_storage_config is not found neither in TF sources or GCP API page
+4. spot is not found neither in TF sources or GCP API page
+#}

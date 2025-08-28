@@ -1,0 +1,54 @@
+{%- import 'macros.jinja' as macros %}
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeForwardingRule
+metadata:
+{%- set properties = resource.get('properties', {}) %}
+{{- macros.fields(properties, {'labels': 'labels'}, ' ' * 2) }}
+{%- if 'name' in properties %}
+  name: {{ properties['name'] | arbitrary_reference }}
+{%- else %}
+  name: {{ resource['name'] | arbitrary_reference }}
+{%- endif %}
+{%- if properties | set_difference(['name', 'labels', 'project']) %}
+{# At least one field of properties was not converted to metadata and will be converted to spec. #}
+spec:
+  {{- macros.fields(properties, {
+    'allPorts': 'allPorts',
+    'allowGlobalAccess': 'allowGlobalAccess',
+    'backendService': 'backendServiceRef',
+    'description': 'description',
+    'IPProtocol': 'ipProtocol',
+    'ipVersion': 'ipVersion',
+    'isMirroringCollector': 'isMirroringCollector',
+    'loadBalancingScheme': 'loadBalancingScheme',
+    'network': 'networkRef',
+    'networkTier': 'networkTier',
+    'portRange': 'portRange',
+    'ports': 'ports',
+    'serviceLabel': 'serviceLabel',
+    'subnetwork': 'subnetworkRef',
+  }, ' ' * 2) }}
+  {%- if 'IPAddress' in properties %}
+  ipAddress:
+    {{- macros.fields(properties, {
+      'IPAddress': 'addressRef'
+    }, ' ' * 4) }}
+  {%- endif %}
+  {%- if 'region' in properties %}
+  location: {{ properties['region'] }}
+  {%- else %}
+  location: global
+  {%- endif %}
+  {%- if 'target' in properties %}
+    {%- set target = properties['target'] %}
+  target:
+    {{ target | reference_type }}: {{ target | typed_reference }}
+  {%- endif %}
+{%- endif %}
+{%- set unconvertable = properties | missing_fields((
+  'labelFingerprint',
+)) %}
+{%- if unconvertable %}
+# Unconvertable fields found:
+{{ unconvertable | join('\n# ') }}
+{%- endif %}

@@ -1,0 +1,13 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+#tfimport-terraform import google_cloudfunctions_function_iam_member.{{ macros.get_name(resource, properties) }} "{{ properties['resource'] }} {{ properties['role'] }} {{ properties['member'] }}"
+resource "google_cloudfunctions_function_iam_member" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.fields(properties, {
+    'resource': 'cloud_function',
+    'role': 'role',
+    'member': 'member',
+    'region': 'region',
+    'project': 'project',
+  }, ' ' * 2) }}
+}

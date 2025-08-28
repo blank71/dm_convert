@@ -1,0 +1,44 @@
+resources:
+- name: compute-network
+  properties:
+    autoCreateSubnetworks: false
+  type: compute.v1.network
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-subnetwork
+  properties:
+    ipCidrRange: 10.2.0.0/16
+    logConfig:
+      enable: false
+    network: $(ref.compute-network.selfLink)
+    region: us-west1
+  type: compute.v1.subnetwork
+- metadata:
+    dependsOn:
+    - compute-network
+    - compute-subnetwork
+  name: compute-instance
+  properties:
+    canIpForward: false
+    disks:
+    - autoDelete: false
+      boot: true
+      initializeParams:
+        sourceImage: projects/debian-cloud/global/images/family/debian-11
+    machineType: zones/us-west1-a/machineTypes/n1-standard-1
+    networkInterfaces:
+    - network: $(ref.compute-network.selfLink)
+      subnetwork: $(ref.compute-subnetwork.selfLink)
+    zone: us-west1-a
+  type: compute.v1.instance
+- metadata:
+    dependsOn:
+    - compute-instance
+  name: compute-targetinstance
+  properties:
+    description: Target instance, containing a VM instance which will have no NAT
+      applied to it and can be used for protocol forwarding.
+    instance: $(ref.compute-instance.selfLink)
+    zone: us-west1-a
+  type: compute.v1.targetInstance

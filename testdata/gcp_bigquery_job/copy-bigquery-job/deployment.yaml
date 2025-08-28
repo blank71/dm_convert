@@ -1,0 +1,148 @@
+resources:
+- name: bigquery_dataset1
+  properties:
+    datasetReference:
+      datasetId: bigquery_dataset1
+    description: Source BigQueryDataset 1
+    friendlyName: bigqueryjob-dep1-copy
+  type: gcp-types/bigquery-v2:datasets
+- name: bigquerydataset2
+  properties:
+    datasetReference:
+      datasetId: bigquerydataset2
+    description: Source BigQueryDataset 2
+    friendlyName: bigqueryjob-dep2-copy
+  type: gcp-types/bigquery-v2:datasets
+- name: bigquerydataset3
+  properties:
+    datasetReference:
+      datasetId: bigquerydataset3
+    description: Destination BigQueryDataset
+    friendlyName: bigqueryjob-dep3-copy
+    location: US
+  type: gcp-types/bigquery-v2:datasets
+- metadata:
+    dependsOn:
+    - bigquery_table1
+  name: bigquery_table1
+  properties:
+    datasetId: $(ref.bigquery_dataset1.datasetId)
+    description: Source BigQueryTable 1
+    friendlyName: bigqueryjob-dep1-copy
+    schema:
+      fields:
+      - mode: NULLABLE
+        name: name
+        type: STRING
+      - mode: NULLABLE
+        name: post_abbr
+        type: STRING
+      - mode: NULLABLE
+        name: date
+        type: DATE
+    tableReference:
+      tableId: bigquery_table1
+  type: gcp-types/bigquery-v2:tables
+- metadata:
+    dependsOn:
+    - bigquerydataset2
+  name: bigquerytable2
+  properties:
+    datasetId: $(ref.bigquerydataset2.datasetId)
+    description: Source BigQueryTable 2
+    friendlyName: bigqueryjob-dep2-copy
+    schema:
+      fields:
+      - mode: NULLABLE
+        name: name
+        type: STRING
+      - mode: NULLABLE
+        name: post_abbr
+        type: STRING
+      - mode: NULLABLE
+        name: date
+        type: DATE
+    tableReference:
+      tableId: bigquerytable2
+  type: gcp-types/bigquery-v2:tables
+- metadata:
+    dependsOn:
+    - bigquerydataset3
+  name: bigquerytable3
+  properties:
+    datasetId: $(ref.bigquerydataset3.datasetId)
+    description: Destination BigQueryTable
+    encryptionConfiguration:
+      kmsKeyName: $(ref.kms-crypto-key.name)
+    friendlyName: bigqueryjob-dep3-copy
+    schema:
+      fields:
+      - mode: NULLABLE
+        name: name
+        type: STRING
+      - mode: NULLABLE
+        name: post_abbr
+        type: STRING
+      - mode: NULLABLE
+        name: date
+        type: DATE
+    tableReference:
+      tableId: bigquerytable3
+  type: gcp-types/bigquery-v2:tables
+- name: iam-policymember
+  properties:
+    resource: tjr-dm-test-1
+    member: serviceAccount:bq-977766617671@bigquery-encryption.iam.gserviceaccount.com
+    role: roles/cloudkms.cryptoKeyEncrypterDecrypter
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+- name: kms-key-ring
+  properties:
+    keyRingId: kms-key-ring
+    parent: projects/tjr-dm-test-1/locations/global
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings
+- metadata:
+    dependsOn:
+    - kms-key-ring
+  name: kms-crypto-key
+  properties:
+    cryptoKeyId: kms-crypto-key
+    parent: $(ref.kms-key-ring.name)
+    purpose: ENCRYPT_DECRYPT
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings.cryptoKeys
+- metadata:
+    dependsOn:
+    - bigquery_dataset1
+    - bigquerydataset2
+    - bigquerydataset3
+    - bigquery_table1
+    - bigquerytable2
+    - bigquerytable3
+    - iam-policymember
+    - kms-crypto-key
+  name: bigquery_job
+  properties:
+    configuration:
+      copy:
+        createDisposition: CREATE_NEVER
+        destinationEncryptionConfiguration:
+          kmsKeyName: $(ref.kms-crypto-key.properties.name)
+        destinationTable:
+          datasetId: bigquerydataset3
+          projectId: tjr-dm-test-1
+          tableId: $(ref.bigquerytable3.tableReference.tableId)
+        operationType: COPY
+        sourceTables:
+        - datasetId: bigquery_dataset1
+          projectId: tjr-dm-test-1
+          tableId: $(ref.bigquery_table1.tableReference.tableId)
+        - datasetId: bigquerydataset2
+          projectId: tjr-dm-test-1
+          tableId: $(ref.bigquerytable2.tableReference.tableId)
+        writeDisposition: WRITE_APPEND
+      labels:
+        label-one: value-one
+    jobReference:
+      jobId: bigquery_job
+      location: US
+      projectId: tjr-dm-test-1
+  type: gcp-types/bigquery-v2:jobs

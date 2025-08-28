@@ -1,0 +1,45 @@
+apiVersion: bigquery.cnrm.cloud.google.com/v1beta1
+kind: BigQueryDataset
+metadata:
+  name: bigquerydataset
+spec:
+  friendlyName: bigqueryjob-dep-load
+  resourceID: bigquerydataset
+---
+apiVersion: bigquery.cnrm.cloud.google.com/v1beta1
+kind: BigQueryTable
+metadata:
+  name: bigquerytable
+spec:
+  datasetRef:
+    name: bigquerydataset
+  friendlyName: bigqueryjob-dep-load
+  resourceID: bigquerytable
+---
+apiVersion: bigquery.cnrm.cloud.google.com/v1beta1
+kind: BigQueryJob
+metadata:
+  annotations:
+    cnrm.cloud.google.com/project-id: dm-convert-prow
+  labels:
+    label-one: value-one
+  name: bigqueryjob
+spec:
+  load:
+    autodetect: true
+    createDisposition: CREATE_NEVER
+    destinationTable:
+      tableRef:
+        name: bigquerytable
+    encoding: UTF-8
+    fieldDelimiter: ','
+    quote: '"'
+    schemaUpdateOptions:
+    - ALLOW_FIELD_ADDITION
+    - ALLOW_FIELD_RELAXATION
+    skipLeadingRows: 1
+    sourceFormat: CSV
+    sourceUris:
+    - gs://cloud-samples-data/bigquery/us-states/us-states-by-date.csv
+    writeDisposition: WRITE_APPEND
+  resourceID: bigqueryjob

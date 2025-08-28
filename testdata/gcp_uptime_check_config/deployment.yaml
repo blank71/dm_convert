@@ -1,0 +1,29 @@
+resources:
+- name: my-uptime-check-config
+  type: gcp-types/monitoring-v3:projects.uptimeCheckConfigs
+  properties:
+    name: my-uptime-check-config
+    displayName: My uptime check config
+    target:
+      uri: https://www.google.com/
+    checkInterval: 60s
+    timeout: 10s
+    contentMatchers:
+      content: example
+      matcher: CONTAINS_STRING
+      caseSensitive: true
+    httpCheck:
+      headers:
+        User-Agent: Google-Stackdriver
+      path: /
+      port: 80
+      requestMethod: POST
+      contentType: USER_PROVIDED
+      customContentType: application/json
+      body: Zm9vJTI1M0RiYXI=
+      pingConfig:
+        pingCount: 1
+    monitoredResource:
+      type: uptime_url
+      labels:
+        url: https://www.google.com/

@@ -1,0 +1,171 @@
+apiVersion: bigquery.cnrm.cloud.google.com/v1beta1
+kind: BigQueryDataset
+metadata:
+  name: bigquery-dataset1
+spec:
+  description: Source BigQueryDataset 1
+  friendlyName: bigqueryjob-dep1-copy
+  resourceID: bigquery_dataset1
+---
+apiVersion: bigquery.cnrm.cloud.google.com/v1beta1
+kind: BigQueryDataset
+metadata:
+  name: bigquerydataset2
+spec:
+  description: Source BigQueryDataset 2
+  friendlyName: bigqueryjob-dep2-copy
+  resourceID: bigquerydataset2
+---
+apiVersion: bigquery.cnrm.cloud.google.com/v1beta1
+kind: BigQueryDataset
+metadata:
+  name: bigquerydataset3
+spec:
+  description: Destination BigQueryDataset
+  friendlyName: bigqueryjob-dep3-copy
+  location: US
+  resourceID: bigquerydataset3
+---
+apiVersion: bigquery.cnrm.cloud.google.com/v1beta1
+kind: BigQueryTable
+metadata:
+  name: bigquery-table1
+spec:
+  datasetRef:
+    name: bigquery_dataset1
+  description: Source BigQueryTable 1
+  friendlyName: bigqueryjob-dep1-copy
+  resourceID: bigquery_table1
+  schema: |
+    [
+      {
+        "mode": "NULLABLE",
+        "name": "name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "post_abbr",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "date",
+        "type": "DATE"
+      }
+    ]
+---
+apiVersion: bigquery.cnrm.cloud.google.com/v1beta1
+kind: BigQueryTable
+metadata:
+  name: bigquerytable2
+spec:
+  datasetRef:
+    name: bigquerydataset2
+  description: Source BigQueryTable 2
+  friendlyName: bigqueryjob-dep2-copy
+  resourceID: bigquerytable2
+  schema: |
+    [
+      {
+        "mode": "NULLABLE",
+        "name": "name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "post_abbr",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "date",
+        "type": "DATE"
+      }
+    ]
+---
+apiVersion: bigquery.cnrm.cloud.google.com/v1beta1
+kind: BigQueryTable
+metadata:
+  name: bigquerytable3
+spec:
+  datasetRef:
+    name: bigquerydataset3
+  description: Destination BigQueryTable
+  encryptionConfiguration:
+    kmsKeyRef:
+      name: kms-crypto-key
+  friendlyName: bigqueryjob-dep3-copy
+  resourceID: bigquerytable3
+  schema: |
+    [
+      {
+        "mode": "NULLABLE",
+        "name": "name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "post_abbr",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "date",
+        "type": "DATE"
+      }
+    ]
+---
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMPolicyMember
+metadata:
+  name: iam-policymember
+spec:
+  member: serviceAccount:bq-977766617671@bigquery-encryption.iam.gserviceaccount.com
+  resourceRef:
+    apiVersion: resourcemanager.cnrm.cloud.google.com/v1beta1
+    external: projects/tjr-dm-test-1
+    kind: Project
+  role: roles/cloudkms.cryptoKeyEncrypterDecrypter
+---
+apiVersion: kms.cnrm.cloud.google.com/v1beta1
+kind: KMSKeyRing
+metadata:
+  name: kms-key-ring
+spec:
+  location: global
+---
+apiVersion: kms.cnrm.cloud.google.com/v1beta1
+kind: KMSCryptoKey
+metadata:
+  name: kms-crypto-key
+spec:
+  keyRingRef:
+    name: kms-key-ring
+  purpose: ENCRYPT_DECRYPT
+---
+apiVersion: bigquery.cnrm.cloud.google.com/v1beta1
+kind: BigQueryJob
+metadata:
+  annotations:
+    cnrm.cloud.google.com/project-id: tjr-dm-test-1
+  labels:
+    label-one: value-one
+  name: bigquery-job
+spec:
+  copy:
+    createDisposition: CREATE_NEVER
+    destinationEncryptionConfiguration:
+      kmsKeyRef:
+        name: kms-crypto-key
+    destinationTable:
+      tableRef:
+        name: bigquerytable3
+    sourceTables:
+    - tableRef:
+        name: bigquery_table1
+    - tableRef:
+        name: bigquerytable2
+    writeDisposition: WRITE_APPEND
+  location: US
+  resourceID: bigquery_job

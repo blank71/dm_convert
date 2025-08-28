@@ -1,0 +1,37 @@
+resources:
+- name: sqladmin-instance-1
+  properties:
+    databaseVersion: MYSQL_5_7
+    region: us-central1
+    settings:
+      backupConfiguration:
+        binaryLogEnabled: true
+        enabled: true
+        pointInTimeRecoveryEnabled: false
+        replicationLogArchivingEnabled: false
+        startTime: '18:00'
+      ipConfiguration:
+        requireSsl: true
+      locationPreference:
+        zone: us-central1-a
+      tier: db-f1-micro
+  type: sqladmin.v1beta4.instance
+- metadata:
+    dependsOn:
+    - sqladmin-instance-1
+  name: sqladmin-instance-2
+  properties:
+    databaseVersion: MYSQL_5_7
+    masterInstanceName: sqladmin-instance-1
+    region: us-central1
+    replicaConfiguration:
+      connectRetryInterval: 30
+    settings:
+      backupConfiguration:
+        binaryLogEnabled: false
+      ipConfiguration:
+        requireSsl: true
+      locationPreference:
+        zone: us-central1-b
+      tier: db-f1-micro
+  type: sqladmin.v1beta4.instance

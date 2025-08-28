@@ -1,0 +1,72 @@
+resources:
+- name: tjr-dm-test-1-bucket
+  type: gcp-types/storage-v1:buckets
+- metadata:
+    dependsOn:
+    - tjr-dm-test-1-bucket
+  name: compute-backendbucket
+  properties:
+    bucketName: $(ref.tjr-dm-test-1-bucket.name)
+  type: gcp-types/compute-v1:backendBuckets
+- name: compute-healthcheck
+  properties:
+    checkIntervalSec: 10
+    httpHealthCheck:
+      port: 80
+      requestPath: /
+    type: HTTP
+  type: gcp-types/compute-v1:healthChecks
+- metadata:
+    dependsOn:
+    - compute-healthcheck
+  name: compute-backendservice-1
+  properties:
+    connectionDraining:
+      drainingTimeoutSec: 300
+    healthChecks:
+    - $(ref.compute-healthcheck.selfLink)
+  type: gcp-types/compute-v1:backendServices
+- metadata:
+    dependsOn:
+    - compute-healthcheck
+  name: compute-backendservice-2
+  properties:
+    connectionDraining:
+      drainingTimeoutSec: 300
+    healthChecks:
+    - $(ref.compute-healthcheck.selfLink)
+  type: gcp-types/compute-v1:backendServices
+- metadata:
+    dependsOn:
+    - compute-healthcheck
+  name: compute-backendservice-3
+  properties:
+    connectionDraining:
+      drainingTimeoutSec: 300
+    healthChecks:
+    - $(ref.compute-healthcheck.selfLink)
+  type: gcp-types/compute-v1:backendServices
+- metadata:
+    dependsOn:
+    - compute-backendservice-1
+    - compute-backendservice-2
+    - compute-backendservice-3
+    - compute-backendbucket
+  name: compute-urlmap
+  properties:
+    defaultService: $(ref.compute-backendservice-1.selfLink)
+    hostRules:
+    - hosts:
+      - example.com
+      pathMatcher: allpaths
+    pathMatchers:
+    - defaultService: $(ref.compute-backendservice-2.selfLink)
+      name: allpaths
+      pathRules:
+      - paths:
+        - /home
+        service: $(ref.compute-backendservice-3.selfLink)
+      - paths:
+        - /foo
+        service: $(ref.compute-backendbucket.selfLink)
+  type: gcp-types/compute-v1:urlMaps

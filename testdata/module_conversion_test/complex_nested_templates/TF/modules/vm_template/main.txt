@@ -1,0 +1,20 @@
+#tfimport-terraform import google_compute_instance.vm_template  __project__/${var.zone}/${var.name}
+resource "google_compute_instance" "vm_template" {
+  provider = google-beta
+
+  name = "${var.name}"
+  zone = "${var.zone}"
+  machine_type = "${var.machineType}"
+  boot_disk {
+    device_name = "${var.deviceName}"
+    auto_delete = "${var.autoDelete}"
+    initialize_params {
+      image = "${var.sourceImage}"
+    }
+  }
+  network_interface {
+    network = "${var.network}"
+    access_config {
+    }
+  }
+}

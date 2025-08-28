@@ -1,0 +1,42 @@
+{%- import 'macros.jinja' as macros %}
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeSSLCertificate
+metadata:
+{%- set properties = resource.get('properties', {}) %}
+{{- macros.fields(properties, {'labels': 'labels'}, ' ' * 2) }}
+{%- if 'name' in properties %}
+  name: {{ properties['name'] | arbitrary_reference }}
+{%- else %}
+  name: {{ resource['name'] | arbitrary_reference }}
+{%- endif %}
+{%- if properties | set_difference(['name', 'labels', 'project']) %}
+{# At least one field of properties was not converted to metadata and will be converted to spec. #}
+spec:
+  {{- macros.fields(properties, {
+    'description': 'description',
+  }, ' ' * 2) }}
+  {%- if 'certificate' in properties %}
+  certificate:
+    value: |
+      {{ properties['certificate'] | indent(6) }}
+  {%- endif %}
+  {%- if 'region' in properties %}
+  location: {{ properties['region'] }}
+  {%- else %}
+  location: global
+  {%- endif %}
+  {%- if 'privateKey' in properties %}
+  privateKey:
+    value: |
+      {{ properties['privateKey'] | indent(6) }}
+  {%- endif %}
+{%- endif %}
+{%- set unconvertable = properties | missing_fields((
+  'selfManaged',
+  'type',
+  'managed',
+)) %}
+{%- if unconvertable %}
+# Unconvertable fields found:
+{{ unconvertable | join('\n# ') }}
+{%- endif %}

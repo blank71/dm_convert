@@ -1,0 +1,37 @@
+resources:
+- name: compute-healthcheck
+  properties:
+    checkIntervalSec: 10
+    tcpHealthCheck:
+      port: 110
+    type: TCP
+  type: compute.v1.healthCheck
+- metadata:
+    dependsOn:
+    - compute-healthcheck
+  name: compute-backendservice
+  properties:
+    healthChecks:
+    - $(ref.compute-healthcheck.selfLink)
+    protocol: TCP
+  type: compute.v1.backendService
+- metadata:
+    dependsOn:
+    - compute-backendservice
+  name: compute-targettcpproxy
+  properties:
+    service: $(ref.compute-backendservice.selfLink)
+  type: gcp-types/compute-v1:targetTcpProxies
+- metadata:
+    dependsOn:
+    - compute-targettcpproxy
+  name: compute-globalforwardingrule
+  properties:
+    IPProtocol: TCP
+    description: A global forwarding rule
+    ipVersion: IPV4
+    labels:
+      label-one: value-one
+    portRange: '110'
+    target: $(ref.compute-targettcpproxy.selfLink)
+  type: compute.v1.globalForwardingRule

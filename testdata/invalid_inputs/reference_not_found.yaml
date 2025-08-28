@@ -1,0 +1,15 @@
+# The referenced value $(ref.nonexistent-topic.name) doesn't exist in the config
+# itself (values that are resolved during resource actuation aren't supported in
+# DM Convert)
+resources:
+- name: topic-a
+  type: gcp-types/pubsub-v1:projects.topics
+  properties:
+    name: topic-a
+- name: subscription-with-invalid-ref
+  type: gcp-types/pubsub-v1:projects.subscriptions
+  properties:
+    subscription: subscription_name
+    topic: $(ref.topic-a.name)
+    deadLetterPolicy:
+      deadLetterTopic: $(ref.nonexistent-topic.name)

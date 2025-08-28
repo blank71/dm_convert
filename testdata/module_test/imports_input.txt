@@ -1,0 +1,5 @@
+terraform import google_compute_instance.vm_1 some_propject/some_zone/vm-1
+terraform import google_compute_instance.vm_2 some_propject/some_zone/vm-2
+terraform import google_compute_instance.vm_3 some_propject/some_zone/vm-3
+terraform import module.network_1.google_compute_network.network_template some-project/network-1
+terraform import module.firewall_1.google_compute_firewall.firewall_template some-project/firewall-1

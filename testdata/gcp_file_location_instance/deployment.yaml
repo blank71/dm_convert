@@ -1,0 +1,17 @@
+resources:
+- name: filestore-{{.}}
+  type: gcp-types/file-v1beta1:projects.locations.instances
+  properties:
+    parent: projects/{{$project_id}}/locations/{{$zone}}
+    instanceId: filestore-{{.}}
+    tier: STANDARD
+    networks:
+    - network: default
+      modes: ["MODE_IPV4"]
+    fileShares:
+    - name: data
+      capacityGb: 1024
+    labels:
+      dg_data_source: end_user
+      dg_data_context: metadata
+      dg_data_confidentiality: need_to_know

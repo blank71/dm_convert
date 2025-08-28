@@ -1,0 +1,18 @@
+resources:
+- name: compute-network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+  type: gcp-types/compute-v1:networks
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-firewall
+  properties:
+    denied:
+    - IPProtocol: icmp
+    labels:
+      label-one: value-one
+    network: $(ref.compute-network.selfLink)
+  type: gcp-types/compute-v1:firewalls

@@ -1,0 +1,44 @@
+resources:
+- name: compute-healthcheck
+  properties:
+    checkIntervalSec: 10
+    httpHealthCheck:
+      port: 80
+      requestPath: /
+    type: HTTP
+  type: compute.v1.healthCheck
+- metadata:
+    dependsOn:
+    - compute-healthcheck
+  name: compute-backendservice
+  properties:
+    healthChecks:
+    - $(ref.compute-healthcheck.selfLink)
+  type: compute.v1.backendService
+- metadata:
+    dependsOn:
+    - compute-backendservice
+  name: compute-urlmap
+  properties:
+    defaultService: projects/tjr-dm-test-1/global/backendServices/compute-backendservice
+  type: compute.v1.urlMap
+- metadata:
+    dependsOn:
+    - compute-urlmap
+  name: compute-targethttpproxy
+  properties:
+    urlMap: $(ref.compute-urlmap.selfLink)
+  type: compute.v1.targetHttpProxy
+- metadata:
+    dependsOn:
+    - compute-targethttpproxy
+  name: compute-globalforwardingrule
+  properties:
+    IPProtocol: TCP
+    description: A global forwarding rule
+    ipVersion: IPV4
+    labels:
+      label-one: value-one
+    portRange: '80'
+    target: $(ref.compute-targethttpproxy.selfLink)
+  type: compute.v1.globalForwardingRule

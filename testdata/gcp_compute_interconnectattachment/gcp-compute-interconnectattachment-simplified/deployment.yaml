@@ -1,0 +1,35 @@
+resources:
+- name: compute-network
+  properties:
+    name: network-sample
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+  type: gcp-types/compute-v1:networks
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-router
+  properties:
+    name: router-sample
+    network: $(ref.compute-network.selfLink)
+    bgp:
+      asn: 16550
+  type: gcp-types/compute-v1:routers
+- metadata:
+    dependsOn:
+    - compute-router
+  name: compute-interconnect-attachment
+  properties:
+    name: interconnect-sample
+    description: sample configuration
+    edgeAvailabilityDomain: AVAILABILITY_DOMAIN_1
+    type: PARTNER
+    router: $(ref.compute-router.selfLink)
+    mtu: 1500
+    vlanTag8021q: 1024
+    candidateSubnets:
+    - 169.254.0.0/16
+    - 192.0.0.0/16
+    encryption: IPSEC
+  type: gcp-types/compute-v1:interconnectAttachments

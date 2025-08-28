@@ -1,0 +1,45 @@
+resources:
+- name: container-cluster
+  properties:
+    cluster:
+      autoscaling:
+        enableNodeAutoprovisioning: false
+      binaryAuthorization:
+        enabled: false
+      loggingService: logging.googleapis.com/kubernetes
+      masterAuth:
+        clientCertificateConfig:
+          issueClientCertificate: false
+      masterAuthorizedNetworksConfig: {}
+      monitoringService: monitoring.googleapis.com/kubernetes
+      networkConfig:
+        defaultSnatStatus:
+          disabled: false
+      nodePools:
+      - autoscaling:
+          enabled: true
+          maxNodeCount: 3
+          minNodeCount: 1
+        config:
+          accelerators:
+          - acceleratorCount: 1
+            acceleratorType: nvidia-tesla-k80
+          diskSizeGb: 100
+          diskType: pd-standard
+          metadata:
+            disable-legacy-endpoints: 'true'
+          minCpuPlatform: Intel Haswell
+          oauthScopes:
+          - https://www.googleapis.com/auth/logging.write
+          - https://www.googleapis.com/auth/monitoring
+          preemptible: false
+          tags:
+          - tagone
+          - tagtwo
+        initialNodeCount: 1
+        management:
+          autoRepair: true
+          autoUpgrade: true
+        name: container-nodepool
+    zone: us-east1-c
+  type: gcp-types/container-v1:projects.zones.clusters

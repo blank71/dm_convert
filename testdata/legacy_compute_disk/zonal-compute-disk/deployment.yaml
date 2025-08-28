@@ -1,0 +1,11 @@
+resources:
+- name: compute-disk
+  properties:
+    description: a sample encrypted, blank disk
+    diskEncryptionKey:
+      rawKey: SGVsbG8gZnJvbSBHb29nbGUgQ2xvdWQgUGxhdGZvcm0=
+    physicalBlockSizeBytes: 4096
+    sizeGb: 1
+    type: projects/tjr-dm-test-1/zones/us-west1-c/diskTypes/pd-ssd
+    zone: us-west1-c
+  type: compute.v1.disk

@@ -1,0 +1,21 @@
+resources:
+- name: dns-managed-zone
+  properties:
+    description: A sample managed zone.
+    dnsName: secure.tjr-dm-test-1-dns.com.
+    dnssecConfig:
+      state: 'on'
+  type: gcp-types/dns-v1beta2:managedZones
+- metadata:
+    dependsOn:
+    - dns-managed-zone
+  name: dns-record-set
+  properties:
+    managedZone: $(ref.dns-managed-zone.name)
+    name: ds.secure.tjr-dm-test-1-dns.com.
+    records:
+    - rrdatas:
+      - 31523 5 1 c8761ba5defc26ac7b78e076d7c47fa9f86b9fba
+      ttl: 300
+      type: DS
+  type: gcp-types/dns-v1:resourceRecordSets

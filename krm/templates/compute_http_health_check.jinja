@@ -1,0 +1,25 @@
+{%- import 'macros.jinja' as macros %}
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeHTTPHealthCheck
+metadata:
+{%- set properties = resource.get('properties', {}) %}
+{{- macros.fields(properties, {'labels': 'labels'}, ' ' * 2) }}
+{%- if 'name' in properties %}
+  name: {{ properties['name'] | arbitrary_reference }}
+{%- else %}
+  name: {{ resource['name'] | arbitrary_reference }}
+{%- endif %}
+{%- if properties | set_difference(['labels', 'name', 'project']) %}
+{# At least one field of properties was not converted to metadata and will be converted to spec. #}
+spec:
+    {{- macros.fields(properties, {
+      'checkIntervalSec': 'checkIntervalSec',
+      'description': 'description',
+      'healthyThreshold': 'healthyThreshold',
+      'host': 'host',
+      'port': 'port',
+      'requestPath': 'requestPath',
+      'timeoutSec': 'timeoutSec',
+      'unhealthyThreshold': 'unhealthyThreshold',
+    }, ' ' * 2) }}
+{%- endif %}

@@ -1,0 +1,15 @@
+{%- import 'tf_macros.jinja' as macros -%}
+{%- set properties = resource.get('properties', {}) -%}
+
+{%- extends "google_logging_sink_base.jinja" -%}
+{%- block body -%}
+{%- if 'parent' in properties %}
+{%- set folder_value = properties['parent'].split('/')[-1] %}
+{%- else %}
+{%- set folder_value = properties['folder'] %}
+{%- endif %}
+#tfimport-terraform import google_logging_folder_sink.{{ macros.get_name(resource, properties) }} folders/{{ folder_value }}/sinks/{{ properties['name'] }}
+resource "google_logging_folder_sink" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- write_field_name('folder', 'folder') }}
+{%- endblock %}

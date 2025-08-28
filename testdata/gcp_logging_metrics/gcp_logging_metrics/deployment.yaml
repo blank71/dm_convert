@@ -1,0 +1,38 @@
+resources:
+- name: my_metric
+  properties:
+    description: Captures data when smoke test was registered
+    filter: resource.type="gce_instance" logName="projects/my-project/logs/my-logs"
+      jsonPayload.message:"Registering job"
+    labelExtractors:
+      instance_name: EXTRACT(resource.labels.instance_id)
+      project_name: EXTRACT(resource.labels.project_id)
+    metric: my_metric
+    metricDescriptor:
+      description: Captures data when smoke test was registered
+      displayName: camelCase
+      display_mame: snake_case
+      labels:
+      - key: instance_name
+        valueType: STRING
+      - key: project_name
+        valueType: STRING
+      metricKind: DELTA
+      unit: '1'
+      valueType: INT64
+    bucketOptions:
+      explicitBuckets:
+        bounds:
+        - 1
+        - 2
+        - 3
+        - 4
+      linearBuckets:
+        numFiniteBuckets: 4
+        width: 1
+        offset: 2
+      exponentialBuckets:
+        numFiniteBuckets: 4
+        growthFactor: 1
+        scale: 10
+  type: logging.v2.metric

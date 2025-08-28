@@ -1,0 +1,28 @@
+{%- import 'tf_macros.jinja' as macros -%}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set import_resource = "__project__/" + properties['subscription'] -%}
+#tfimport-terraform import google_pubsub_subscription.{{ macros.get_name(resource, properties) }}  {{ import_resource }}
+resource "google_pubsub_subscription" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.write_labels(properties) }}
+  {{- macros.fields(properties, {
+    'subscription': 'name',
+    'topic': 'topic',
+    'messageRetentionDuration': 'message_retention_duration',
+    'retainAckedMessages': 'retain_acked_messages',
+    'ackDeadlineSeconds': 'ack_deadline_seconds',
+    'expirationPolicy': 'expiration_policy',
+    'deadLetterPolicy': {
+      'map_name': 'dead_letter_policy',
+      'deadLetterTopic': 'dead_letter_topic',
+      'maxDeliveryAttempts': 'max_delivery_attempts'
+    },
+    'filter': 'filter',
+    'project': 'project',
+    'enableMessageOrdering': 'enable_message_ordering',
+    'enableExactlyOnceDelivery': 'enable_exactly_once_delivery',
+  }, ' ' * 2) }}
+  {{- macros.format_lifecycle_directive(resource) }}
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}
+{{- macros.convert_access_control("google_pubsub_subscription", macros.get_name(resource, properties), resource.get('accessControl', {}), import_resource) }}

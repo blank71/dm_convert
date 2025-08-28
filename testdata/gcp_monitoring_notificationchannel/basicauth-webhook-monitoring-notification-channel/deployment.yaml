@@ -1,0 +1,17 @@
+resources:
+- name: monitoring-notificationchannel
+  properties:
+    description: Sends notifications to indicated webhook URL using HTTP-standard
+      basic authentication. Should be used in conjunction with SSL/TLS to reduce the
+      risk of attackers snooping the credentials.
+    displayName: monitoring-notificationchannel
+    labels:
+      url: http://hooks.example.com/notifications
+      username: admin
+      password: cGFzc3dvcmQK
+    name: monitoring-notificationchannel
+    type: webhook_basicauth
+    userLabels:
+      response-priority: all
+      target-user: automation
+  type: gcp-types/monitoring-v3:projects.notificationChannels

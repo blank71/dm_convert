@@ -1,0 +1,22 @@
+{%- import 'action_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set resource_name = resource.get('name') -%}
+- name: {{ resource_name }}
+  type: gcp-types/pubsub-v1:projects.topics
+  properties:
+  {%- if 'name' in properties %}
+    {%- set parts = properties['name'].split('/') %}
+    {%- if parts | length == 4 and parts[0] == "projects" and parts[2] == "topics" %}
+    topic: {{ parts[-1] }}
+    {%- endif %}
+  {%- endif %}
+  {{- macros.fields(properties, {
+      'labels': 'labels',
+      'messageStoragePolicy': 'messageStoragePolicy',
+      'kmsKeyName': 'kmsKeyName',
+      'schemaSettings': 'schemaSettings',
+    }, ' ' * 4)
+  -}}
+  {{- macros.fields(resource, {
+    'metadata': 'metadata'
+  }, ' ' * 2) -}}

@@ -1,0 +1,31 @@
+resources:
+- name: kms-keyring
+  properties:
+    keyRingId: kms-keyring
+    parent: projects/tjr-dm-test-1/locations/us-west1
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings
+- metadata:
+    dependsOn:
+    - kms-keyring
+  name: kms-cryptokey
+  properties:
+    cryptoKeyId: kms-cryptokey
+    labels:
+      key-one: value-one
+    parent: $(ref.kms-keyring.name)
+    purpose: ENCRYPT_DECRYPT
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings.cryptoKeys
+- metadata:
+    dependsOn:
+    - kms-cryptokey
+  name: pubsub-topic
+  properties:
+    kmsKeyName: $(ref.kms-cryptokey.name)
+    labels:
+      tag: dmv3-hackathon
+    messageStoragePolicy:
+      allowedPersistenceRegions:
+      - us-west1
+    name: projects/tjr-dm-test-1/topics/pubsub-topic
+    topic: pubsub-topic
+  type: gcp-types/pubsub-v1:projects.topics

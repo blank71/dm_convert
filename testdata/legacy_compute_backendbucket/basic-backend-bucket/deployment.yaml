@@ -1,0 +1,13 @@
+resources:
+- name: tjr-dm-test-1-bucket
+  type: storage.v1.bucket
+- metadata:
+    dependsOn:
+    - tjr-dm-test-1-bucket
+  name: compute-backendbucket
+  properties:
+    bucketName: $(ref.tjr-dm-test-1-bucket.name)
+    description: contains a reference to a bucket for use with HTTP(S) load-balancing
+    labels:
+      label-one: value-one
+  type: compute.beta.backendBucket

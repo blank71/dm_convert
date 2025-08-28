@@ -1,0 +1,12 @@
+resources:
+- name: spanner-instance
+  properties:
+    instance:
+      config: projects/dm-convert-prow/instanceConfigs/regional-us-west1
+      displayName: Spanner Instance Sample
+      labels:
+        label-one: value-one
+      nodeCount: 2
+    instanceId: spanner-instance
+    parent: projects/dm-convert-prow
+  type: spanner.v1.instance

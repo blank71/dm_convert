@@ -1,0 +1,21 @@
+variable "name"{
+}
+
+
+variable "IPProtocol"{
+    default = "TCP"
+}
+
+
+variable "ports"{
+    default = [80]
+}
+
+
+variable "network"{
+}
+
+
+variable "sourceRanges"{
+    default = ["0.0.0.0/0"]
+}

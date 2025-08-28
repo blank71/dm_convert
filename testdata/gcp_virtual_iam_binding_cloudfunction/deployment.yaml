@@ -1,0 +1,7 @@
+resources:
+- name: virtual-iam-member-binding-cloudfunctions
+  type: gcp-types/cloudfunctions-v1:virtual.projects.locations.functions.iamMemberBinding
+  properties:
+    resource: projects/test-project/locations/us-central1/functions/test-function
+    member: user:user1@google.com
+    role: roles/cloudfunctions.invoker

@@ -1,0 +1,7 @@
+resources:
+- name: virtual-iam-member-binding-org
+  type: gcp-types/cloudresourcemanager-v1:virtual.organizations.iamMemberBinding
+  properties:
+    resource: organizations/12345678
+    member: user:user1@google.com
+    role: roles/artifactregistry.admin

@@ -1,0 +1,15 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+#tfimport-terraform import google_storage_bucket_access_control.{{ macros.get_name(resource, properties) }}  {{properties['bucket']}}/{{ properties['entity'] }}
+resource "google_storage_bucket_access_control" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.fields(properties, {
+    'bucket': 'bucket',
+    'entity': 'entity',
+    'role': 'role'
+  }, ' ' * 2) }}
+}
+
+{#-
+1. TF has no projectTeam property
+#}

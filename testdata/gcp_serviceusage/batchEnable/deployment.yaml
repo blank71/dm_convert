@@ -1,0 +1,15 @@
+resources:
+- name: batch-enable-services-action
+  action: gcp-types/serviceusage-v1:serviceusage.services.batchEnable
+  properties:
+    parent: projects/test-project-id
+    serviceIds:
+    - appengine.googleapis.com
+    - bigtable.googleapis.com
+    - cloudapis.googleapis.com
+    - cloudbilling.googleapis.com
+    - cloudbuild.googleapis.com
+    - cloudfunctions.googleapis.com
+  metadata:
+    runtimePolicy:
+    - CREATE

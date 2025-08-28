@@ -1,0 +1,44 @@
+{%- import 'macros.jinja' as macros %}
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeBackendBucket
+metadata:
+{%- set properties = resource.get('properties', {}) %}
+{{- macros.fields(properties, {'labels': 'labels'}, ' ' * 2) }}
+{%- if 'name' in properties %}
+  name: {{ properties['name'] | arbitrary_reference }}
+{%- else %}
+  name: {{ resource['name'] | arbitrary_reference }}
+{%- endif %}
+{%- if properties | set_difference(['labels', 'name', 'project']) %}
+{# At least one field of properties was not converted to metadata and will be converted to spec. #}
+spec:
+  {{- macros.fields(properties, {
+    'bucketName': 'bucketRef',
+    'customResponseHeaders': 'customResponseHeaders',
+    'description': 'description',
+    'enableCdn': 'enableCdn',
+  }, ' ' * 2) }}
+  {%- if 'cdnPolicy' in properties %}
+  cdnPolicy:
+    {%- set cdn_policy = properties['cdnPolicy'] %}
+    {{- macros.fields(cdn_policy, {
+      'cacheMode': 'cacheMode',
+      'clientTtl': 'clientTtl',
+      'defaultTtl': 'defaultTtl',
+      'maxTtl': 'maxTtl',
+      'negativeCaching': 'negativeCaching',
+      'negativeCachingPolicy': 'negativeCachingPolicy',
+      'serveWhileStale': 'serveWhileStale',
+      'signedUrlCacheMaxAgeSec': 'signedUrlCacheMaxAgeSec',
+    }, ' ' * 4) }}
+  {%- endif %}
+{%- endif %}
+{%- set unconvertable = properties | missing_fields((
+  'cdnPolicy.requestCoalescing',
+  'cdnPolicy.bypassCacheOnRequestHeaders',
+  'kind',
+)) %}
+{%- if unconvertable %}
+# Unconvertable fields found:
+{{ unconvertable | join('\n# ') }}
+{%- endif %}

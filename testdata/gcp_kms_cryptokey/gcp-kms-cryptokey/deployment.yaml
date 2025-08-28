@@ -1,0 +1,20 @@
+resources:
+- name: kms-keyring
+  properties:
+    keyRingId: kms-keyring
+    parent: projects/tjr-dm-test-1/locations/us-central1
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings
+- metadata:
+    dependsOn:
+    - kms-keyring
+  name: kms-cryptokey
+  properties:
+    cryptoKeyId: kms-cryptokey
+    labels:
+      key-one: value-one
+    parent: $(ref.kms-keyring.name)
+    purpose: ASYMMETRIC_SIGN
+    versionTemplate:
+      algorithm: EC_SIGN_P384_SHA384
+      protectionLevel: SOFTWARE
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings.cryptoKeys

@@ -1,0 +1,20 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set resource_name = resource.get('name') -%}
+{%- set clusters = properties.get('clusters') %}
+#tfimport-terraform import google_bigtable_instance.{{ macros.get_name(resource, properties) }}  __project__/{{- resource_name }}
+resource "google_bigtable_instance" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  name = "{{- resource_name }}"
+  {%- if clusters %}
+  {%- for cluster_id, cluster_config in clusters.items() %}
+  cluster {
+    cluster_id   = "{{ cluster_id }}"
+    zone         = "{{ cluster_config.location.split('/')[-1] }}"
+    num_nodes    = {{ cluster_config.serveNodes }}
+    storage_type = "{{ cluster_config.storageType | default('SSD') }}"
+  }
+  {%- endfor %}
+  {%- endif %}
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}

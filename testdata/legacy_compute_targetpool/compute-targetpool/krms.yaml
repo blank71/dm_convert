@@ -1,0 +1,120 @@
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeNetwork
+metadata:
+  name: compute-network
+spec:
+  autoCreateSubnetworks: false
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeSubnetwork
+metadata:
+  name: compute-subnetwork
+spec:
+  ipCidrRange: 10.2.0.0/16
+  networkRef:
+    name: compute-network
+  region: us-west1
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeInstanceTemplate
+metadata:
+  labels:
+    label-one: value-one
+  name: compute-instancetemplate
+spec:
+  disk:
+  - autoDelete: false
+    boot: true
+    diskType: pd-standard
+    interface: SCSI
+    sourceImageRef:
+      external: projects/debian-cloud/global/images/family/debian-11
+  machineType: n1-standard-1
+  networkInterface:
+  - networkRef:
+      name: compute-network
+    subnetworkRef:
+      name: compute-subnetwork
+  scheduling:
+    automaticRestart: true
+    onHostMaintenance: MIGRATE
+    preemptible: false
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeInstance
+metadata:
+  labels:
+    label-one: value-one
+  name: compute-instance-1
+spec:
+  instanceTemplateRef:
+    name: compute-instancetemplate
+  zone: us-west1-a
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeInstance
+metadata:
+  labels:
+    label-one: value-one
+  name: compute-instance-2
+spec:
+  instanceTemplateRef:
+    name: compute-instancetemplate
+  zone: us-west1-b
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeTargetPool
+metadata:
+  name: compute-targetpool-1
+spec:
+  instances:
+  - name: compute-instance-1
+  - name: compute-instance-2
+  region: us-west1
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeHTTPHealthCheck
+metadata:
+  name: compute-httphealthcheck
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeInstance
+metadata:
+  labels:
+    label-one: value-one
+  name: compute-instance-3
+spec:
+  instanceTemplateRef:
+    name: compute-instancetemplate
+  zone: us-west1-a
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeInstance
+metadata:
+  labels:
+    label-one: value-one
+  name: compute-instance-4
+spec:
+  instanceTemplateRef:
+    name: compute-instancetemplate
+  zone: us-west1-b
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeTargetPool
+metadata:
+  name: compute-targetpool-2
+spec:
+  backupTargetPoolRef:
+    name: compute-targetpool-1
+  description: A pool of compute instances to use as a backend to a load balancer,
+    with health check and backup pool. A hash of requester's IP is used to determine
+    session affinity to instances.
+  failoverRatio: 0.5
+  healthChecks:
+  - httpHealthCheckRef:
+      name: compute-httphealthcheck
+  instances:
+  - name: compute-instance-3
+  - name: compute-instance-4
+  region: us-west1
+  sessionAffinity: CLIENT_IP

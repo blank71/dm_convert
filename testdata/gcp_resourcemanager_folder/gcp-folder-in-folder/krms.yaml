@@ -1,0 +1,8 @@
+apiVersion: resourcemanager.cnrm.cloud.google.com/v1beta1
+kind: Folder
+metadata:
+  annotations:
+    cnrm.cloud.google.com/folder-id: '328101438358'
+  name: rm-folder
+spec:
+  displayName: rm-folder

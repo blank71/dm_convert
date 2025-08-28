@@ -1,0 +1,84 @@
+resources:
+- name: compute-address
+  properties:
+    description: a test regional address
+    labels:
+      label-one: value-one
+    region: us-west1
+  type: compute.v1.address
+- name: compute-network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+  type: compute.v1.network
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-targetvpngateway
+  properties:
+    description: a test target vpn gateway
+    network: $(ref.compute-network.selfLink)
+    region: us-west1
+  type: compute.v1.targetVpnGateway
+- metadata:
+    dependsOn:
+    - compute-targetvpngateway
+    - compute-address
+  name: compute-forwardingrule-1
+  properties:
+    IPAddress: $(ref.compute-address.selfLink)
+    IPProtocol: ESP
+    description: A regional forwarding rule
+    labels:
+      label-one: value-one
+    region: us-west1
+    target: $(ref.compute-targetvpngateway.selfLink)
+  type: compute.v1.forwardingRule
+- metadata:
+    dependsOn:
+    - compute-targetvpngateway
+    - compute-address
+  name: compute-forwardingrule-2
+  properties:
+    IPAddress: $(ref.compute-address.selfLink)
+    IPProtocol: UDP
+    description: A regional forwarding rule
+    labels:
+      label-one: value-one
+    portRange: '500'
+    region: us-west1
+    target: $(ref.compute-targetvpngateway.selfLink)
+  type: compute.v1.forwardingRule
+- metadata:
+    dependsOn:
+    - compute-targetvpngateway
+    - compute-address
+  name: compute-forwardingrule-3
+  properties:
+    IPAddress: $(ref.compute-address.selfLink)
+    IPProtocol: UDP
+    description: A regional forwarding rule
+    labels:
+      label-one: value-one
+    portRange: '4500'
+    region: us-west1
+    target: $(ref.compute-targetvpngateway.selfLink)
+  type: compute.v1.forwardingRule
+- metadata:
+    dependsOn:
+    - compute-targetvpngateway
+    - compute-forwardingrule-1
+    - compute-forwardingrule-2
+    - compute-forwardingrule-3
+  name: compute-vpntunnel
+  properties:
+    labels:
+      foo: bar
+    localTrafficSelector:
+    - 192.168.0.0/16
+    peerIp: 15.0.0.120
+    region: us-west1
+    sharedSecret: a secret message
+    targetVpnGateway: $(ref.compute-targetvpngateway.selfLink)
+  type: compute.v1.vpnTunnel

@@ -1,0 +1,89 @@
+resources:
+- name: health-check-test-deployment
+  properties:
+    checkIntervalSec: 3
+    description: integration test http health check
+    healthyThreshold: 2
+    host: localhost
+    port: 8080
+    requestPath: /path/to/my/service
+    timeoutSec: 3
+    unhealthyThreshold: 5
+  type: gcp-types/compute-v1:httpHealthChecks
+- name: bs1-test-deployment
+  properties:
+    description: backend service for integration tests
+    healthChecks:
+    - $(ref.health-check-test-deployment.selfLink)
+    port: 80
+    portName: http
+    protocol: HTTP
+    timeoutSec: 30
+  type: gcp-types/compute-v1:backendServices
+  metadata:
+    dependsOn:
+    - health-check-test-deployment
+- name: bs2-test-deployment
+  properties:
+    description: backend service for integration tests
+    healthChecks:
+    - $(ref.health-check-test-deployment.selfLink)
+    port: 80
+    portName: http
+    protocol: HTTP
+    timeoutSec: 30
+  type: gcp-types/compute-v1:backendServices
+  metadata:
+    dependsOn:
+    - health-check-test-deployment
+- name: url-map-test-deployment-1
+  properties:
+    defaultService: $(ref.bs2-test-deployment.selfLink)
+    hostRules:
+    - description: test host rule
+      hosts:
+      - '*'
+      pathMatcher: url-set-1-test-deployment
+    pathMatchers:
+    - defaultService: $(ref.bs1-test-deployment.selfLink)
+      description: ''
+      name: url-set-1-test-deployment
+  type: gcp-types/compute-v1:urlMaps
+  metadata:
+    dependsOn:
+    - bs2-test-deployment
+    - bs1-test-deployment
+- name: url-map-test-deployment-2
+  properties:
+    defaultService: $(ref.bs2-test-deployment.selfLink)
+    hostRules:
+    - description: test host rule
+      hosts:
+      - '*'
+      pathMatcher: url-set-1-test-deployment
+    pathMatchers:
+    - defaultService: $(ref.bs1-test-deployment.selfLink)
+      description: ''
+      name: url-set-1-test-deployment
+  type: compute.v1.urlMaps
+  metadata:
+    dependsOn:
+    - bs2-test-deployment
+    - bs1-test-deployment
+- name: region-url-map-test-deployment-1
+  properties:
+    defaultService: $(ref.bs2-test-deployment.selfLink)
+    hostRules:
+    - description: test host rule
+      hosts:
+      - '*'
+      pathMatcher: url-set-1-test-deployment
+    pathMatchers:
+    - defaultService: $(ref.bs1-test-deployment.selfLink)
+      description: ''
+      name: url-set-1-test-deployment
+  type: compute.v1.regionUrlMaps
+  metadata:
+    dependsOn:
+    - bs2-test-deployment
+    - bs1-test-deployment

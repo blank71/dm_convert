@@ -1,0 +1,13 @@
+apiVersion: monitoring.cnrm.cloud.google.com/v1beta1
+kind: MonitoringNotificationChannel
+metadata:
+  labels:
+    response-priority: intervention
+    target-user: on-call
+  name: monitoring-notificationchannel
+spec:
+  description: A channel that sends notifications via Short Message Service (SMS).
+  enabled: true
+  labels:
+    number: '12025550196'
+  type: sms

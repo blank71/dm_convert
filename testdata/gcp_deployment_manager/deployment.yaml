@@ -1,0 +1,25 @@
+resources:
+- name: prober-list-types
+  type: gcp-types/deploymentmanager-v2beta:deployments
+  properties:
+    target:
+      config:
+        content: |
+          imports:
+          - all-types.jinja
+          resources:
+          - name: all-types
+            type: all-types.jinja
+            properties: $(ref.list-providers.toString())
+      imports:
+      - name: all-types.jinja
+        content: |
+          resources:
+          {% for type in properties["typeProviders"] %}
+          - name: type-list-{{ type.name }}
+            action: gcp-types/deploymentmanager-v2beta:deploymentmanager.typeProviders.listTypes
+            properties:
+              project: gcp-types
+              typeProvider: {{ type.name }}
+              fields: types/name
+          {% endfor %}

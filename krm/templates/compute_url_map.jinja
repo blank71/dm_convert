@@ -1,0 +1,170 @@
+{%- import 'macros.jinja' as macros %}
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeURLMap
+metadata:
+{%- set properties = resource.get('properties', {}) %}
+{{- macros.fields(properties, {'labels': 'labels'}, ' ' * 2) }}
+{%- if 'name' in properties %}
+  name: {{ properties['name'] | arbitrary_reference }}
+{%- else %}
+  name: {{ resource['name'] | arbitrary_reference }}
+{%- endif %}
+{%- if properties | set_difference(['labels', 'name', 'project']) %}
+{# At least one field of properties was not converted to metadata and will be converted to spec. #}
+spec:
+  {{- macros.fields(properties, {
+    'defaultUrlRedirect': 'defaultUrlRedirect',
+    'description': 'description',
+    'headerAction': 'headerAction',
+    'hostRules': 'hostRule',
+  }, ' ' * 2) }}
+  {%- set route_action_fields = {
+      'corsPolicy': 'corsPolicy',
+      'faultInjectionPolicy': 'faultInjectionPolicy',
+      'retryPolicy': 'retryPolicy',
+      'timeout': 'timeout',
+      'urlRewrite': 'urlRewrite',
+  } %}
+  {%- set route_action_lists = {
+    'weightedBackendServices': {
+      'backendService': 'backendServiceRef',
+      'headerAction': 'headerAction',
+      'weight': 'weight',
+    }
+  } %}
+  {%- if 'defaultRouteAction' in properties %}
+    {%- set default_route_action = properties['defaultRouteAction'] %}
+  defaultRouteAction:
+    {{- macros.fields(default_route_action, route_action_fields, ' ' * 4) }}
+    {{- macros.lists(default_route_action, route_action_lists, ' ' * 4) }}
+    {%- if 'requestMirrorPolicy' in defaultRouteAction %}
+      {%- set request_mirror_policy = defaultRouteAction['requestMirrorPolicy'] %}
+    requestMirrorPolicy:
+      {{- macros.fields(request_mirror_policy, {
+        'backendService': 'backendServiceRef',
+      }, ' ' * 6) }}
+    {%- endif %}
+  {%- endif %}
+  {%- if 'defaultService' in properties %}
+    {%- set default_service = properties['defaultService'] %}
+  defaultService:
+      {{ default_service | reference_type }}: {{ default_service | typed_reference }}
+  {%- endif %}
+  {%- if 'pathMatchers' in properties %}
+  pathMatcher:
+    {%- for path_matcher in properties['pathMatchers'] %}
+      {%- set matching_fields = {
+        'defaultUrlRedirect': 'defaultUrlRedirect',
+        'description': 'description',
+        'headerAction': 'headerAction',
+        'name': 'name',
+      } %}
+      {{- macros.fields(path_matcher, matching_fields, ' ' * 2 + '- ') }}
+      {%- if path_matcher | set_intersection(matching_fields) %}
+        {%- set hyphen = ' ' %}
+      {%- else %}
+        {# No matching field in this element, include hyphen before next field. #}
+        {%- set hyphen = '-'%}
+      {%- endif %}
+      {%- if 'defaultRouteAction' in path_matcher %}
+        {%- set default_route_action = path_matcher['defaultRouteAction'] %}
+  {{ hyphen }} defaultRouteAction:
+        {%- set hyphen = ' ' %}
+        {{- macros.fields(default_route_action, route_action_fields, ' ' * 6) }}
+        {%- if 'requestMirrorPolicy' in defaultRouteAction %}
+      requestMirrorPolicy:
+          {{- macros.fields(defaultRouteAction['requestMirrorPolicy'], {
+            'backendService': 'backendServiceRef',
+          }, ' ' * 8) }}
+        {%- endif %}
+      {%- endif %}
+      {%- if 'defaultService' in path_matcher %}
+        {%- set default_service = path_matcher['defaultService'] %}
+  {{ hyphen }} defaultService:
+        {%- set hyphen = ' ' %}
+      {{ default_service | reference_type }}: {{ default_service | typed_reference }}
+      {%- endif %}
+      {%- if 'pathRules' in path_matcher %}
+        {%- set path_rules = path_matcher['pathRules'] %}
+  {{ hyphen }} pathRule:
+        {%- set hyphen = ' ' %}
+        {%- for path_rule in path_rules %}
+          {%- set matching_fields = {
+            'paths': 'paths',
+            'urlRedirect': 'urlRedirect',
+          } %}
+          {{- macros.fields(path_rule, matching_fields, ' ' * 4 + '- ')}}
+          {%- if path_rule | set_intersection(matching_fields) %}
+            {%- set hyphen = ' ' %}
+          {%- else %}
+            {# No matching field in this element, include hyphen before next field. #}
+            {%- set hyphen = '-'%}
+          {%- endif %}
+          {%- if 'routeAction' in path_rule %}
+            {%- set route_action = path_rule['routeAction'] %}
+    {{ hyphen }} routeAction:
+            {%- set hyphen = ' ' %}
+            {{- macros.fields(route_action, route_action_fields, ' ' * 8) }}
+            {{- macros.lists(route_action, route_action_lists, ' ' * 6) }}
+          {%- endif %}
+          {%- if 'service' in path_rule %}
+    {{ hyphen }} service:
+            {%- set service = path_rule['service'] %}
+        {{ service | reference_type }}: {{ service | typed_reference }}
+          {%- endif %}
+        {%- endfor %}
+      {%- endif %}
+      {%- if 'routeRules' in path_matcher %}
+        {%- set route_rules = path_matcher['routeRules'] %}
+  {{ hyphen }} routeRules:
+        {%- for route_rule in route_rules %}
+          {%- set matching_fields = {
+            'headerAction': 'headerAction',
+            'matchRules': 'matchRules',
+            'priority': 'priority',
+            'service': 'service',
+            'urlRedirect': 'urlRedirect',
+          } %}
+          {{ macros.fields(route_rule, matching_fields, ' ' * 4 + '- ') }}
+          {%- if route_rule | set_intersection(matching_fields) %}
+            {%- set hyphen = ' ' %}
+          {%- else %}
+            {# No matching field in this element, include hyphen before next field. #}
+            {%- set hyphen = '-'%}
+          {%- endif %}
+          {%- if 'routeAction' in route_rule %}
+            {%- set route_action = route_rule['routeAction'] %}
+    {{ hyphen }} routeAction:
+            {{- macros.fields(route_action, route_action_fields, ' ' * 8) }}
+            {{- macros.lists(route_action, route_action_lists, ' ' * 6) }}
+            {%- if 'requestMirrorPolicy' in route_action %}
+        requestMirrorPolicy:
+              {{- macros.fields(route_action['requestMirrirPolicy'], {
+                'backendService': 'backendServiceRef',
+              }, ' ' * 10) }}
+            {%- endif %}
+          {%- endif %}
+        {%- endfor %}
+      {%- endif %}
+    {%- endfor %}
+  {%- endif %}
+  {%- if 'region' in properties %}
+  location: {{ properties['region'] }}
+  {%- else %}
+  location: global
+  {%- endif %}
+  {%- if 'tests' in properties %}
+  test:
+    {%- for test in properties['tests'] %}
+      {{- macros.fields(test, {
+        'description': 'description',
+        'host': 'host',
+        'path': 'path',
+      }, ' ' * 2 + '- ') }}
+      {%- if 'service' in test %}
+        {%- set service = test['service'] %}
+    {{ service | reference_type }}: {{ service | typed_reference }}
+      {%- endif %}
+    {%- endfor %}
+  {%- endif %}
+{%- endif %}

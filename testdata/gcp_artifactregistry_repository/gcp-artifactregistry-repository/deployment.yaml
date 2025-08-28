@@ -1,0 +1,10 @@
+resources:
+- name: artifactregistry-repository
+  properties:
+    description: User-provided description of the repository
+    format: DOCKER
+    labels:
+      label-one: value-one
+    location: us-west1
+    project: tjr-dm-test-1
+  type: gcp-types/artifactregistry-v1beta1:projects.locations.repositories

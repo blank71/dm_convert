@@ -1,0 +1,10 @@
+resources:
+- name: tjr-dm-test-1-bucket
+  properties:
+    acl:
+    - entity: allAuthenticatedUsers
+      id: storage-bucketaccesscontrol
+      role: READER
+    versioning:
+      enabled: true
+  type: gcp-types/storage-v1:buckets

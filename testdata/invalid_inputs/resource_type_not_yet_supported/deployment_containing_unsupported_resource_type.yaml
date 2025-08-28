@@ -1,0 +1,12 @@
+resources:
+- name: resource-type-not-yet-supported
+  type: gcp-types/runtimeconfig-v1beta1:projects.configs.waiters
+  properties:
+    name: waiter
+    description: This is a waiter
+- name: resource-type-supported
+  type: gcp-types/storage-v1:buckets
+  properties:
+    location: US
+    storageClass: STANDARD
+    name: foo-bucket

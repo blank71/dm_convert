@@ -1,0 +1,13 @@
+{%- import 'action_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set project = properties.get('parent', '').replace('projects/', '') -%}
+{% for service in properties.get('serviceIds', []) %}
+- name: {{ resource.get('name') }}-{{ service.replace('.googleapis.com', '').replace('.', '_') }}
+  type: deploymentmanager.v2.virtual.enableService
+  properties:
+    consumerId: "project:{{ project }}"
+    serviceName: {{ service }}
+  {{- macros.fields(resource, {
+      'metadata': 'metadata'
+  }, ' ' * 2) -}}
+{% endfor %}

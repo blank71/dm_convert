@@ -1,0 +1,12 @@
+#tfimport-terraform import google_compute_firewall.firewall_template  __project__/${var.name}
+resource "google_compute_firewall" "firewall_template" {
+  provider = google-beta
+
+  name = "${var.name}"
+  source_ranges = "${var.sourceRanges}"
+  network = "${var.network}"
+  allow {
+    protocol = "${var.IPProtocol}"
+    ports = "${var.ports}"
+  }
+}

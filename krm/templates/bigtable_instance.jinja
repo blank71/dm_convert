@@ -1,0 +1,41 @@
+{%- import 'macros.jinja' as macros %}
+apiVersion: bigtable.cnrm.cloud.google.com/v1beta1
+kind: BigtableInstance
+metadata:
+{%- set properties = resource.get('properties', {}) %}
+{%- if 'instance' in properties %}
+  {%- set instance = properties['instance'] %}
+{%- endif %}
+{%- if 'project' in properties %}
+  annotations:
+    cnrm.cloud.google.com/project-id: {{ properties['project'] | arbitrary_reference }}
+{%- endif %}
+{{- macros.fields(instance, {'labels': 'labels'}, ' ' * 2) }}
+{%- if 'name' in properties %}
+  name: {{ properties['name'] | arbitrary_reference }}
+{%- else %}
+  name: {{ resource['name'] | arbitrary_reference }}
+{%- endif %}
+{%- if properties | set_difference(['labels', 'name', 'project']) %}
+{# At least one field of properties was not converted to metadata and will be converted to spec. #}
+spec:
+  {%- if 'clusters' in properties %}
+  cluster:
+    {%- for n, c in properties['clusters'].items() %}
+  - clusterId: {{ n }}
+    numNodes: {{ c['serveNodes'] }}
+    zone: {{ c['location'].split('/')[-1] }}
+    {%- endfor %}
+  {%- endif %}
+    {{- macros.fields(instance, {
+      'displayName': 'displayName',
+      'type': 'instanceType',
+    }, ' ' * 2) }}
+{%- endif %}
+{%- set unconvertable = properties | missing_fields((
+  'type',
+)) %}
+{%- if unconvertable %}
+# Unconvertable fields found:
+{{ unconvertable | join('\n# ') }}
+{%- endif %}

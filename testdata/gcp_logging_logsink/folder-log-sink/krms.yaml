@@ -1,0 +1,19 @@
+apiVersion: bigquery.cnrm.cloud.google.com/v1beta1
+kind: BigQueryDataset
+metadata:
+  name: bigquerydataset
+spec:
+  location: us-west1
+  resourceID: bigquerydataset
+---
+apiVersion: logging.cnrm.cloud.google.com/v1beta1
+kind: LoggingLogSink
+metadata:
+  name: logging-sink
+spec:
+  destination:
+    bigQueryDatasetRef:
+      name: bigquerydataset
+  filter: resource.type="bigquery_project" AND logName:"cloudaudit.googleapis.com"
+  folderRef:
+    external: '613349442449'

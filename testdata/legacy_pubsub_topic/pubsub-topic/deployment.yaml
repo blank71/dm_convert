@@ -1,0 +1,10 @@
+resources:
+- name: pubsub-topic
+  properties:
+    labels:
+      label-one: value-one
+    messageStoragePolicy:
+      allowedPersistenceRegions:
+      - us-west1
+    topic: pubsub-topic
+  type: pubsub.v1.topic

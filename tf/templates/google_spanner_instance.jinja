@@ -1,0 +1,18 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) %}
+{%- set instance = properties.get('instance', {}) %}
+{%- set instance_name = resource['properties']['instanceId'] %}
+{%- set resource_name = instance_name | replace('-','_') %}
+#tfimport-terraform import google_spanner_instance.{{resource_name}} __project__/{{instance_name}}
+resource "google_spanner_instance" "{{resource_name}}" {
+  {{- macros.write_provider() }}
+  name = "{{instance_name}}"
+  display_name = "{{ resource['properties']['instance']['displayName'] }}"
+  config = "{{ instance['config'].split('/')[-1] }}"
+  {%- if 'nodeCount' in instance %}
+  num_nodes = "{{ instance['nodeCount'] }}"
+  {%- else %}
+  num_nodes = "{{ instance['processingUnits']//1000 }}"
+  {%- endif%}
+  {{- macros.write_labels(instance) }}
+}

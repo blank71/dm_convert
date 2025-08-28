@@ -1,0 +1,39 @@
+resources:
+- name: vm-1
+  properties:
+    property1: foo
+    property2: bar
+    property3: baz
+    network: $(ref.network-1.selfLink)
+  type: compute.v1.instance
+  metadata:
+    dependsOn:
+    - network-1
+- name: vm-2
+  properties:
+    property1: foo
+    property2: bar
+    property3: baz
+    network: $(ref.network-1.selfLink)
+  type: compute.v1.instance
+  metadata:
+    dependsOn:
+    - network-1
+- name: network-1
+  properties:
+    boolean_property: true
+    random_property: cat
+  type: compute.v1.network
+- name: firewall-1
+  properties:
+    some_property: 'tree'
+    network: $(ref.network-1.selfLink)
+    listtype_property:
+    - 0.0.0.0/0
+  type: compute.v1.firewall
+  metadata:
+    dependsOn:
+    - network-1
+unsupported_resource:
+- name: unsupported_resource
+  type: unsupported_type

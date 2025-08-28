@@ -1,0 +1,26 @@
+resources:
+- name: compute-securitypolicy
+  properties:
+    description: A policy designed to completely lock down network access while testing
+      the effect of opening ports over a few select ranges.
+    rules:
+    - action: deny(403)
+      description: Rule matching all IPs with priority 2147483647, set to deny.
+      match:
+        config:
+          srcIpRanges:
+          - '*'
+        versionedExpr: SRC_IPS_V1
+      priority: 2147483647
+    - action: allow
+      description: Tests opening listed IP ranges. Logs sent to Stackdriver.
+      match:
+        config:
+          srcIpRanges:
+          - 16.0.0.0/4
+          - 115.128.0.0/9
+          - 62.48.212.0/24
+        versionedExpr: SRC_IPS_V1
+      preview: true
+      priority: 1000000000
+  type: gcp-types/compute-v1:securityPolicies

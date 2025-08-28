@@ -1,0 +1,19 @@
+apiVersion: spanner.cnrm.cloud.google.com/v1beta1
+kind: SpannerDatabase
+metadata:
+{%- if resource['properties']['labels'] is defined %}
+  labels: {{ resource['properties']['labels'] }}
+{%- endif %}
+{%- if resource['properties']['name'] is defined %}
+  name: {{ resource['properties']['name'] }}
+{%- else %}
+  name: {{ resource['name'] }}
+{%- endif %}
+spec:
+{%- if resource['properties']['extraStatements'] is defined %}
+  ddl: {{ resource['properties']['extraStatements'] }}
+{%- endif %}
+{%- if resource['properties']['parent'] is defined %}
+  instanceRef:
+    name: {{ resource['properties']['parent'].split('/')[-1] }}
+{%- endif %}

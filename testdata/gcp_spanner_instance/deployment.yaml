@@ -1,0 +1,23 @@
+resources:
+- name: spanner-name-1
+  properties:
+    instance:
+      config: projects/some_project/instanceConfigs/regional-us-central1
+      displayName: test with nodeCount
+      labels:
+        foo: bar
+      nodeCount: 5
+    instanceId: foo-id
+    parent: projects/some_project
+  type: gcp-types/spanner-v1:projects.instances
+- name: spanner-name-2
+  properties:
+    instance:
+      config: projects/some_project/instanceConfigs/regional-us-central1
+      displayName: test with processing Units
+      labels:
+        foo: bar
+      processingUnits: 5000
+    instanceId: bar-id
+    parent: projects/some_project
+  type: gcp-types/spanner-v1:projects.instances

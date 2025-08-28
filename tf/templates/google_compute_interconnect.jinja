@@ -1,0 +1,25 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set resource_name = resource.get('name') -%}
+#tfimport-terraform import google_compute_interconnect.{{ macros.get_name(resource, properties) }}  {{macros.import_project(properties['project'])}}/{{properties['region']}}/{{ resource_name }}
+resource "google_compute_interconnect" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.write_labels(properties) }}
+  name = "{{ resource_name }}"
+  {{- macros.fields(properties, {
+    'customerName': 'customer_name',
+    'interconnectType': 'interconnect_type',
+    'linkType': 'link_type',
+    'location': 'location',
+    'requestedLinkCount': 'requested_link_count',
+    'requestedFeatures': 'requested_features',
+    'remoteLocation': 'remote_location',
+    'project': 'project',
+    'nocContactEmail': 'noc_contact_email',
+    'macsecEnabled': 'macsec_enabled',
+    'labels': 'labels',
+    'description': 'description',
+    'adminEnabled': 'admin_enabled',
+  }, ' ' * 2) }}
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}

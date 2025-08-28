@@ -1,0 +1,29 @@
+{%- import 'macros.jinja' as macros %}
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMCustomRole
+metadata:
+{%- set properties = resource.get('properties', {}) %}
+{%- if 'parent' in properties %}
+  annotations:
+    cnrm.cloud.google.com/project-id: {{ (properties['parent'] | arbitrary_reference).split('/')[-1] }}
+{%- endif %}
+{{- macros.fields(properties, {'labels': 'labels'}, ' ' * 2) }}
+{%- if 'name' in properties %}
+  name: {{ properties['name'] }}
+{%- else %}
+  name: {{ resource['name'] }}
+{%- endif %}
+{%- if properties | set_difference(['name', 'labels', 'parent']) %}
+{# At least one field of properties was not converted to metadata and will be converted to spec. #}
+spec:
+  {%- if 'role' in properties %}
+    {%- set role = properties['role'] %}
+    {{- macros.fields(role, {
+      'description': 'description',
+      'includedPermissions': 'permissions',
+      'stage': 'stage',
+      'title': 'title',
+    }, ' ' * 2) }}
+  {%- endif %}
+{%- endif %}
+

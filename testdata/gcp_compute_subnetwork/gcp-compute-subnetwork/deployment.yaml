@@ -1,0 +1,86 @@
+resources:
+- name: compute-network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+  type: gcp-types/compute-v1:networks
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-subnetwork
+  properties:
+    description: My subnet
+    ipCidrRange: 192.168.0.0/24
+    labels:
+      label-one: value-one
+    logConfig:
+      aggregationInterval: INTERVAL_10_MIN
+      enable: true
+      filterExpr: 'true'
+      flowSampling: 0.5
+      metadata: INCLUDE_ALL_METADATA
+    network: $(ref.compute-network.selfLink)
+    privateIpGoogleAccess: false
+    region: us-west1
+  type: gcp-types/compute-v1:subnetworks
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-subnetwork-1
+  properties:
+    description: My subnet
+    ipCidrRange: 192.168.1.0/24
+    labels:
+      label-one: value-one
+    logConfig:
+      aggregationInterval: INTERVAL_10_MIN
+      enable: true
+      filterExpr: 'false'
+      flowSampling: 0.5
+      metadata: CUSTOM_METADATA
+      metadataFields: ['src_instance', 'dest_instance']
+    network: $(ref.compute-network.selfLink)
+    privateIpGoogleAccess: false
+    region: us-west1
+  type: gcp-types/compute-v1:subnetworks
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-subnetwork-2
+  properties:
+    description: My subnet
+    ipCidrRange: 192.168.2.0/24
+    labels:
+      label-one: value-one
+    network: $(ref.compute-network.selfLink)
+    purpose: REGIONAL_MANAGED_PROXY
+    region: us-west1
+    role: ACTIVE
+  type: gcp-types/compute-v1:subnetworks
+- name: compute-subnetwork-3
+  properties:
+    ipCidrRange: 192.168.3.0/24
+    network: global/networks/default
+    region: us-west1
+  type: gcp-types/compute-v1:subnetworks
+- name: compute-network-2
+  properties:
+    autoCreateSubnetworks: false
+    enableUlaInternalIpv6: true
+  type: gcp-types/compute-v1:networks
+- name: compute-subnetwork-4
+  properties:
+    ipv6AccessType: INTERNAL
+    stackType: IPV4_IPV6
+    ipCidrRange: 10.10.10.0/24
+    network: $(ref.compute-network-2.selfLink)
+    privateIpGoogleAccess: false
+    region: us-central1
+    secondaryIpRanges:
+    - ipCidrRange: 172.16.0.0/12
+      rangeName: my-secondary-range
+  type: gcp-types/compute-v1:subnetworks
+  metadata:
+    dependsOn:
+    - compute-network-2

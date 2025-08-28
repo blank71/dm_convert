@@ -1,0 +1,74 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) %}
+{%- set region_value = properties['parent'].split('locations/')[-1] %}
+#tfimport-terraform import google_cloudfunctions_function.{{ macros.get_name(resource, properties) }}  __project__/{{ region_value }}/{{ properties['function'] }}
+resource "google_cloudfunctions_function" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.write_labels(properties) }}
+  {{- macros.fields(properties, {
+    'function': 'name',
+    'description': 'description',
+    'entryPoint': 'entry_point',
+    'runtime': 'runtime',
+    'availableMemoryMb': 'available_memory_mb',
+    'serviceAccountEmail': 'service_account_email',
+    'maxInstances': 'max_instances',
+    'vpcConnector': 'vpc_connector',
+    'vpcConnectorEgressSettings': 'vpc_connector_egress_settings',
+    'ingressSettings': 'ingress_settings',
+    'project': 'project',
+    'minInstances': 'min_instances',
+    'labels': 'labels',
+    'kmsKeyName': 'kms_key_name',
+    'httpsTriggerSecurityLevel': 'https_trigger_security_level',
+    'dockerRepository': 'docker_repository',
+    'dockerRegistry': 'docker_registry',
+    'buildWorkerPool': 'build_worker_pool',
+    'buildServiceAccount': 'build_service_account',
+  }, ' ' * 2) }}
+  region = "{{ region_value }}"
+  {%- if 'timeout' in properties %}
+  timeout = {{ properties['timeout'].replace('s', '') }}
+  {%- endif %}
+
+  {%- if 'sourceArchiveUrl' in properties %}
+  {%- set source_bucket = properties['sourceArchiveUrl'].replace("gs://", '').split('/')[0] %}
+  {%- set source_object = properties['sourceArchiveUrl'].replace("gs://", '').split('/')[-1] %}
+  source_archive_bucket = "{{ source_bucket }}"
+  source_archive_object = "{{ source_object }}"
+  {%- endif %}
+
+  {%- if 'httpsTrigger' in properties %}
+  trigger_http = true
+  https_trigger_url = "{{ properties['httpsTrigger'].get('url') }}"
+  {%- endif %}
+
+  {{- macros.dict(properties, {'sourceRepository': {
+    'dict_name': 'source_repository',
+    'url': 'url',
+    'deployedUrl': 'deployed_url'
+  } }) | indent(2) }}
+
+  {{- macros.dict(properties, {'eventTrigger': {
+    'dict_name': 'event_trigger',
+    'eventType': 'event_type',
+    'resource': 'resource',
+    'failurePolicy': {
+      'dict_name': 'failure_policy',
+      'retry': 'retry'
+    }
+  } }) | indent(2) }}
+
+  {{- macros.map(properties.get('environmentVariables'), 'environment_variables') | indent(2) }}
+  {{- macros.map(properties.get('buildEnvironmentVariables'), 'build_environment_variables') | indent(2) }}
+
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}
+
+{#-
+1. network is ignored
+2. eventTrigger.service is missing in TF (confirmed by TF team)
+3. httpsTrigger.security_level not added yet - https://github.com/hashicorp/terraform-provider-google/issues/8465
+4. [DM] sourceUploadUrl - https://github.com/hashicorp/terraform-provider-google/issues/7921
+5. httpsTrigger ?
+#}

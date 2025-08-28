@@ -1,0 +1,20 @@
+{%- import 'tf_macros.jinja' as macros -%}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set name_value = macros.if_null('name', properties, resource) -%}
+#tfimport-terraform import google_compute_vpn_gateway.{{ macros.get_name(resource, properties) }} __project__/{{ properties['region'] }}/{{ name_value | replace("\"", "") }}
+resource "google_compute_vpn_gateway" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.write_labels(properties) }}
+  name = {{ name_value }}
+  {{- macros.fields(properties, {
+    'description': 'description',
+    'region': 'region',
+    'network': 'network',
+    'project': 'project',
+  }, ' ' * 2) }}
+
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}
+
+{#-
+#}

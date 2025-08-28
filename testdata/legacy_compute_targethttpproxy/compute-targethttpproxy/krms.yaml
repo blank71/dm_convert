@@ -1,0 +1,50 @@
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeHealthCheck
+metadata:
+  name: compute-healthcheck
+spec:
+  checkIntervalSec: 10
+  httpHealthCheck:
+    port: 80
+    requestPath: /
+  location: global
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeBackendService
+metadata:
+  name: compute-backendservice
+spec:
+  healthChecks:
+  - healthCheckRef:
+      name: compute-healthcheck
+  location: global
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeURLMap
+metadata:
+  name: compute-urlmap
+spec:
+  defaultService:
+    backendServiceRef:
+      external: projects/tjr-dm-test-1/global/backendServices/compute-backendservice
+  location: global
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeTargetHTTPProxy
+metadata:
+  name: compute-targethttpproxy
+spec:
+  description: A sample proxy
+  location: global
+  urlMapRef:
+    name: compute-urlmap
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeTargetHTTPProxy
+metadata:
+  name: compute-regiontargethttpproxies
+spec:
+  description: A sample proxy
+  location: global
+  urlMapRef:
+    name: compute-urlmap

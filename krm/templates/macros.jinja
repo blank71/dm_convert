@@ -1,0 +1,63 @@
+{# If value is a string, put single quotes around it and escape
+   any single quotes inside. #}
+{%- macro quote(value) %}
+    {%- if value is string %}'{{- value | replace("'", "''") }}'
+    {%- else %}{{- value }}
+    {%- endif %}
+{%- endmacro %}
+
+{# Inserts fields into template, checking that each exists.
+   Second parameter maps field names from DM to KRM.
+   Third parameter is a string to indent fields with.
+   Fourth parameter is index of element within a list, if any.
+   DM field names containing '.' will be converted to references. #}
+{%- macro fields(base, names, indent, index='') %}
+    {%- set variables = {'indent': indent} %}
+    {%- for dm_name, krm_name in names.items() %}
+        {%- if dm_name in base %}
+            {%- if 'Ref' in krm_name %}
+{{ variables['indent'] + krm_name }}: {{ quote(base[dm_name] | typed_reference) }}
+            {%- else %}
+{{ variables['indent'] + krm_name }}: {{ quote(base[dm_name] | arbitrary_reference) }}
+            {%- endif %}
+            {%- set _ = variables.__setitem__('indent', indent | replace('-', ' ')) %}
+        {%- endif %}
+    {%- endfor %}
+{%- endmacro %}
+
+{# Inserts lists into template, checking that each exists.
+   Second parameter maps DM list names to a dict containing
+   a map of field names from DM to KRM. KRM name of list has
+   key 'list_name'. #}
+{%- macro lists(base, names, indent) %}
+    {%- for dm_name, krm_field_names in names.items() %}
+        {%- if dm_name in base %}
+            {%- set krm_list_name = krm_field_names.pop('list_name', dm_name) %}
+            {%- if base[dm_name] | length > 0 and krm_field_names.keys() | set_intersection(base[dm_name][0].keys()) %}
+{{ indent + krm_list_name }}:
+              {%- for item in base[dm_name] %}
+                  {{- fields(item, krm_field_names, indent + '- ') }}
+              {%- endfor %}
+            {%- endif %}
+        {%- endif %}
+    {%- endfor %}
+{%- endmacro %}
+
+{%- macro access_control(resource, api, kind, name) %}
+  {%- if 'accessControl' in resource %}
+    {%- set bindings = resource['accessControl'].get('gcpIamPolicy', {}).get('bindings') %}
+    {%- if bindings %}
+---
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMPolicy
+metadata:
+  name: iam-policy-for-{{ name }}
+spec:
+  resourceRef:
+    apiVersion: {{ api }}.cnrm.cloud.google.com/v1beta1
+    kind: {{ kind }}
+    name: {{ name }}
+  bindings: {{ bindings }}
+    {%- endif %}
+  {%- endif %}
+{%- endmacro %}

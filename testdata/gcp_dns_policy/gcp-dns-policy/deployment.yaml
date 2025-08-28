@@ -1,0 +1,21 @@
+resources:
+- name: compute-network
+  properties:
+    autoCreateSubnetworks: false
+    name: compute-network
+  type: compute.v1.network
+- metadata:
+    dependsOn:
+    - compute-network
+  name: dns-policy
+  properties:
+    alternativeNameServerConfig:
+      targetNameServers:
+      - ipv4Address: 104.132.166.92
+    description: Example DNS policy
+    enableInboundForwarding: true
+    enableLogging: true
+    name: dns-policy
+    networks:
+    - networkUrl: $(ref.compute-network.selfLink)
+  type: gcp-types/dns-v1beta2:policies

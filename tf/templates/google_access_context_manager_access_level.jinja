@@ -1,0 +1,26 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set resource_name = resource.get('name') -%}
+#tfimport-terraform import google_access_context_manager_access_policy.{{ macros.get_name(resource, properties) }}  {{macros.import_project(properties['project'])}}/{{properties['region']}}/{{ resource_name }}
+resource "google_access_context_manager_access_level_condition" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.write_labels(properties) }}
+  {{- macros.fields(properties, {
+    'accessLevel': 'access_level',
+    'negate': 'negate',
+    'ipSubnetworks': 'ip_subnetworks',
+    'members': 'members',
+    'regions': 'regions',
+  }, ' ' * 2) }}
+
+  {{- macros.lists(properties, {
+    'devicePolicy': {
+      'list_name': 'device_policy',
+      'require_screen_lock': 'require_screen_lock',
+      'require_admin_approval': 'require_admin_approval',
+      'require_corp_owned': 'require_corp_owned',
+    }
+  }, ' ' * 2) }}
+
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}

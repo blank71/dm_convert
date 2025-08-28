@@ -1,0 +1,21 @@
+resources:
+- name: compute-network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+  type: compute.v1.network
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-firewall
+  properties:
+    allowed:
+    - IPProtocol: tcp
+      ports:
+      - '80'
+      - 1000-2000
+    labels:
+      label-one: value-one
+    network: $(ref.compute-network.selfLink)
+  type: compute.v1.firewall

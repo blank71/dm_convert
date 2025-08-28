@@ -1,0 +1,12 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set projectId = macros.hydrate_ref(properties['resource']) -%}
+#tfimport-terraform import google_project_iam_member.{{ macros.get_name(resource, properties) }}  "{{ projectId }} {{ properties['role'] }} {{ properties['member'] }}"
+resource "google_project_iam_member" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.fields(properties, {
+    'resource': 'project',
+    'role': 'role',
+    'member': 'member',
+  }, ' ' * 2) }}
+}

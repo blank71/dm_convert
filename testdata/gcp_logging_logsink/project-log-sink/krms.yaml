@@ -1,0 +1,55 @@
+apiVersion: pubsub.cnrm.cloud.google.com/v1beta1
+kind: PubSubTopic
+metadata:
+  name: pubsub-topic-resource
+spec:
+  resourceID: pubsub-topic
+---
+apiVersion: resourcemanager.cnrm.cloud.google.com/v1beta1
+kind: Project
+metadata:
+  annotations:
+    cnrm.cloud.google.com/folder-id: '613349442449'
+  name: rm-project
+spec:
+  name: Project Sink Project
+  resourceID: rm-project
+---
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMPolicyMember
+metadata:
+  name: rm-iammemberbinding
+spec:
+  member: user:thomasrodgers@google.com
+  resourceRef:
+    apiVersion: resourcemanager.cnrm.cloud.google.com/v1beta1
+    external: projects/rm-project
+    kind: Project
+  role: roles/editor
+---
+apiVersion: serviceusage.cnrm.cloud.google.com/v1beta1
+kind: Service
+metadata:
+  annotations:
+    cnrm.cloud.google.com/project-id: rm-project
+  name: logging.googleapis.com
+---
+apiVersion: serviceusage.cnrm.cloud.google.com/v1beta1
+kind: Service
+metadata:
+  annotations:
+    cnrm.cloud.google.com/project-id: rm-project
+  name: api.googleapis.com.googleapis.com
+---
+apiVersion: logging.cnrm.cloud.google.com/v1beta1
+kind: LoggingLogSink
+metadata:
+  name: logging-sink
+spec:
+  destination:
+    pubSubTopicRef:
+      name: pubsub-topic-resource
+  filter: resource.type="bigquery_project" AND logName:"cloudaudit.googleapis.com"
+  projectRef:
+    external: rm-project
+  uniqueWriterIdentity: true

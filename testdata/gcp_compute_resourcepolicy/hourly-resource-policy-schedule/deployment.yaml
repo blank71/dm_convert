@@ -1,0 +1,18 @@
+resources:
+- name: compute-resource-policy
+  properties:
+    name: compute-resource-policy
+    region: us-central1
+    snapshotSchedulePolicy:
+      retentionPolicy:
+        maxRetentionDays: 2
+        onSourceDiskDelete: APPLY_RETENTION_POLICY
+      schedule:
+        hourlySchedule:
+          hoursInCycle: 4
+          startTime: '13:00'
+      snapshotProperties:
+        labels:
+          autodeleted: 'true'
+          interval: hourly
+  type: gcp-types/compute-v1:resourcePolicies

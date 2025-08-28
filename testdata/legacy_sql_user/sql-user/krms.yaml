@@ -1,0 +1,29 @@
+apiVersion: sql.cnrm.cloud.google.com/v1beta1
+kind: SQLInstance
+metadata:
+  labels:
+    label-one: value-one
+  name: sqladmin-instance
+spec:
+  databaseVersion: MYSQL_5_7
+  region: us-central1
+  settings:
+    backupConfiguration:
+      binaryLogEnabled: false
+      pointInTimeRecoveryEnabled: false
+    ipConfiguration:
+      requireSsl: false
+    locationPreference:
+      zone: us-central1-a
+    tier: db-n1-standard-1
+---
+apiVersion: sql.cnrm.cloud.google.com/v1beta1
+kind: SQLUser
+metadata:
+  name: sqladmin-user
+spec:
+  host: '%'
+  instanceRef:
+    name: sqladmin-instance
+  password:
+    value: cGFzc3dvcmQ=

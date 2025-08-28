@@ -1,0 +1,100 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set name_value = macros.if_null('name', properties, resource) -%}
+#tfimport-terraform import google_compute_health_check.{{ macros.get_name(resource, properties) }}  {{ macros.import_project(properties['project']) }}/{{ name_value | replace("\"", "") }}
+resource "google_compute_health_check" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.write_labels(properties) }}
+  name = {{ name_value }}
+  {{- macros.fields(properties, {
+    'description': 'description',
+    'checkIntervalSec': 'check_interval_sec',
+    'timeoutSec': 'timeout_sec',
+    'healthyThreshold': 'healthy_threshold',
+    'unhealthyThreshold': 'unhealthy_threshold',
+    'project': 'project',
+    'sourceRegions': 'source_regions',
+  }, ' ' * 2) }}
+
+  {{- macros.lists(properties, {
+    'tcpHealthCheck': {
+      'list_name': 'tcp_health_check',
+      'port': 'port',
+      'portName': 'port_name',
+      'portSpecification': 'port_specification',
+      'request': 'request',
+      'response': 'response',
+      'proxyHeader': 'proxy_header'
+    }
+  }, ' ' * 2, false) }}
+
+  {{- macros.lists(properties, {
+    'sslHealthCheck': {
+      'list_name': 'ssl_health_check',
+      'port': 'port',
+      'portName': 'port_name',
+      'portSpecification': 'port_specification',
+      'request': 'request',
+      'response': 'response',
+      'proxyHeader': 'proxy_header'
+    }
+  }, ' ' * 2, false) }}
+
+  {{- macros.lists(properties, {
+    'httpHealthCheck': {
+      'list_name': 'http_health_check',
+      'port': 'port',
+      'portName': 'port_name',
+      'portSpecification': 'port_specification',
+      'host': 'host',
+      'request': 'request',
+      'response': 'response',
+      'proxyHeader': 'proxy_header'
+    }
+  }, ' ' * 2, false) }}
+
+  {{- macros.lists(properties, {
+    'httpsHealthCheck': {
+      'list_name': 'https_health_check',
+      'port': 'port',
+      'portName': 'port_name',
+      'portSpecification': 'port_specification',
+      'host': 'host',
+      'request': 'request',
+      'response': 'response',
+      'proxyHeader': 'proxy_header'
+    }
+  }, ' ' * 2, false) }}
+
+  {{- macros.lists(properties, {
+    'http2HealthCheck': {
+      'list_name': 'http2_health_check',
+      'port': 'port',
+      'portName': 'port_name',
+      'portSpecification': 'port_specification',
+      'host': 'host',
+      'request': 'request',
+      'response': 'response',
+      'proxyHeader': 'proxy_header'
+    }
+  }, ' ' * 2, false) }}
+
+  {{- macros.lists(properties, {
+    'grpcHealthCheck': {
+      'list_name': 'grpc_health_check',
+      'port': 'port',
+      'portName': 'port_name',
+      'portSpecification': 'port_specification',
+      'grpcServiceName': 'grpc_service_name'
+    }
+  }, ' ' * 2, false) }}
+
+  {{- macros.lists(properties, {
+    'logConfig': {
+      'list_name': 'log_config',
+      'enable': 'enable'
+    }
+  }, ' ' * 2, false) }}
+
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}

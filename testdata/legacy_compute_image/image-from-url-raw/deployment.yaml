@@ -1,0 +1,13 @@
+resources:
+- name: compute-image
+  properties:
+    description: A sample image created from URL to a raw TAR disk image
+    diskSizeGb: 3
+    family: ubuntu-custom
+    labels:
+      image-type: stemcell
+    rawDisk:
+      containerType: TAR
+      sha1Checksum: 819b7e9c17423f4539f09687eaa13687afa2fe32
+      source: https://storage.googleapis.com/bosh-gce-raw-stemcells/bosh-stemcell-97.98-google-kvm-ubuntu-xenial-go_agent-raw-1557960142.tar.gz
+  type: compute.v1.image

@@ -1,0 +1,49 @@
+resources:
+- name: compute-network
+  properties:
+    autoCreateSubnetworks: false
+    selfLink: projects/tjr-dm-test-1/global/networks/compute-network
+  type: gcp-types/compute-v1:networks
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-firewall-1
+  properties:
+    denied:
+    - IPProtocol: tcp
+      ports:
+      - "80"
+    description: abc
+    destinationRanges:
+    - 192.168.0.0/16
+    direction: EGRESS
+    disabled: false
+    network: $(ref.compute-network.selfLink)
+  type: gcp-types/compute-v1:firewalls
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-firewall-2
+  properties:
+    allowed:
+    - IPProtocol: tcp
+      ports:
+      - "11234"
+      - "16180"
+    description: abc
+    direction: INGRESS
+    disabled: false
+    logConfig:
+      enable: true
+      metadata: EXCLUDE_ALL_METADATA
+    network: $(ref.compute-network.selfLink)
+    priority: 999
+    sourceRanges:
+    - 192.168.0.0/16
+    sourceServiceAccounts:
+    - test1@google.com
+    - test2@google.com
+    targetServiceAccounts:
+    - test3@google.com
+    - test4@google.com
+  type: gcp-types/compute-v1:firewalls

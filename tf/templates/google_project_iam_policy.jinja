@@ -1,0 +1,10 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set resource_name = macros.get_name(resource, properties) %}
+{{- macros.format_iam_policy(resource_name, properties.get('policy', {}).get('bindings', [])) }}
+
+#tfimport-terraform import google_project_iam_policy.{{ resource_name }}_iam_policy  {{ macros.normalize(properties['resource']) | replace("\"", "") }}
+resource "google_project_iam_policy" "{{ resource_name }}_iam_policy" {
+  project     = {{ macros.normalize(properties['resource']) }}
+  policy_data = data.google_iam_policy.{{ resource_name }}_iam_policy.policy_data
+}

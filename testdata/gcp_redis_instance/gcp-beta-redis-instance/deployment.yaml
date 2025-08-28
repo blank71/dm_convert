@@ -1,0 +1,12 @@
+resources:
+- name: redis-instance
+  properties:
+    authEnabled: true
+    displayName: Sample Redis Instance
+    instanceId: redis-instance
+    labels:
+      label-one: value-one
+    memorySizeGb: 16
+    parent: projects/tjr-dm-test-1/locations/us-central1
+    tier: BASIC
+  type: gcp-types/redis-v1beta1:projects.locations.instances

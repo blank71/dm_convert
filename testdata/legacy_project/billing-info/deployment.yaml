@@ -1,0 +1,17 @@
+resources:
+- name: my_test_project
+  properties:
+    name: my-test-project
+    parent:
+      id: '119612413569'
+      type: organization
+    projectId: my-test-project
+  type: cloudresourcemanager.v1.project
+- metadata:
+    dependsOn:
+    - my_test_project
+  name: billing_my_test_project
+  properties:
+    billingAccountName: billingAccounts/000000-AAAAFF-123456
+    name: projects/my-test-project
+  type: deploymentmanager.v2.virtual.projectBillingInfo

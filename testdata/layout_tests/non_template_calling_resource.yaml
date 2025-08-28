@@ -1,0 +1,15 @@
+resources:
+- name: abc
+  properties:
+    abc_type: type
+  resources:
+  - name: abc_vm
+    type: typeabc
+  type: abc_type
+- name: xyz
+  properties:
+    xyz_name: name
+  resources:
+  - name: xyz_vm
+    type: xyztype
+  type: xyz_template.py

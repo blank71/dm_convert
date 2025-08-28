@@ -1,0 +1,55 @@
+resources:
+- name: cloud-buildtrigger
+  properties:
+    build:
+      images:
+      - gcr.io/$PROJECT_ID/${_SERVICE_NAME}:$COMMIT_SHA
+      steps:
+      - args:
+        - cp
+        - gs://mybucket/remotefile.zip
+        - localfile.zip
+        id: download_zip
+        name: gcr.io/cloud-builders/gsutil
+        timeout: 120s
+      - args:
+        - build
+        - my_package
+        dir: directory
+        env:
+        - ENV1=one
+        - ENV2=two
+        id: build_package
+        name: gcr.io/cloud-builders/go
+        secretEnv:
+        - SECRET_ENV1
+        timeout: 120s
+      - args:
+        - $(ref.cloud-buildtrigger.build.steps[1].args[0])
+        - -t
+        - gcr.io/$PROJECT_ID/${_SERVICE_NAME}:$COMMIT_SHA
+        - -f
+        - Dockerfile
+        - .
+        id: build_docker_image
+        name: gcr.io/cloud-builders/docker
+        timeout: 120s
+      tags:
+      - team-a
+      - service-b
+      timeout: 1800s
+    description: Cloud Build Trigger for building the master branch of the referenced
+      Cloud Source Repository.
+    disabled: false
+    ignoredFiles:
+    - '**/*.md'
+    includedFiles:
+    - src/**
+    name: cloud-buildtrigger
+    substitutions:
+      _SERVICE_NAME: service-name
+    triggerTemplate:
+      branchName: master
+      dir: team-a/service-b
+      repoName: projects/tjr-dm-test-1/repos/sourcerepo-repo
+  type: gcp-types/cloudbuild-v1:projects.triggers

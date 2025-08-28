@@ -1,0 +1,61 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) %}
+#tfimport-terraform import google_logging_metric.{{ macros.get_name(resource, properties) }} {{ macros.import_project(properties['parent']) }} {{ properties['metric'] }}
+resource "google_logging_metric" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.fields(properties, {
+    'metric': 'name',
+    'filter': 'filter',
+    'description': 'description',
+    'valueExtractor': 'value_extractor',
+    'parent': 'project',
+    'project': 'project',
+    'disabled': 'disabled',
+    'bucketName': 'bucket_name',
+  }, ' ' * 2) }}
+  metric_descriptor {
+  {{- macros.fields(properties.get('metricDescriptor'), {
+    'metricKind': 'metric_kind',
+    'valueType': 'value_type',
+    'unit': 'unit',
+    'display_name': 'display_name',
+    'displayName': 'display_name',
+  }, ' ' * 4) }}
+  {{- macros.unroll_dict(properties.get('metricDescriptor').get('labels'), 'labels', {
+      'key': 'key',
+      'description': 'description',
+      'valueType': 'value_type'
+  }) | indent(2) }}
+  }
+
+  {{- macros.dict(properties, {
+    'bucketOptions': {
+      'dict_name': 'bucket_options',
+      'linearBuckets': {
+        'dict_name': 'linear_buckets',
+        'numFiniteBuckets': 'num_finite_buckets',
+        'width': 'width',
+        'offset': 'offset'
+        },
+      'exponentialBuckets': {
+        'dict_name': 'exponential_buckets',
+        'numFiniteBuckets': 'num_finite_buckets',
+        'growthFactor': 'growth_factor',
+        'scale': 'scale'
+        },
+      'explicitBuckets': {
+        'dict_name': 'explicit_buckets',
+        'bounds': 'bounds'
+        },
+      }
+  }) | indent(2) }}
+
+  {{- macros.map(properties.get('labelExtractors'), 'label_extractors') | indent(2) }}
+
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}
+
+{#-
+1. [DM] launchStage is missing in TF
+2. [DM] metadata is missing in TF
+#}

@@ -1,0 +1,24 @@
+resources:
+- name: compute-resource-policy
+  properties:
+    name: compute-resource-policy
+    region: us-central1
+    snapshotSchedulePolicy:
+      retentionPolicy:
+        maxRetentionDays: 12
+      schedule:
+        weeklySchedule:
+          dayOfWeeks:
+          - day: MONDAY
+            startTime: 08:00
+          - day: WEDNESDAY
+            startTime: '15:00'
+          - day: FRIDAY
+            startTime: '23:00'
+      snapshotProperties:
+        labels:
+          autodeleted: 'false'
+          interval: weekly
+        storageLocations:
+        - us
+  type: gcp-types/compute-v1:resourcePolicies

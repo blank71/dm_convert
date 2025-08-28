@@ -1,0 +1,55 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set prop_mappings = {
+  'friendlyName': 'friendly_name',
+  'description': 'description',
+  'defaultTableExpirationMs': 'default_table_expiration_ms',
+  'defaultPartitionExpirationMs': 'default_partition_expiration_ms',
+  'location': 'location',
+  'storageBillingModel': 'storage_billing_model',
+  'resourceTags': 'resource_tags',
+  'project': 'project',
+  'maxTimeTravelHours': 'max_time_travel_hours',
+  'isCaseInsensitive': 'is_case_insensitive',
+  'deleteContentsOnDestroy': 'delete_contents_on_destroy',
+  'defaultCollation': 'default_collation',
+} %}
+{%- set dataset_ref_mappings = {
+  'datasetId': 'dataset_id',
+} %}
+{%- if 'projectId' in properties['datasetReference'] %}
+  {%- set _ = dataset_ref_mappings.update({'projectId': 'project'}) %}
+  {%- set import_poject_id = properties['datasetReference']['projectId'] %}
+{%- elif 'projectId' in properties %}
+  {%- set _ = prop_mappings.update({'projectId': 'project'}) %}
+  {%- set import_poject_id = properties['projectId'] %}
+{%- else %}
+  {%- set import_poject_id = '__project__' %}
+{%- endif %}
+#tfimport-terraform import google_bigquery_dataset.{{ macros.get_name(resource, properties) }}  {{import_poject_id}}/{{properties['datasetReference']['datasetId']}}
+resource "google_bigquery_dataset" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_labels(properties) }}
+  {{- macros.write_provider() }}
+  {{- macros.fields(properties, prop_mappings , ' ' * 2) }}
+  {{- macros.fields(properties['datasetReference'], dataset_ref_mappings, ' ' * 2) }}
+  {{- macros.unroll_dict(properties.get('access'), 'access', {
+      'role': 'role',
+      'userByEmail': 'user_by_email',
+      'groupByEmail': 'group_by_email',
+      'domain': 'domain',
+      'specialGroup': 'special_group'
+  }) }}
+  {{- macros.lists(properties, {
+    'destinationEncryptionConfiguration': {
+      'list_name': 'default_encryption_configuration',
+      'kmsKeyName': 'kms_key_name'
+    }
+  }, ' ' * 2, false) }}
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}
+
+{#-
+  1. [DM] access.view - not added
+  2. [DM] access.routine -not added
+  3. [DM] iamMember is missing in TF
+#}

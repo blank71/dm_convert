@@ -1,0 +1,40 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set name_value = macros.if_null('name', properties, resource) -%}
+#tfimport-terraform import google_compute_forwarding_rule.{{ macros.get_name(resource, properties) }}  __project__/{{ properties['region'] }}/{{ name_value | replace("\"", "") }}
+resource "google_compute_forwarding_rule" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.write_labels(properties) }}
+  name = {{ name_value }}
+  {{- macros.fields(properties, {
+    'IPAddress': 'ip_address',
+    'IPProtocol': 'ip_protocol',
+    'allPorts': 'all_ports',
+    'allowGlobalAccess': 'allow_global_access',
+    'backendService': 'backend_service',
+    'description': 'description',
+    'isMirroringCollector': 'is_mirroring_collector',
+    'loadBalancingScheme': 'load_balancing_scheme',
+    'network': 'network',
+    'networkTier': 'network_tier',
+    'portRange': 'port_range',
+    'ports': 'ports',
+    'region': 'region',
+    'serviceLabel': 'service_label',
+    'subnetwork': 'subnetwork',
+    'target': 'target',
+    'sourceIpRanges': 'source_ip_ranges',
+    'recreateClosedPsc': 'recreate_closed_psc',
+    'project': 'project',
+    'noAutomateDnsZone': 'no_automate_dns_zone',
+    'ipVersion': 'ip_version',
+    'ipProtocol': 'ip_protocol',
+    'ipAddress': 'ip_address',
+    'allowPscGlobalAccess': 'allow_psc_global_access',
+  }, ' ' * 2) }}
+
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}
+
+{#-
+#}

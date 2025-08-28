@@ -1,0 +1,85 @@
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeNetwork
+metadata:
+  name: compute-network
+spec:
+  autoCreateSubnetworks: false
+  routingMode: REGIONAL
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeDisk
+metadata:
+  name: compute-disk
+spec:
+  description: a sample encrypted, blank disk
+  diskEncryptionKey:
+    rawKey:
+      value: SGVsbG8gZnJvbSBHb29nbGUgQ2xvdWQgUGxhdGZvcm0=
+  location: us-west1-a
+  physicalBlockSizeBytes: 4096
+  size: 1
+  type: pd-ssd
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeAddress
+metadata:
+  name: compute-address
+spec:
+  description: a sample external address
+  location: us-west1
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeSubnetwork
+metadata:
+  name: compute-subnetwork
+spec:
+  description: a sample subnetwork
+  ipCidrRange: 10.2.0.0/16
+  logConfig:
+    aggregationInterval: INTERVAL_10_MIN
+    filterExpr: 'true'
+    flowSampling: 0.5
+    metadata: INCLUDE_ALL_METADATA
+  networkRef:
+    name: compute-network
+  privateIpGoogleAccess: false
+  region: us-west1
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeInstance
+metadata:
+  labels:
+    created-from: disk
+    network-type: global
+  name: compute-instance
+spec:
+  bootDisk:
+    autoDelete: false
+    deviceName: proxycontroldisk
+    diskEncryptionKeyRaw:
+      value: SGVsbG8gZnJvbSBHb29nbGUgQ2xvdWQgUGxhdGZvcm0=
+    mode: READ_ONLY
+    sourceDiskRef:
+      name: compute-disk
+  canIpForward: true
+  guestAccelerator:
+  - count: 1
+    type: nvidia-tesla-v100
+  machineType: n1-standard-1
+  networkInterface:
+  - accessConfig:
+    - natIpRef:
+        name: compute-address
+    networkIp: 10.2.0.4
+    networkRef:
+      name: compute-network
+    subnetworkRef:
+      name: compute-subnetwork
+  scheduling:
+    automaticRestart: false
+    onHostMaintenance: TERMINATE
+    preemptible: true
+  scratchDisk:
+  - interface: SCSI
+  - interface: NVME
+  zone: us-west1-a

@@ -1,0 +1,49 @@
+variable "name"{
+}
+
+
+variable "autoDelete"{
+    default = "true"
+}
+
+
+variable "boot"{
+    default = "true"
+}
+
+
+variable "deviceName"{
+    default = "boot"
+}
+
+
+variable "sourceImage"{
+    default = "https://www.googleapis.com/compute/v1/projects/debian-cloud/global/images/family/debian-11"
+}
+
+
+variable "disks_type"{
+    default = "PERSISTENT"
+}
+
+
+variable "machineType"{
+}
+
+
+variable "accessConfigs_name"{
+    default = "External NAT"
+}
+
+
+variable "accessConfigs_type"{
+    default = "ONE_TO_ONE_NAT"
+}
+
+
+variable "network"{
+}
+
+
+variable "zone"{
+}

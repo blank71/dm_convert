@@ -1,0 +1,14 @@
+resources:
+- name: compute-network
+  properties:
+    autoCreateSubnetworks: false
+  type: gcp-types/compute-v1:networks
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-vpngateway
+  properties:
+    description: Compute VPN Gateway Sample
+    network: $(ref.compute-network.selfLink)
+    region: us-central1
+  type: gcp-types/compute-v1:vpnGateways

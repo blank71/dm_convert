@@ -1,0 +1,5 @@
+imports:
+- path: nonexistent-file.jinja
+resources:
+- name: test_resource
+  type: nonexistent-file.jinja

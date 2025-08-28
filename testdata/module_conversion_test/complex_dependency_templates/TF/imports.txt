@@ -1,0 +1,6 @@
+terraform import module.compute_engine_setup.module.vm_1.google_compute_instance.vm_template dm-aayush-testing/us-central1-f/vm-1
+terraform import module.compute_engine_setup.module.vm_2.google_compute_instance.vm_template dm-aayush-testing/us-west1-a/vm-2
+terraform import module.compute_engine_setup.module.network_1.google_compute_network.network_template dm-aayush-testing/network-1
+terraform import module.compute_engine_setup.module.firewall_1.google_compute_firewall.firewall_template dm-aayush-testing/firewall-1
+terraform import module.compute_engine_setup.module.vm_3.google_compute_instance.vm_template dm-aayush-testing/us-central1-a/vm-3
+terraform import module.network_2.google_compute_network.network_template dm-aayush-testing/network-2

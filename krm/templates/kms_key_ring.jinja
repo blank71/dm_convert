@@ -1,0 +1,20 @@
+{%- import 'macros.jinja' as macros %}
+apiVersion: kms.cnrm.cloud.google.com/v1beta1
+kind: KMSKeyRing
+metadata:
+{%- set properties = resource.get('properties', {}) %}
+{%- if 'project' in properties %}
+  annotations:
+    cnrm.cloud.google.com/project-id: {{ properties['project'] | arbitrary_reference }}
+{%- endif %}
+{{- macros.fields(properties, {'labels': 'labels'}, ' ' * 2) }}
+{%- if 'name' in properties %}
+  name: {{ properties['name'] | arbitrary_reference }}
+{%- else %}
+  name: {{ resource['name'] | arbitrary_reference }}
+{%- endif %}
+spec:
+{%- if 'parent' in properties %}
+  location: {{ properties['parent'].rpartition('/')[-1] }}
+{%- endif %}
+

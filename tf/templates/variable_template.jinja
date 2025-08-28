@@ -1,0 +1,9 @@
+variable "{{resource.get('name')}}"{
+  {%- if 'default' in resource %}
+    {%- if 'isList' in resource %}
+    default = {{resource.get('default') | replace("'", '"') }}
+    {%- else%}
+    default = "{{resource.get('default')}}"
+    {%- endif %}
+  {%- endif %}
+}

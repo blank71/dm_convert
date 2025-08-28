@@ -1,0 +1,39 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set resource_name = resource.get('name') -%}
+{%- set import_resource = [macros.import_project(properties['project']), properties['region'], resource_name] | join("/") -%}
+#tfimport-terraform import google_compute_region_disk.{{ macros.get_name(resource, properties) }}  {{ import_resource }}
+resource "google_compute_region_disk" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  name = "{{ resource_name }}"
+  {{- macros.fields(properties, {
+    'region': 'region',
+    'replicaZones': 'replica_zones',
+    'description': 'description',
+    'sizeGb': 'size',
+    'zone': 'zone',
+    'type': 'type',
+    'sourceSnapshot': 'snapshot',
+    'physicalBlockSizeBytes': 'physical_block_size_bytes',
+    'project': 'project',
+    'diskEncryptionKey': {
+      'map_name': 'disk_encryption_key',
+      'kmsKeyServiceAccount': 'kms_key_service_account',
+      'kmsKeyName': 'kms_key_self_link',
+      'rawKey': 'raw_key',
+    },
+    'sourceSnapshotEncryptionKey': {
+      'map_name': 'source_snapshot_encryption_key',
+      'kmsKeyServiceAccount': 'kms_key_service_account',
+      'kmsKeyName': 'kms_key_self_link',
+      'rawKey': 'raw_key',
+    },
+    'sourceDisk': 'source_disk',
+    'snapshot': 'snapshot',
+    'size': 'size',
+    'licenses': 'licenses',
+  }, ' ' * 2) }}
+  {{- macros.fields(properties, {'labels': 'labels ='}, ' ' * 2) }}
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}
+{{- macros.convert_access_control("google_compute_region_disk", macros.get_name(resource, properties), resource.get('accessControl', {}), import_resource) }}

@@ -1,0 +1,25 @@
+apiVersion: accesscontextmanager.cnrm.cloud.google.com/v1beta1
+kind: AccessContextManagerAccessLevel
+metadata:
+{%- if resource['properties']['labels'] is defined %}
+  labels: {{ resource['properties']['labels'] }}
+{%- endif %}
+{%- if resource['properties']['name'] is defined %}
+  name: {{ resource['properties']['name'] }}
+{%- else %}
+  name: {{ resource['name'] }}
+{%- endif %}
+spec:
+{%- if resource['properties']['parent'] is defined %}
+  accessPolicyRef:
+    name: {{ resource['properties']['parent'].split('/')[-1] }}
+{%- endif %}
+{%- if resource['properties']['basic'] is defined %}
+  basic: {{ resource['properties']['basic'] }}
+{%- endif %}
+{%- if resource['properties']['description'] is defined %}
+  description: {{ resource['properties']['description'] }}
+{%- endif %}
+{%- if resource['properties']['title'] is defined %}
+  title: {{ resource['properties']['title'] }}
+{%- endif %}

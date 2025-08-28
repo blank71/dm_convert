@@ -1,0 +1,11 @@
+# yamllint disable
+resources:
+- name: test-project
+  properties:
+    labels: {}
+    name: test
+corrupt    parent:
+      id: '640969234730'
+  type: folder
+    projectId: test-project-id
+  type: gcp-types/cloudresourcemanager-v1:projects

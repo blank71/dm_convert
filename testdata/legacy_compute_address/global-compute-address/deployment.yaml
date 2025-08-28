@@ -1,0 +1,21 @@
+resources:
+- name: compute-network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+  type: compute.v1.network
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-globaladdress
+  properties:
+    addressType: INTERNAL
+    description: a test global address
+    ipVersion: IPV4
+    labels:
+      label-one: value-one
+    network: $(ref.compute-network.selfLink)
+    prefixLength: 16
+    purpose: VPC_PEERING
+  type: compute.v1.globalAddress

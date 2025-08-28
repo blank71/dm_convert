@@ -1,0 +1,11 @@
+apiVersion: resourcemanager.cnrm.cloud.google.com/v1beta1
+kind: Project
+metadata:
+  annotations:
+    cnrm.cloud.google.com/organization-id: '119612413569'
+  name: my-test-project
+spec:
+  billingAccountRef:
+    external: 000000-AAAAFF-123456
+  name: my-test-project
+  resourceID: my-test-project

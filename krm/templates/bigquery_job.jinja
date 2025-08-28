@@ -1,0 +1,139 @@
+{%- import 'macros.jinja' as macros %}
+apiVersion: bigquery.cnrm.cloud.google.com/v1beta1
+kind: BigQueryJob
+metadata:
+  annotations:
+{%- set properties = resource.get('properties', {}) %}
+{%- set job_reference = properties['jobReference'] %}
+    cnrm.cloud.google.com/project-id: {{ job_reference['projectId'] }}
+{%- if 'labels' in properties['configuration'] %}
+  labels: {{ properties['configuration']['labels'] }}
+{%- endif %}
+{%- if 'name' in resource %}
+  name: {{ resource['name'] | arbitrary_reference | replace('_', '-') }}
+{%- endif %}
+spec:
+{{- macros.fields(job_reference, {
+  'location': 'location',
+  'jobId': 'resourceID',
+  }, ' ' * 2) }}
+{%- set configuration = properties['configuration'] %}
+{%- if 'copy' in configuration %}
+  copy:
+  {%- set copy = configuration['copy'] %}
+  {{- macros.fields(copy, {
+    'createDisposition': 'createDisposition',
+    'writeDisposition': 'writeDisposition',
+  }, ' ' * 4) }}
+  {%- if 'destinationEncryptionConfiguration' in copy %}
+    destinationEncryptionConfiguration:
+    {{- macros.fields(copy['destinationEncryptionConfiguration'], {
+      'kmsKeyName': 'kmsKeyRef',
+    }, ' ' * 6) }}
+  {%- endif %}
+    destinationTable:
+  {{- macros.fields(copy['destinationTable'], {
+    'tableId': 'tableRef',
+  }, ' ' * 6) }}
+  {%- if 'sourceTable' in copy %}
+    sourceTables:
+    {{- macros.fields(copy['sourceTable'], {
+      'tableId': 'tableRef',
+    }, ' ' * 6) }}
+  {%- else %}
+    sourceTables:
+    {%- for i, source_table in copy['sourceTables'] | enumerate %}
+      {{- macros.fields(source_table, {
+        'tableId': 'tableRef',
+      }, ' ' * 4 + '- ') }}
+    {%- endfor %}
+  {%- endif %}
+{%- elif 'extract' in configuration %}
+  extract:
+  {%- set extract = configuration['extract'] %}
+  {{- macros.fields(extract, {
+    'compression': 'compression',
+    'destinationFormat': 'destinationFormat',
+    'destinationUris': 'destinationUris',
+    'fieldDelimiter': 'fieldDelimiter',
+    'printHeader': 'printHeader',
+    'useAvroLogicalTypes': 'useAvroLogicalTypes',
+  }, ' ' * 4)}}
+  {%- if 'destinationUri' in extract %}
+    destinationUris:
+    - {{ extract['destinationUri'] }}
+  {%- endif %}
+  {%- if 'sourceTable' in extract %}
+    sourceTable:
+    {{- macros.fields(extract['sourceTable'], {
+      'tableId': 'tableRef',
+    }, ' ' * 6) }}
+  {%- endif %}
+{%- elif 'load' in configuration %}
+  load:
+  {%- set load = configuration['load'] %}
+  {{- macros.fields(load, {
+    'allowJaggedRows': 'allowJaggedRows',
+    'allowQuotedNewlines': 'allowQuotedNewlines',
+    'autodetect': 'autodetect',
+    'createDisposition': 'createDisposition',
+    'encoding': 'encoding',
+    'fieldDelimiter': 'fieldDelimiter',
+    'ignoreUnknownValues': 'ignoreUnknownValues',
+    'maxBadRecords': 'maxBadRecords',
+    'nullMarker': 'nullMarker',
+    'projectionFields': 'projectionFields',
+    'quote': 'quote',
+    'schemaUpdateOptions': 'schemaUpdateOptions',
+    'skipLeadingRows': 'skipLeadingRows',
+    'sourceFormat': 'sourceFormat',
+    'sourceUris': 'sourceUris',
+    'timePartitioning': 'timePartitioning',
+    'writeDisposition': 'writeDisposition',
+  }, ' ' * 4)}}
+  {%- if 'destinationEncryptionConfiguration' in load %}
+    destinationEncryptionConfiguration:
+    {{- macros.fields(load['destinationEncryptionConfiguration'], {
+      'kmsKeyName': 'kmsKeyRef',
+    }, ' ' * 6) }}
+  {%- endif %}
+    destinationTable:
+  {{- macros.fields(load['destinationTable'], {
+    'tableId': 'tableRef',
+  }, ' ' * 6) }}
+{%- elif 'query' in configuration %}
+  query:
+  {%- set query = configuration['query'] %}
+  {{- macros.fields(query, {
+    'allowLargeResults': 'allowLargeResults',
+    'createDisposition': 'createDisposition',
+    'flattenResults': 'flattenResults',
+    'maximumBillingTier': 'maximumBillingTier',
+    'maximumBytesBilled': 'maximumBytesBilled',
+    'parameterMode': 'parameterMode',
+    'priority': 'priority',
+    'query': 'query',
+    'schemaUpdateOptions': 'schemaUpdateOptions',
+    'scriptOptions': 'scriptOptions',
+    'useLegacySql': 'useLegacySql',
+    'useQueryCache': 'useQueryCache',
+    'userDefinedFunctionResources': 'userDefinedFunctionResources',
+    'writeDisposition': 'writeDisposition',
+  }, ' ' * 4)}}
+  {%- if 'defaultDataset' in query %}
+    defaultDataset:
+    {{- macros.fields(query['defaultDataset'], {
+      'datasetId': 'datasetRef',
+    }, ' ' * 6) }}
+  {%- endif %}
+  {%- if 'destinationEncryptionConfiguration' in query %}
+    destinationEncryptionConfiguration:
+    {{- macros.fields(query['destinationEncryptionConfiguration'], {
+      'kmsKeyName': 'kmsKeyRef',
+    }, ' ' * 6) }}
+  {%- endif %}
+    destinationTable:
+  {{- macros.fields(query['destinationTable'], {
+    'tableId': 'tableRef',
+  }, ' ' * 6) }}
+{%- endif %}

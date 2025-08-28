@@ -1,0 +1,72 @@
+resources:
+- name: tjr-dm-test-1-bucket
+  type: storage.v1.bucket
+- metadata:
+    dependsOn:
+    - tjr-dm-test-1-bucket
+  name: compute-backendbucket
+  properties:
+    bucketName: $(ref.tjr-dm-test-1-bucket.name)
+  type: compute.beta.backendBucket
+- name: compute-healthcheck
+  properties:
+    checkIntervalSec: 10
+    httpHealthCheck:
+      port: 80
+      requestPath: /
+    type: HTTP
+  type: compute.v1.healthCheck
+- metadata:
+    dependsOn:
+    - compute-healthcheck
+  name: compute-backendservice-1
+  properties:
+    connectionDraining:
+      drainingTimeoutSec: 300
+    healthChecks:
+    - $(ref.compute-healthcheck.selfLink)
+  type: compute.v1.backendService
+- metadata:
+    dependsOn:
+    - compute-healthcheck
+  name: compute-backendservice-2
+  properties:
+    connectionDraining:
+      drainingTimeoutSec: 300
+    healthChecks:
+    - $(ref.compute-healthcheck.selfLink)
+  type: compute.v1.backendService
+- metadata:
+    dependsOn:
+    - compute-healthcheck
+  name: compute-backendservice-3
+  properties:
+    connectionDraining:
+      drainingTimeoutSec: 300
+    healthChecks:
+    - $(ref.compute-healthcheck.selfLink)
+  type: compute.v1.backendService
+- metadata:
+    dependsOn:
+    - compute-backendservice-1
+    - compute-backendservice-2
+    - compute-backendservice-3
+    - compute-backendbucket
+  name: compute-urlmap
+  properties:
+    defaultService: projects/tjr-dm-test-1/global/backendServices/compute-backendservice-1
+    hostRules:
+    - hosts:
+      - example.com
+      pathMatcher: allpaths
+    pathMatchers:
+    - defaultService: projects/tjr-dm-test-1/global/backendServices/compute-backendservice-2
+      name: allpaths
+      pathRules:
+      - paths:
+        - /home
+        service: projects/tjr-dm-test-1/global/backendServices/compute-backendservice-3
+      - paths:
+        - /foo
+        service: projects/tjr-dm-test-1/global/backendBuckets/compute-backendbucket
+  type: compute.v1.urlMap

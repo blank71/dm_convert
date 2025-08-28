@@ -1,0 +1,31 @@
+resources:
+- name: bigquerydataset
+  properties:
+    access:
+    - role: OWNER
+      userByEmail: thomasrodgers@google.com
+    datasetReference:
+      datasetId: bigquerydataset
+      projectId: tjr-dm-test-1
+    defaultTableExpirationMs: 3600000
+    location: us-west1
+  type: gcp-types/bigquery-v2:datasets
+- accessControl:
+    gcpIamPolicy:
+      bindings:
+      - role: roles/pubsub.publisher
+        members:
+        - "serviceAccount:service-acct1@gs-project-accounts.iam.gserviceaccount.com"
+  metadata:
+    dependsOn:
+    - bigquerydataset
+  name: bigquerytable
+  properties:
+    datasetId: $(ref.bigquerydataset.datasetReference.datasetId)
+    labels:
+      data-source: external
+      schema-type: auto-junk
+    tableReference:
+      projectId: tjr-dm-test-1
+      tableId: bigquerytable
+  type: gcp-types/bigquery-v2:tables

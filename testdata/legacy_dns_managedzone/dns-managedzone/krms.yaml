@@ -1,0 +1,21 @@
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeNetwork
+metadata:
+  name: compute-network
+spec:
+  autoCreateSubnetworks: false
+---
+apiVersion: dns.cnrm.cloud.google.com/v1beta1
+kind: DNSManagedZone
+metadata:
+  labels:
+    label-one: value-one
+  name: dns-managedzone
+spec:
+  description: Example DNS zone
+  dnsName: tjr-dm-test-1-dns.com.
+  privateVisibilityConfig:
+    networks:
+    - networkRef:
+        external: https://www.googleapis.com/compute/v1/projects/tjr-dm-test-1/global/networks/compute-network
+  visibility: private

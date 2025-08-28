@@ -1,0 +1,34 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set resource_name = macros.get_resource_name(resource,properties) -%}
+{%- if 'host' in properties %}
+#tfimport-terraform import google_sql_user.{{ macros.get_name(resource, properties) }}  __project__/{{macros.hydrate_ref(properties.get('instance'))}}/{{properties.get('host')}}/{{ resource_name }}
+{%- else %}
+#tfimport-terraform import google_sql_user.{{ macros.get_name(resource, properties) }}  __project__/{{properties.get('instance')}}/{{ resource_name }}
+{%- endif %}
+resource "google_sql_user" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  name = "{{resource_name}}"
+  {{- macros.fields(properties, {
+    'instance': 'instance',
+    'host': 'host',
+    'password': 'password',
+    'project': 'project',
+    'type': 'type',
+    'passwordPolicy': {
+      'map_name': 'password_policy',
+      'allowedFailedAttempts': 'allowed_failed_attempts',
+      'passwordExpirationDuration': 'password_expiration_duration',
+      'enableFailedAttemptsCheck': 'enable_failed_attempts_check',
+      'enablePasswordVerification': 'enable_password_verification',
+    },
+    'deletionPolicy': 'deletion_policy',
+  }, ' ' * 2) }}
+}
+
+{%- set unconvertible_fields = resource | match_missing_fields([
+  'properties.etag',
+  'properties.sqlserverUserDetails',
+  'properties.dualPasswordType',
+  'properties.passwordPolicy.status',
+]) %}

@@ -1,0 +1,51 @@
+resources:
+- name: pubsub-topic-resource
+  properties:
+    topic: pubsub-topic
+  type: gcp-types/pubsub-v1:projects.topics
+- name: rm-project
+  properties:
+    parent:
+      id: '613349442449'
+      type: folder
+    projectId: rm-project
+    name: Project Sink Project
+  type: gcp-types/cloudresourcemanager-v1:projects
+- metadata:
+    dependsOn:
+    - rm-project
+  name: rm-iammemberbinding
+  properties:
+    member: user:thomasrodgers@google.com
+    role: roles/editor
+    resource: rm-project
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+- metadata:
+    dependsOn:
+    - rm-project
+  name: deploymentmanager-enable-service
+  properties:
+    consumerId: project:rm-project
+    serviceName: logging
+  type: deploymentmanager.v2.virtual.enableService
+- metadata:
+    dependsOn:
+    - rm-project
+  name: deploymentmanager-enable-service-with-postfix
+  properties:
+    consumerId: project:rm-project
+    serviceName: api.googleapis.com
+  type: deploymentmanager.v2.virtual.enableService
+- metadata:
+    dependsOn:
+    - rm-project
+    - deploymentmanager-enable-service
+    - pubsub-topic-resource
+  name: logging-sink
+  properties:
+    name: logging-sink
+    destination: $(ref.pubsub-topic-resource.name)
+    filter: resource.type="bigquery_project" AND logName:"cloudaudit.googleapis.com"
+    parent: projects/rm-project
+    uniqueWriterIdentity: true
+  type: gcp-types/logging-v2:projects.sinks

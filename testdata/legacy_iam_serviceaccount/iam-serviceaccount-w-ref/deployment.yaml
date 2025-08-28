@@ -1,0 +1,15 @@
+resources:
+- name: sample-project
+  properties:
+    name: sample-project
+    parent:
+      id: '123'
+      type: folder
+    projectId: sample-project
+  type: gcp-types/cloudresourcemanager-v1:projects
+- name: iam-serviceaccount
+  properties:
+    accountId: iam-serviceaccount
+    displayName: Example Service Account
+    projectId: $(ref.sample-project.projectId)
+  type: iam.v1.serviceAccount

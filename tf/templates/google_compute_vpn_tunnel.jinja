@@ -1,0 +1,32 @@
+{%- import 'tf_macros.jinja' as macros -%}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set name_value = macros.if_null('name', properties, resource) -%}
+#tfimport-terraform import google_compute_vpn_tunnel.{{ macros.get_name(resource, properties) }} __project__/{{ properties['region'] }}/{{ name_value | replace("\"", "") }}
+resource "google_compute_vpn_tunnel" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.write_labels(properties) }}
+  name = {{ name_value }}
+  {{- macros.fields(properties, {
+    'description': 'description',
+    'region': 'region',
+    'targetVpnGateway': 'target_vpn_gateway',
+    'vpnGateway': 'vpn_gateway',
+    'vpnGatewayInterface': 'vpn_gateway_interface',
+    'peerExternalGateway': 'peer_external_gateway',
+    'peerExternalGatewayInterface': 'peer_external_gateway_interface',
+    'peerGcpGateway': 'peer_gcp_gateway',
+    'router': 'router',
+    'peerIp': 'peer_ip',
+    'sharedSecret': 'shared_secret',
+    'ikeVersion': 'ike_version',
+    'localTrafficSelector': 'local_traffic_selector',
+    'remoteTrafficSelector': 'remote_traffic_selector',
+    'project': 'project',
+  }, ' ' * 2) }}
+
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}
+
+{#-
+  1. [TF] shared_secret_hash is computed field
+#}

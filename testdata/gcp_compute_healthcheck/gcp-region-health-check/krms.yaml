@@ -1,0 +1,66 @@
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeHealthCheck
+metadata:
+  name: compute-healthcheck-tcp
+spec:
+  checkIntervalSec: 10
+  location: us-west1
+  tcpHealthCheck:
+    port: 21
+    portName: tcp
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeHealthCheck
+metadata:
+  name: compute-healthcheck-ssl
+spec:
+  checkIntervalSec: 10
+  location: europe-west2
+  sslHealthCheck:
+    port: 443
+    portName: ssl
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeHealthCheck
+metadata:
+  name: compute-healthcheck-http
+spec:
+  checkIntervalSec: 10
+  httpHealthCheck:
+    port: 80
+    portName: http
+  location: asia-south1
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeHealthCheck
+metadata:
+  name: compute-healthcheck-https
+spec:
+  checkIntervalSec: 10
+  httpsHealthCheck:
+    port: 8080
+    portName: https
+  location: us-central1
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeHealthCheck
+metadata:
+  name: compute-healthcheck-http2
+spec:
+  checkIntervalSec: 10
+  http2HealthCheck:
+    port: 8081
+    portName: http2
+  location: europe-north1
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeHealthCheck
+metadata:
+  name: compute-healthcheck-grcp
+spec:
+  checkIntervalSec: 10
+  grpcHealthCheck:
+    grpcServiceName: hello-world
+    port: 12345
+    portName: grcp
+  location: asia-east1

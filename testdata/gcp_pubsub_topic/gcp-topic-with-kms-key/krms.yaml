@@ -1,0 +1,31 @@
+apiVersion: kms.cnrm.cloud.google.com/v1beta1
+kind: KMSKeyRing
+metadata:
+  name: kms-keyring
+spec:
+  location: us-west1
+---
+apiVersion: kms.cnrm.cloud.google.com/v1beta1
+kind: KMSCryptoKey
+metadata:
+  labels:
+    key-one: value-one
+  name: kms-cryptokey
+spec:
+  keyRingRef:
+    name: kms-keyring
+  purpose: ENCRYPT_DECRYPT
+---
+apiVersion: pubsub.cnrm.cloud.google.com/v1beta1
+kind: PubSubTopic
+metadata:
+  labels:
+    tag: dmv3-hackathon
+  name: pubsub-topic
+spec:
+  kmsKeyRef:
+    name: kms-cryptokey
+  messageStoragePolicy:
+    allowedPersistenceRegions:
+    - us-west1
+  resourceID: pubsub-topic

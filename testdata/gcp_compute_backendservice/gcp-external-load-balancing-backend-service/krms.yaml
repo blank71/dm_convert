@@ -1,0 +1,84 @@
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeNetwork
+metadata:
+  name: compute-network
+spec:
+  autoCreateSubnetworks: false
+  routingMode: GLOBAL
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeSubnetwork
+metadata:
+  name: compute-subnetwork
+spec:
+  ipCidrRange: 10.2.0.0/16
+  networkRef:
+    name: compute-network
+  region: us-west1
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeNetworkEndpointGroup
+metadata:
+  name: compute-networkendpointgroup
+spec:
+  location: us-west1-a
+  networkEndpointType: GCE_VM_IP_PORT
+  networkRef:
+    name: compute-network
+  subnetworkRef:
+    name: compute-subnetwork
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeHealthCheck
+metadata:
+  name: compute-healthcheck
+spec:
+  httpsHealthCheck:
+    port: 443
+    requestPath: /
+  location: global
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeBackendService
+metadata:
+  name: compute-backendservice
+spec:
+  affinityCookieTtlSec: 360
+  backend:
+  - balancingMode: RATE
+    capacityScaler: 1
+    description: A network endpoint group serving this backend with all its available
+      capacity, as calculated by number of simultaneous connections.
+    group:
+      networkEndpointGroupRef:
+        name: compute-networkendpointgroup
+    maxRatePerEndpoint: 10
+    maxUtilization: 0.80000001
+  connectionDrainingTimeoutSec: 60
+  customRequestHeaders:
+  - 'Trailer: custom-trailer'
+  description: External backend service with cookie-based session affinity.
+  healthChecks:
+  - healthCheckRef:
+      name: compute-healthcheck
+  loadBalancingScheme: EXTERNAL
+  location: global
+  logConfig:
+    enable: true
+    sampleRate: 0.5
+  portName: cookie-cloud
+  protocol: HTTPS
+  sessionAffinity: GENERATED_COOKIE
+  timeoutSec: 30
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeInstanceGroup
+metadata:
+  name: compute-instancegroup
+spec:
+  namedPort:
+  - name: compute-instancegroup
+    port: 8444
+  networkRef:
+    name: compute-network
+  zone: us-central1-a

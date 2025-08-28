@@ -1,0 +1,8 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+data "google_project" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.fields(properties, {
+      'projectId': 'project_id',
+    }, ' ' * 2) }}
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}

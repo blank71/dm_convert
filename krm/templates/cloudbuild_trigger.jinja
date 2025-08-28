@@ -1,0 +1,89 @@
+{%- import 'macros.jinja' as macros %}
+apiVersion: cloudbuild.cnrm.cloud.google.com/v1beta1
+kind: CloudBuildTrigger
+metadata:
+{%- set properties = resource.get('properties', {}) %}
+{{- macros.fields(properties, {'labels': 'labels'}) }}
+{%- if 'labels' in properties %}
+  labels: {{ properties['labels'] }}
+{%- endif %}
+{%- if 'name' in properties %}
+  name: {{ properties['name'] | arbitrary_reference }}
+{%- else %}
+  name: {{ resource['name'] | arbitrary_reference }}
+{%- endif %}
+{%- if properties | set_difference(['name', 'labels', 'project']) %}
+{# At least one field of properties was not converted to metadata and will be converted to spec. #}
+spec:
+  {{- macros.fields(properties, {
+    'description': 'description',
+    'disabled': 'disabled',
+    'filename': 'filename',
+    'github': 'github',
+    'ignoredFiles': 'ignoredFiles',
+    'includedFiles': 'includedFiles',
+    'substitutions': 'substitutions',
+    'tags': 'tags',
+  }, ' ' * 2) }}
+  {%- if 'build' in properties %}
+  build:
+    {%- set build = properties['build'] %}
+    {{- macros.fields(build, {
+      'artifacts': 'artifacts',
+      'images': 'images',
+      'options': 'options',
+      'queueTtl': 'queueTtl',
+      'steps': 'step',
+      'substitutions': 'substitutions',
+      'tags': 'tags',
+      'timeout': 'timeout',
+      'logsBucket': 'logsBucketRef',
+    }, ' ' * 4) }}
+    {{- macros.lists(build, {'secrets': {
+        'list_name': 'secret',
+        'secretEnv': 'secretEnv',
+        'kmsKeyName': 'kmsKeyRef',
+    }}, ' ' * 4) }}
+    {%- if 'source' in build %}
+    source:
+      {%- set source = build['source'] %}
+      {%- if 'repoSource' in source %}
+      repoSource:
+        {%- set repo_source = source['repoSource'] %}
+        {{- macros.fields(repo_source, {
+          'branchName': 'branchName',
+          'commitSha': 'commitSha',
+          'dir': 'dir',
+          'invertRegex': 'invertRegex',
+          'projectId': 'projectId',
+          'repoName': 'repoRef',
+          'substitutions': 'substitutions',
+          'tagName': 'tagName',
+        }, ' ' * 8) }}
+      {%- elif 'storageSource' in source %}
+        {%- set storage_source = source['storageSource'] %}
+      storageSource:
+        {{- macros.fields(storage_source, {
+          'generation': 'generation',
+          'object': 'object',
+          'bucket': 'bucketRef',
+        }, ' ' * 8) }}
+      {%- endif %}
+    {%- endif %}
+  {%- endif %}
+  {%- if 'triggerTemplate' in properties %}
+  triggerTemplate:
+    {%- set trigger_template = properties['triggerTemplate'] %}
+    {{- macros.fields(trigger_template, {
+      'branchName': 'branchName',
+      'commitSha': 'commitSha',
+      'dir': 'dir',
+      'invertRegex': 'invertRegex',
+      'projectId': 'projectId',
+      'repoName': 'repoRef',
+      'substitutions': 'substitutions',
+      'tagName': 'tagName',
+    }, ' ' * 4) }}
+  {%- endif %}
+{%- endif %}
+

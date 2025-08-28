@@ -1,0 +1,12 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set resource_name = macros.get_name(resource, properties) %}
+{{- macros.format_iam_policy(resource_name, properties.get('bindings')) }}
+
+resource "google_storage_bucket_iam_policy" "{{ resource_name }}_iam_policy" {
+  {{- macros.write_provider() }}
+  {%- set bucket_value = properties['bucket'] | make_reference -%}
+  bucket = {{ bucket_value }}
+  policy_data = data.google_iam_policy.{{ resource_name }}_iam_policy.policy_data
+}
+#tfimport-terraform import google_storage_bucket_iam_policy.{{ resource_name }}_iam_policy  "b/{{ bucket_value }}"

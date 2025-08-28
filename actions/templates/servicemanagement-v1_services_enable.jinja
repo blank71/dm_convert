@@ -1,0 +1,10 @@
+{%- import 'action_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+- name: {{ resource.get('name') }}
+  type: deploymentmanager.v2.virtual.enableService
+  properties:
+    consumerId: "project:{{ properties.get('consumerId', '').replace('project:', '') }}"
+    serviceName: {{ properties.get('serviceName') }}
+  {{- macros.fields(resource, {
+      'metadata': 'metadata'
+  }, ' ' * 2) -}}

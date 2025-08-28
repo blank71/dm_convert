@@ -1,0 +1,38 @@
+apiVersion: sql.cnrm.cloud.google.com/v1beta1
+kind: SQLInstance
+metadata:
+  name: sqladmin-instance-1
+spec:
+  databaseVersion: MYSQL_5_7
+  region: us-central1
+  settings:
+    backupConfiguration:
+      binaryLogEnabled: true
+      enabled: true
+      pointInTimeRecoveryEnabled: false
+      startTime: '18:00'
+    ipConfiguration:
+      requireSsl: true
+    locationPreference:
+      zone: us-central1-a
+    tier: db-f1-micro
+---
+apiVersion: sql.cnrm.cloud.google.com/v1beta1
+kind: SQLInstance
+metadata:
+  name: sqladmin-instance-2
+spec:
+  databaseVersion: MYSQL_5_7
+  masterInstanceRef:
+    name: sqladmin-instance-1
+  region: us-central1
+  replicaConfiguration:
+    connectRetryInterval: 30
+  settings:
+    backupConfiguration:
+      binaryLogEnabled: false
+    ipConfiguration:
+      requireSsl: true
+    locationPreference:
+      zone: us-central1-b
+    tier: db-f1-micro

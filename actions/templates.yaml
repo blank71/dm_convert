@@ -1,0 +1,10 @@
+# Maps Deployment Manager actions to filenames containing the DM resource type
+# mapping
+gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.setIamPolicy: cloudresourcemanager-v1_virtual_projects_iamMemberBinding
+gcp-types/pubsub-v1:pubsub.projects.subscriptions.create: pubsub-v1_subscriptions
+gcp-types/pubsub-v1:pubsub.projects.topics.create: pubsub-v1_topics
+gcp-types/serviceusage-v1:serviceusage.services.batchEnable: serviceusage-v1_services_batch_enable
+gcp-types/servicemanagement-v1:servicemanagement.services.enable: servicemanagement-v1_services_enable
+gcp-types/storage-v1:storage.buckets.insert: storage-v1_buckets
+gcp-types/storage-v1:virtual.buckets.iamMemberBinding: storage-v1_virtual_buckets_iamMemberBinding
+gcp-types/dns-v1:dns.changes.create: dns-v1_resourceRecordSets

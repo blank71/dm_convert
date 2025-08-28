@@ -1,0 +1,8 @@
+#tfimport-terraform import google_compute_network.network_template  __project__/${var.name}
+resource "google_compute_network" "network_template" {
+  provider = google-beta
+
+  name = "${var.name}"
+  auto_create_subnetworks = "${var.autoCreateSubnetworks}"
+  routing_mode = "${var.routingMode}"
+}

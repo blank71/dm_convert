@@ -1,0 +1,20 @@
+resources:
+- name: dns-managed-zone
+  properties:
+    description: A sample managed zone.
+    dnsName: tjr-dm-test-1-dns.com.
+  type: gcp-types/dns-v1beta2:managedZones
+- metadata:
+    dependsOn:
+    - dns-managed-zone
+  name: dns-record-set
+  properties:
+    managedZone: $(ref.dns-managed-zone.name)
+    name: '*.tjr-dm-test-1-dns.com.'
+    records:
+    - name: 'cname.tjr-dm-test-1-dns.com.'
+      rrdatas:
+      - www.tjr-dm-test-1-dns.com.
+      ttl: 30
+      type: CNAME
+  type: gcp-types/dns-v1beta2:resourceRecordSets

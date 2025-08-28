@@ -1,0 +1,121 @@
+resources:
+- name: template-test-deployment
+  properties:
+    properties:
+      disks:
+      - autoDelete: true
+        boot: true
+        deviceName: boot
+        initializeParams:
+          diskName: test-deployment-disk
+          sourceImage: projects/debian-cloud/global/images/debian-7-wheezy-v20140619
+        mode: READ_WRITE
+        type: PERSISTENT
+      machineType: f1-micro
+      networkInterfaces:
+      - network: global/networks/default
+  type: gcp-types/compute-v1:instanceTemplates
+- name: igm-test-deployment-1
+  properties:
+    baseInstanceName: test-deployment-instance
+    instanceTemplate: $(ref.template-test-deployment.selfLink)
+    size: 1
+    targetSize: 1
+    zone: us-west1-a
+  type: gcp-types/compute-v1:instanceGroupManagers
+  metadata:
+    dependsOn:
+    - template-test-deployment
+- name: autoscaler-test-deployment-1
+  properties:
+    autoscalingPolicy:
+      coolDownPeriodSec: 60
+      cpuUtilization:
+        utilizationTarget: 0.8
+      maxNumReplicas: 3
+      minNumReplicas: 1
+    description: Autoscaler created for cloud config testing purposes
+    target: $(ref.igm-test-deployment-1.selfLink)
+    zone: us-west1-a
+  type: gcp-types/compute-v1:autoscalers
+  metadata:
+    dependsOn:
+    - igm-test-deployment-1
+- name: igm-test-deployment-2
+  properties:
+    baseInstanceName: test-deployment-instance
+    instanceTemplate: $(ref.template-test-deployment.selfLink)
+    size: 1
+    targetSize: 1
+    zone: us-west1-a
+  type: gcp-types/compute-v1:instanceGroupManagers
+  metadata:
+    dependsOn:
+    - template-test-deployment
+- name: autoscaler-test-deployment-2
+  properties:
+    autoscalingPolicy:
+      coolDownPeriodSec: 60
+      cpuUtilization:
+        utilizationTarget: 0.8
+      maxNumReplicas: 3
+      minNumReplicas: 1
+    description: Autoscaler created for cloud config testing purposes
+    target: $(ref.igm-test-deployment-2.selfLink)
+    zone: us-west1-a
+  type: gcp-types/compute-beta:autoscalers
+  metadata:
+    dependsOn:
+    - igm-test-deployment-2
+- name: igm-test-deployment-3
+  properties:
+    baseInstanceName: test-deployment-instance
+    instanceTemplate: $(ref.template-test-deployment.selfLink)
+    size: 1
+    targetSize: 1
+    zone: us-west1-a
+  type: gcp-types/compute-v1:instanceGroupManagers
+  metadata:
+    dependsOn:
+    - template-test-deployment
+- name: autoscaler-test-deployment-3
+  properties:
+    autoscalingPolicy:
+      coolDownPeriodSec: 60
+      cpuUtilization:
+        utilizationTarget: 0.8
+      maxNumReplicas: 3
+      minNumReplicas: 1
+    description: Autoscaler created for cloud config testing purposes
+    target: $(ref.igm-test-deployment-3.selfLink)
+    zone: us-west1-a
+  type: compute.v1.autoscalers
+  metadata:
+    dependsOn:
+    - igm-test-deployment-3
+- name: igm-test-deployment-4
+  properties:
+    baseInstanceName: test-deployment-instance
+    instanceTemplate: $(ref.template-test-deployment.selfLink)
+    size: 1
+    targetSize: 1
+    zone: us-west1-a
+  type: gcp-types/compute-v1:instanceGroupManagers
+  metadata:
+    dependsOn:
+    - template-test-deployment
+- name: autoscaler-test-deployment-4
+  properties:
+    autoscalingPolicy:
+      coolDownPeriodSec: 60
+      cpuUtilization:
+        utilizationTarget: 0.8
+      maxNumReplicas: 3
+      minNumReplicas: 1
+    description: Autoscaler created for cloud config testing purposes
+    target: $(ref.igm-test-deployment-4.selfLink)
+    zone: us-west1-a
+  type: compute.beta.autoscaler
+  metadata:
+    dependsOn:
+    - igm-test-deployment-4

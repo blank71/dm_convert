@@ -1,0 +1,14 @@
+resources:
+- name: compute-nodetemplate
+  properties:
+    description: Node template for sole tenant nodes running in us-central1, with
+      96vCPUs and any amount of memory on any machine type.
+    labels:
+      desired_workload: high-cpu
+      memory_guarantee: 'false'
+    name: compute-nodetemplate
+    nodeTypeFlexibility:
+      cpus: '96'
+      memory: any
+    region: us-central1
+  type: gcp-types/compute-beta:nodeTemplates

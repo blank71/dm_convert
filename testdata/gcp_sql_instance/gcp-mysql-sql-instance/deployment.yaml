@@ -1,0 +1,17 @@
+resources:
+- name: sql-instance
+  properties:
+    databaseVersion: MYSQL_5_7
+    region: us-central1
+    settings:
+      backupConfiguration:
+        binaryLogEnabled: false
+        pointInTimeRecoveryEnabled: false
+        replicationLogArchivingEnabled: false
+      ipConfiguration:
+        ipv4Enabled: true
+      locationPreference:
+        zone: us-central1-a
+      tier: db-f1-micro
+      dataDiskSizeGb: 10
+  type: gcp-types/sqladmin-v1beta4:instances

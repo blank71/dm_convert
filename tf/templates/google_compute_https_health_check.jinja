@@ -1,0 +1,20 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set name_value = macros.if_null('name', properties, resource) -%}
+#tfimport-terraform import google_compute_https_health_check.{{ macros.get_name(resource, properties) }}  {{ macros.import_project(properties['project']) }}/{{ name_value | replace("\"", "") }}
+resource "google_compute_https_health_check" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  name = {{ name_value }}
+  {{- macros.fields(properties, {
+    'description': 'description',
+    'host': 'host',
+    'requestPath': 'request_path',
+    'port': 'port',
+    'checkIntervalSec': 'check_interval_sec',
+    'timeoutSec': 'timeout_sec',
+    'unhealthyThreshold': 'unhealthy_threshold',
+    'healthyThreshold': 'healthy_threshold',
+    'project': 'project',
+  }, ' ' * 2) }}
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}

@@ -1,0 +1,12 @@
+resources:
+- name: spanner-instance
+  properties:
+    instance:
+      config: projects/dm-convert-prow/instanceConfigs/regional-us-west1
+      displayName: ACM Spanner A1
+      labels:
+        created: anthos
+      nodeCount: 1
+    instanceId: spanner-instance
+    parent: projects/dm-convert-prow
+  type: gcp-types/spanner-v1:projects.instances

@@ -1,0 +1,18 @@
+resources:
+- name: test-gcp-project
+  properties:
+    name: test-gcp-project
+    parent:
+      id: '223456789101'
+      type: folder
+    projectId: test-gcp-project-1234
+  type: gcp-types/cloudresourcemanager-v1:projects
+- name: iam-member-001
+  properties:
+    member: serviceAccount:$(ref.test-gcp-project.projectNumber)@cloudservices.gserviceaccount.com
+    resource: $(ref.test-gcp-project.projectId)
+    role: roles/storage.admin
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  metadata:
+    dependsOn:
+    - test-gcp-project

@@ -1,0 +1,14 @@
+resources:
+- name: scheduler-job
+  properties:
+    description: My dummy scheduler job
+    location: us-central1
+    schedule: 0 * * * *
+    timeZone: America/Los_Angeles
+    httpTarget:
+      uri: https://my-service.example.com
+      httpMethod: POST
+      headers:
+        Content-Type: application/json
+      body: base64encode("{\"foo\":\"bar\"}")
+  type: gcp-types/cloudscheduler-v1:projects.locations.jobs

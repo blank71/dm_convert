@@ -1,0 +1,20 @@
+resources:
+- name: compute-network
+  properties:
+    autoCreateSubnetworks: true
+    description: Default network for the project
+  type: gcp-types/compute-v1:networks
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-route
+  properties:
+    description: A sample compute route
+    destRange: 0.0.0.0/0
+    network: $(ref.compute-network.selfLink)
+    nextHopIp: 10.132.0.5
+    priority: 100
+    tags:
+    - tag1
+    - tag2
+  type: gcp-types/compute-v1:routes

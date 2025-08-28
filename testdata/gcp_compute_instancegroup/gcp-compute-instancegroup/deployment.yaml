@@ -1,0 +1,12 @@
+resources:
+- name: compute-instancegroup
+  properties:
+    description: Compute instance group with two specified instances and named http
+      and https ports.
+    namedPorts:
+    - name: http
+      port: 8080
+    - name: https
+      port: 8443
+    zone: us-west1-a
+  type: gcp-types/compute-v1:instanceGroups

@@ -1,0 +1,24 @@
+{%- import 'tf_macros.jinja' as macros -%}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set resource_name = macros.get_name(resource, properties) -%}
+{%- set import_resource = "__project__/" + properties.get('topic',"") -%}
+#tfimport-terraform import google_pubsub_topic.{{ resource_name }}  {{ import_resource }}
+resource "google_pubsub_topic" "{{ resource_name }}" {
+  {{- macros.write_provider() }}
+  {{- macros.write_labels(properties) }}
+  {{- macros.fields(properties, {
+    'topic': 'name',
+    'kmsKeyName': 'kms_key_name',
+    'project': 'project',
+    'messageRetentionDuration': 'message_retention_duration',
+  }, ' ' * 2) }}
+  {{- macros.lists(properties, {
+    'messageStoragePolicy': {
+      'list_name': 'message_storage_policy',
+      'allowedPersistenceRegions': 'allowed_persistence_regions'
+    }
+  }, ' ' * 2, false) }}
+  {{- macros.format_lifecycle_directive(resource) }}
+{{- macros.format_dependencies(resource) | indent(2) }}
+}
+{{- macros.convert_access_control("google_pubsub_topic", resource_name, resource.get('accessControl', {}), import_resource) }}

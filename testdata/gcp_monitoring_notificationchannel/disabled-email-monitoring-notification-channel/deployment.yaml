@@ -1,0 +1,13 @@
+resources:
+- name: monitoring-notificationchannel
+  properties:
+    description: A disabled channel that would send notifications via email if enabled.
+    displayName: monitoring-notificationchannel
+    enabled: false
+    labels:
+      email_address: dev@example.com
+    type: email
+    userLabels:
+      response-priority: longterm
+      target-user: dev
+  type: gcp-types/monitoring-v3:projects.notificationChannels

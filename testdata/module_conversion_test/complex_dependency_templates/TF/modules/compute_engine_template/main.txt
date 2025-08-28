@@ -1,0 +1,38 @@
+module "firewall_1"{
+    network = module.network_1.network_template_ID
+    name = "firewall-1"
+    source = "../firewall_template"
+}
+
+
+module "network_1"{
+    name = "network-1"
+    source = "../network_template"
+}
+
+
+module "vm_1"{
+    machineType = "${var.vm1_machineType}"
+    network = module.network_1.network_template_ID
+    zone = "${var.vm1_zone}"
+    name = "vm-1"
+    source = "../vm_template"
+}
+
+
+module "vm_2"{
+    machineType = "${var.vm2_machineType}"
+    network = module.network_1.network_template_ID
+    zone = "${var.vm2_zone}"
+    name = "vm-2"
+    source = "../vm_template"
+}
+
+
+module "vm_3"{
+    machineType = "${var.vm3_machineType}"
+    network = "${var.network}"
+    zone = "${var.vm3_zone}"
+    name = "vm-3"
+    source = "../vm_template"
+}

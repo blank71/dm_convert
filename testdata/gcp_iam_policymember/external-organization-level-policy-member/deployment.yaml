@@ -1,0 +1,15 @@
+resources:
+- name: iam-serviceaccount
+  properties:
+    accountId: iam-serviceaccount
+    displayName: External Org Iam Service Account
+  type: gcp-types/iam-v1:projects.serviceAccounts
+- metadata:
+    dependsOn:
+    - iam-serviceaccount
+  name: iam-policymember
+  properties:
+    member: serviceAccount:iam-serviceaccount@tjr-dm-test-1.iam.gserviceaccount.com
+    role: roles/storage.admin
+    resource: organizations/128653134652
+  type: gcp-types/cloudresourcemanager-v1:virtual.organizations.iamMemberBinding

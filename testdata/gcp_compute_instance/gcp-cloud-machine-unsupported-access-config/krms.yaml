@@ -1,0 +1,29 @@
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeDisk
+metadata:
+  name: datadisk-dm-custom
+spec:
+  location: us-central1-c
+  size: 10
+  type: pd-standard
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeInstance
+metadata:
+  name: vm-dm-custom
+spec:
+  attachedDisk:
+  - deviceName: datadisk
+    sourceDiskRef:
+      name: datadisk-dm-custom
+  bootDisk:
+    autoDelete: true
+    deviceName: boot
+    initializeParams:
+      sourceImageRef:
+        external: projects/debian-cloud/global/images/family/debian-11
+  machineType: f1-micro
+  networkInterface:
+  - networkRef:
+      external: default
+  zone: us-central1-c

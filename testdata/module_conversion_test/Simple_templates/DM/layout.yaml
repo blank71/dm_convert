@@ -1,0 +1,27 @@
+resources:
+- name: vm-1
+  properties:
+    network: network-1
+  resources:
+  - name: vm-1
+    type: compute.v1.instance
+  type: vm-template.py
+- name: vm-2
+  properties:
+    network: network-1
+  resources:
+  - name: vm-2
+    type: compute.v1.instance
+  type: vm-template.py
+- name: network-1
+  resources:
+  - name: network-1
+    type: compute.v1.network
+  type: network-template.py
+- name: firewall-1
+  properties:
+    network: network-1
+  resources:
+  - name: firewall-1
+    type: compute.v1.firewall
+  type: firewall-template.py

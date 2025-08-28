@@ -1,0 +1,20 @@
+apiVersion: dns.cnrm.cloud.google.com/v1beta1
+kind: DNSManagedZone
+metadata:
+  name: dns-managed-zone
+spec:
+  description: A sample managed zone.
+  dnsName: tjr-dm-test-1-dns.com.
+---
+apiVersion: dns.cnrm.cloud.google.com/v1beta1
+kind: DNSRecordSet
+metadata:
+  name: dns-record-set
+spec:
+  managedZoneRef:
+    name: dns-managed-zone
+  name: cname.tjr-dm-test-1-dns.com.
+  rrdatas:
+  - www.tjr-dm-test-1-dns.com.
+  ttl: 30
+  type: CNAME

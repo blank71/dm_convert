@@ -1,0 +1,7 @@
+resources:
+- name: pubsub-topic-resource
+  properties:
+    labels:
+      label-one: value-one
+    topic: pubsub-topic
+  type: gcp-types/pubsub-v1:projects.topics

@@ -1,0 +1,19 @@
+resources:
+- name: service-management-enable-action
+  action: gcp-types/servicemanagement-v1:servicemanagement.services.enable
+  properties:
+    consumerId: "project:test-project-id"
+    serviceName: cloudbuild.googleapis.com
+  metadata:
+    dependsOn:
+    - test-project
+    runtimePolicy:
+    - CREATE
+- name: test-project
+  type: gcp-types/cloudresourcemanager-v1:projects
+  properties:
+    name: test-project
+    projectId: test-project-id
+    parent:
+      id: '12345678910'
+      type: organization

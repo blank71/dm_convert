@@ -1,0 +1,25 @@
+module "firewall_1"{
+    network = module.network_1.network_template_ID
+    name = "firewall-1"
+    source = "./modules/firewall_template"
+}
+
+
+module "network_1"{
+    name = "network-1"
+    source = "./modules/network_template"
+}
+
+
+module "vm_1"{
+    network = module.network_1.network_template_ID
+    name = "vm-1"
+    source = "./modules/vm_template"
+}
+
+
+module "vm_2"{
+    network = module.network_1.network_template_ID
+    name = "vm-2"
+    source = "./modules/vm_template"
+}

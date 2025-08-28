@@ -1,0 +1,18 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set name_value = macros.if_null('name', properties, resource) -%}
+#tfimport-terraform import google_compute_target_pool.{{ macros.get_name(resource, properties) }} {{ macros.import_project(properties['project']) }}/{{ properties['region'] }}/{{ name_value | replace("\"", "") }}
+resource "google_compute_target_pool" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  name = {{ name_value }}
+  {{- macros.fields(properties, {
+    'description': 'description',
+    'region': 'region',
+    'project': 'project',
+    'healthChecks': 'health_checks',
+    'instances': 'instances',
+    'sessionAffinity': 'session_affinity',
+    'failoverRatio': 'failover_ratio',
+    'backupPool': 'backup_pool'
+  }, ' ' * 2) }}
+}

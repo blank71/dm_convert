@@ -1,0 +1,87 @@
+resources:
+- name: monitoring-instance-uptime-check
+  properties:
+    name: this-is-name-property
+    displayName: test-monitoring-instance-uptime-check
+    combiner: OR
+    enabled: true
+    notificationChannels:
+    - projects/my-project/notificationChannels/123321
+    - projects/my-project/notificationChannels/111111
+    userLabels:
+      foo: bar
+      label1: value1
+    documentation:
+      content: |
+        1. Ensure instance is responding.
+           1. See GCE Instance Connectivity for connectivity instructions.
+              - NOTE: Restart stackdriver monitoring agent if instance is accessible but alert is showing absent uptime metric.
+        1. If no response, restart instance.
+           1. `gcloud --project my-project compute instances reset INSTANCE`
+        1. If unable to diagnosis issue or resolve errors, call customer escalation list
+      mimeType: text/markdown
+    conditions:
+    - conditionThreshold:
+        filter: |
+          metric.type="compute.googleapis.com/instance/uptime" AND
+          metadata.user_labels.autoscaled="false" AND
+          metadata.user_labels.monitored="true" AND
+          resource.type="gce_instance"
+        denominatorFilter: |
+          metric.type="compute.googleapis.com/instance/downtime"
+        comparison: COMPARISON_LT
+        thresholdValue: 1
+        duration: 900s
+        trigger:
+          count: 1
+          percent: 80
+        denominatorAggregations:
+        - alignmentPeriod: 180s
+          perSeriesAligner: ALIGN_NONE
+          crossSeriesReducer: REDUCE_NONE
+          groupByFields:
+          - resource.label.instance_id
+          - resource.label.user_id
+        - alignmentPeriod: 10s
+          perSeriesAligner: ALIGN_DELTA
+          crossSeriesReducer: REDUCE_MEAN
+          groupByFields:
+          - resource.label.a2.instance_id
+          - resource.label.a2.user_id
+        aggregations:
+        - alignmentPeriod: 60s
+          crossSeriesReducer: REDUCE_SUM
+          groupByFields:
+          - resource.label.instance_id
+          perSeriesAligner: ALIGN_RATE
+      displayName: condition-Threshold
+    - conditionAbsent:
+        filter: |
+          resource.type="gce_instance"
+        duration: 900s
+        trigger:
+          count: 100
+          percent: 3
+        aggregations:
+        - alignmentPeriod: 180s
+          perSeriesAligner: ALIGN_NONE
+          crossSeriesReducer: REDUCE_NONE
+          groupByFields:
+          - resource.label.instance_id
+          - resource.label.user_id
+        - alignmentPeriod: 10s
+          perSeriesAligner: ALIGN_RATE
+          crossSeriesReducer: REDUCE_MIN
+          groupByFields:
+          - resource.label.absent1.instance_id
+          - resource.label.absent1.user_id
+      displayName: condition-Absent
+    - conditionMonitoringQueryLanguage:
+        query: |
+          SELECT * FROM tmp WHERE a > b
+        duration: 15s
+        trigger:
+          count: 5
+          percent: 15
+      displayName: condition-Query
+  type: gcp-types/monitoring-v3:projects.alertPolicies

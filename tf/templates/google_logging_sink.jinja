@@ -1,0 +1,23 @@
+{%- set properties = resource.get('properties', {}) %}
+
+{%- if resource['type'] in ('logging.v2.sink') %}
+  {%- set parent = properties['parent'] %}
+
+  {%- if 'folders/' in parent %}
+    {%- extends "google_logging_folder_sink.jinja" %}
+  {%- elif 'organizations/' in parent %}
+    {%- extends "google_logging_organization_sink.jinja" %}
+  {%- else %}
+    {%- extends "google_logging_project_sink.jinja" %}
+  {%- endif %}
+{%- else %}
+  {%- set parent = resource['type'] %}
+
+  {%- if 'logging-v2:folders.sinks' in parent %}
+    {%- extends "google_logging_folder_sink.jinja" %}
+  {%- elif 'logging-v2:organizations.sinks' in parent %}
+    {%- extends "google_logging_organization_sink.jinja" %}
+  {%- else %}
+    {%- extends "google_logging_project_sink.jinja" %}
+  {%- endif %}
+{%- endif -%}

@@ -1,0 +1,25 @@
+apiVersion: storage.cnrm.cloud.google.com/v1beta1
+kind: StorageBucket
+metadata:
+  labels:
+    label-one: value-one
+  name: tjr-dm-test-1-bucket
+spec:
+  cors:
+  - maxAgeSeconds: 3600
+    method:
+    - GET
+    - HEAD
+    - DELETE
+    origin:
+    - http://example.appspot.com
+    responseHeader:
+    - Content-Type
+  lifecycleRule:
+  - action:
+      type: Delete
+    condition:
+      age: 7
+  location: US
+  versioning:
+    enabled: true

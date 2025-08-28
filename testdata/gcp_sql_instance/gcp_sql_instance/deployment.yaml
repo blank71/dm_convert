@@ -1,0 +1,125 @@
+resources:
+- name: sql-instance
+  properties:
+    databaseVersion: MYSQL_5_7
+    project: test-project-id
+    region: us-central1
+    settings:
+      backupConfiguration:
+        binaryLogEnabled: false
+        pointInTimeRecoveryEnabled: false
+        replicationLogArchivingEnabled: false
+      dataDiskSizeGb: 10
+      ipConfiguration:
+        ipv4Enabled: true
+      locationPreference:
+        zone: us-central1-a
+      tier: db-f1-micro
+    state: RUNNABLE
+    rootPassword: abcd
+  type: gcp-types/sqladmin-v1beta4:instances
+- name: sql-instance-1
+  properties:
+    databaseVersion: MYSQL_5_7
+    region: us-central1
+    settings:
+      backupConfiguration:
+        binaryLogEnabled: true
+        enabled: true
+        pointInTimeRecoveryEnabled: false
+        replicationLogArchivingEnabled: false
+        startTime: '18:00'
+      ipConfiguration:
+        ipv4Enabled: true
+      locationPreference:
+        zone: us-central1-b
+      tier: db-f1-micro
+  type: gcp-types/sqladmin-v1beta4:instances
+- metadata:
+    dependsOn:
+    - sql-instance-1
+  name: sql-instance-2
+  properties:
+    databaseVersion: MYSQL_5_7
+    masterInstanceName: sql-instance-1
+    region: us-central1
+    replicaConfiguration:
+      failoverTarget: true
+      caCertificate: abcdefgh
+      clientCertificate: abcdef
+      clientKey: abcd
+      connectRetryInterval: 30
+      dumpFilePath: abc/123
+      masterHeartbeatPeriod: 10
+      password: test-pass
+      sslCipher: abc
+      username: test-user
+      verifyServerCertificate: false
+    settings:
+      backupConfiguration:
+        binaryLogEnabled: false
+      ipConfiguration:
+        ipv4Enabled: true
+      locationPreference:
+        zone: us-central1-c
+      tier: db-f1-micro
+  type: gcp-types/sqladmin-v1beta4:instances
+- name: sql-instance-3
+  properties:
+    databaseVersion: MYSQL_5_7
+    region: us-central1
+    settings:
+      activationPolicy: ALWAYS
+      availabilityType: ZONAL
+      backupConfiguration:
+        backupRetentionSettings:
+          retainedBackups: 5
+          retentionUnit: COUNT
+        binaryLogEnabled: false
+        enabled: true
+        location: us-central1
+        pointInTimeRecoveryEnabled: false
+        replicationLogArchivingEnabled: false
+        startTime: '18:00'
+        transactionLogRetentionDays: 5
+      connectorEnforcement: NOT_REQUIRED
+      dataCacheConfig:
+        dataCacheEnabled: false
+      dataDiskSizeGb: 10
+      dataDiskType: PD_SSD
+      databaseFlags:
+      - name: max_allowed_packet
+        value: 16777216
+      deletionProtectionEnabled: false
+      edition: ENTERPRISE
+      ipConfiguration:
+        allocatedIpRange: IP_RANGE
+        authorizedNetworks:
+        - expirationTime: '2023-11-15T16:19:00.094Z'
+          name: postgres-ha-solution-cidr
+          value: 192.10.10.10/32
+        ipv4Enabled: true
+        privateNetwork: projects/project-id/global/networks/default
+      locationPreference:
+        secondaryZone: us-central1-b
+        zone: us-central1-a
+      maintenanceWindow:
+        day: 7
+        hour: 12
+        updateTrack: stable
+      pricingPlan: PER_USE
+      storageAutoResize: true
+      storageAutoResizeLimit: 10
+      tier: db-f1-micro
+      userLabels:
+        key1: value1
+        key2: value2
+  type: gcp-types/sqladmin-v1beta4:instances
+- name: sql-instance-4
+  properties:
+    databaseVersion: MYSQL_5_7
+    region: us-central1
+    settings:
+      tier: db-f1-micro
+      dataDiskSizeGb: 10
+  type: sqladmin.v1beta4.instance

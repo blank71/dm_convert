@@ -1,0 +1,19 @@
+resources:
+- name: pubsub-topic-resource
+  type: gcp-types/pubsub-v1:projects.topics
+  properties:
+    topic: pubsub-topic
+    labels:
+      sql-instance-name: $(ref.get-sql-instance-action.masterInstanceName)
+- name: get-sql-instance-action
+  action: gcp-types/sqladmin-v1beta4:sql.instances.get
+  properties:
+    project: test-project
+    instance: test-sql-instance
+  metadata:
+    dependsOn:
+    - pubsub-resource-for-testing-depends-on
+- name: pubsub-resource-for-testing-depends-on
+  type: gcp-types/pubsub-v1:projects.topics
+  properties:
+    topic: some-topic

@@ -1,0 +1,7 @@
+resources:
+- name: virtual-iam-member-binding-folder
+  type: gcp-types/cloudresourcemanager-v2:virtual.folders.iamMemberBinding
+  properties:
+    resource: folders/12345
+    member: user:user1@google.com
+    role: roles/artifactregistry.admin

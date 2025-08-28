@@ -1,0 +1,40 @@
+resources:
+- name: compute-healthcheck
+  properties:
+    checkIntervalSec: 10
+    httpHealthCheck:
+      port: 80
+      requestPath: /
+    type: HTTP
+  type: compute.v1.healthCheck
+- metadata:
+    dependsOn:
+    - compute-healthcheck
+  name: compute-backendservice
+  properties:
+    healthChecks:
+    - $(ref.compute-healthcheck.selfLink)
+  type: compute.v1.backendService
+- metadata:
+    dependsOn:
+    - compute-backendservice
+  name: compute-urlmap
+  properties:
+    defaultService: projects/tjr-dm-test-1/global/backendServices/compute-backendservice
+  type: compute.v1.urlMaps
+- metadata:
+    dependsOn:
+    - compute-urlmap
+  name: compute-targethttpproxy
+  properties:
+    description: A sample proxy
+    urlMap: $(ref.compute-urlmap.selfLink)
+  type: compute.v1.targetHttpProxy
+- metadata:
+    dependsOn:
+    - compute-urlmap
+  name: compute-regiontargethttpproxies
+  properties:
+    description: A sample proxy
+    urlMap: $(ref.compute-urlmap.selfLink)
+  type: compute.v1.regionTargetHttpProxies

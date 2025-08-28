@@ -1,0 +1,22 @@
+{%- import 'macros.jinja' as macros %}
+apiVersion: resourcemanager.cnrm.cloud.google.com/v1beta1
+kind: Folder
+metadata:
+{%- set properties = resource.get('properties', {}) %}
+{%- set parent = properties['parent'].split('/') %}
+  annotations:
+{%- if parent[-2] == 'folders' %}
+    cnrm.cloud.google.com/folder-id: '{{ parent[-1] }}'
+{%- else %}
+    cnrm.cloud.google.com/organization-id: '{{ parent[-1] }}'
+{%- endif %}
+{{- macros.fields(properties, {'labels': 'labels'}, ' ' * 2) }}
+{%- if 'name' in resource['properties'] %}
+  name: {{ resource['properties']['name'] }}
+{%- else %}
+  name: {{ resource['name'] }}
+{%- endif %}
+spec:
+{{- macros.fields(properties, {
+  'displayName': 'displayName',
+}, ' ' * 2) }}

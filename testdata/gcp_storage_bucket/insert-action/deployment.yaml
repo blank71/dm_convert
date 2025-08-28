@@ -1,0 +1,42 @@
+resources:
+- name: gcp-storage-bucket-insert-action-test
+  action: gcp-types/storage-v1:storage.buckets.insert
+  properties:
+    name: insert-action-test-actual-bucket-name
+    location: US
+    storageClass: STANDARD
+    billing:
+      requesterPays: true
+    cors:
+    - maxAgeSeconds: 3600
+      method:
+      - GET
+      - HEAD
+      - DELETE
+      origin:
+      - http://example.appspot.com
+      responseHeader:
+      - Content-Type
+    labels:
+      label-one: value-one
+      label-two: value-two
+    lifecycle:
+      rule:
+      - action:
+          type: Delete
+        condition:
+          age: 7
+    retentionPolicy:
+      retentionPeriod: 3600
+    versioning:
+      enabled: true
+  metadata:
+    dependsOn:
+    - pubsub-topic
+    runtimePolicy:
+    - CREATE
+- name: pubsub-topic
+  type: gcp-types/pubsub-v1:projects.topics
+  properties:
+    name: projects/tjr-dm-test-1/topics/pubsub-topic
+    topic: pubsub-topic

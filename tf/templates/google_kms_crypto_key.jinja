@@ -1,0 +1,34 @@
+{%- import 'tf_macros.jinja' as macros -%}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set parent = macros.hydrate_ref(properties['parent']) -%}
+{%- set import_resource = [parent, properties['cryptoKeyId']] | join("/") -%}
+#tfimport-terraform import google_kms_crypto_key.{{ macros.get_name(resource, properties) }} {{ import_resource }}
+resource "google_kms_crypto_key" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.write_labels(properties) }}
+  {{- macros.fields(properties, {
+    'cryptoKeyId': 'name',
+    'purpose': 'purpose',
+    'parent': 'key_ring',
+    'rotationPeriod': 'rotation_period',
+    'skipInitialVersionCreation': 'skip_initial_version_creation',
+    'importOnly': 'import_only',
+    'destroyScheduledDuration': 'destroy_scheduled_duration',
+    'cryptoKeyBackend': 'crypto_key_backend',
+  }, ' ' * 2) }}
+  {%- if 'versionTemplate' in properties %}
+  {{- macros.lists(properties, {
+    'versionTemplate': {
+      'list_name': 'version_template',
+      'algorithm': 'algorithm',
+      'protectionLevel': 'protection_level'
+    }
+  }, ' ' * 2, false) }}
+  {%- endif %}
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}
+{{- macros.convert_access_control("google_kms_crypto_key", macros.get_name(resource, properties), resource.get('accessControl', {}), import_resource) }}
+
+{#-
+1. [DM] nextRotationTime - can't be set in TF config, only automatically set based on rotation_period
+#}

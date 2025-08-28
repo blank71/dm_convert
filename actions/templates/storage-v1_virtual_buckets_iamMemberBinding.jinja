@@ -1,0 +1,13 @@
+{%- import 'action_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set resource_name = resource.get('name') -%}
+- name: {{ resource_name }}
+  type: gcp-types/storage-v1:virtual.buckets.iamMemberBinding
+  properties:
+  {{- macros.fields(properties, {
+      'name': 'name',
+      'bucket': 'bucket',
+      'member': 'member',
+      'role': 'role',
+  }, ' ' * 4) -}}
+  {{- macros.depends_on(resource, ' ' * 2) -}}

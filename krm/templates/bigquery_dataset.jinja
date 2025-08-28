@@ -1,0 +1,47 @@
+{%- import 'macros.jinja' as macros %}
+apiVersion: bigquery.cnrm.cloud.google.com/v1beta1
+kind: BigQueryDataset
+metadata:
+{%- set properties = resource.get('properties', {}) %}
+{{- macros.fields(properties, {'labels': 'labels'}, ' ' * 2) }}
+{%- if 'name' in resource %}
+  name: {{ resource['name'] | arbitrary_reference | replace('_', '-')}}
+{%- endif %}
+{%- if properties | set_intersection(['description', 'friendlyName', 'location', 'access', 'defaultEncryptionConfiguration', 'datasetReference']) %}
+{# At least one field of properties was not converted to metadata and will be converted to spec. #}
+spec:
+  {{- macros.fields(properties, {
+    'description': 'description',
+    'friendlyName': 'friendlyName',
+    'location': 'location',
+    'defaultTableExpirationMs': 'defaultTableExpirationMs',
+  }, ' ' * 2) }}
+  {%- set dataset_reference = properties['datasetReference'] %}
+  {{- macros.fields(dataset_reference, {
+    'datasetId': 'resourceID',
+  }, ' ' * 2) }}
+  {{- macros.lists(properties, {'access': {
+    'list_name': 'access',
+    'domain': 'domain',
+    'groupByEmail': 'groupByEmail',
+    'role': 'role',
+    'specialGroup': 'specialGroup',
+    'userByEmail': 'userByEmail',
+    'view': 'view',
+  }}, ' ' * 2) }}
+  {%- if 'defaultEncryptionConfiguration' in properties %}
+  datasetEncryptionConfiguration:
+    {%- set default_encryption_configuration = properties['defaultEncryptionConfiguration'] %}
+    {{- macros.fields(default_encryption_configuration, {
+      'kmsKeyName': 'kmsKeyRef',
+    }, ' ' * 4) }}
+  {%- endif %}
+{%- endif %}
+{%- set unconvertable = properties | missing_fields((
+  'access.routine',
+  'access.iamMember',
+)) %}
+{%- if unconvertable %}
+# Unconvertable fields found:
+{{ unconvertable | join('\n# ') }}
+{%- endif %}

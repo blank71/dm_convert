@@ -1,0 +1,24 @@
+apiVersion: bigtable.cnrm.cloud.google.com/v1beta1
+kind: BigtableInstance
+metadata:
+  name: bigtable-instance
+spec:
+  cluster:
+  - clusterId: bigtable-cluster-1
+    numNodes: 3
+    zone: us-central1-a
+  - clusterId: bigtable-cluster-2
+    numNodes: 3
+    zone: us-west1-a
+  displayName: BigtableSample
+---
+apiVersion: bigtable.cnrm.cloud.google.com/v1beta1
+kind: BigtableAppProfile
+metadata:
+  name: bigtable-appprofile
+spec:
+  description: Automatically routes requests to the nearest available cluster in an
+    instance.
+  instanceRef:
+    name: bigtable-instance
+  multiClusterRoutingUseAny: true

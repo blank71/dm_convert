@@ -1,0 +1,14 @@
+resources:
+- name: my-cluster
+  type: gcp-types/container-v1:projects.locations.clusters
+  properties:
+    cluster:
+      name: my-cluster
+      location: us-central1
+      nodeCount: 3
+      machineType: n1-standard-1
+      network: global/networks/default
+      subnetwork: regions/us-central1/subnetworks/default
+      nodeConfig:
+        diskSizeGb: 10
+        imageType: projects/debian-cloud/global/images/family/debian-9

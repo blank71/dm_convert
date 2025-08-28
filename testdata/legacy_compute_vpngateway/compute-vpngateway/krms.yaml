@@ -1,0 +1,16 @@
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeNetwork
+metadata:
+  name: compute-network
+spec:
+  autoCreateSubnetworks: false
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeVPNGateway
+metadata:
+  name: compute-vpngateway
+spec:
+  description: Compute VPN Gateway Sample
+  networkRef:
+    external: projects/tjr-dm-test-1/global/networks/compute-network
+  region: us-central1

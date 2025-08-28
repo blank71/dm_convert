@@ -1,0 +1,14 @@
+resources:
+- name: compute-network
+  properties:
+    autoCreateSubnetworks: false
+  type: compute.v1.network
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-vpngateway
+  properties:
+    description: Compute VPN Gateway Sample
+    network: projects/tjr-dm-test-1/global/networks/compute-network
+    region: us-central1
+  type: compute.v1.vpnGateway

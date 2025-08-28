@@ -1,0 +1,16 @@
+module "compute_engine_setup"{
+    network = module.network_2.network_template_ID
+    vm1_machineType = "f1-micro"
+    vm1_zone = "us-central1-f"
+    vm2_machineType = "g1-small"
+    vm2_zone = "us-west1-a"
+    vm3_machineType = "e2-small"
+    vm3_zone = "us-central1-a"
+    source = "./modules/compute_engine_template"
+}
+
+
+module "network_2"{
+    name = "network-2"
+    source = "./modules/network_template"
+}

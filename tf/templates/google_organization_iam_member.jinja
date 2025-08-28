@@ -1,0 +1,16 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- if 'resource' in properties %}
+{%- set org_value = properties['resource'].replace("organizations/", "") -%}
+{%- endif %}
+resource "google_organization_iam_member" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.fields(properties, {
+    'role': 'role',
+    'member': 'member',
+  }, ' ' * 2) }}
+  {%- if org_value %}
+  org_id = "{{ org_value }}"
+  {%- endif %}
+}
+#tfimport-terraform import google_organization_iam_member.{{ macros.get_name(resource, properties) }}  "{{ org_value }} {{ properties['role'] }} {{ properties['member'] }}"

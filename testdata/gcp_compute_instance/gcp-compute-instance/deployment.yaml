@@ -1,0 +1,251 @@
+resources:
+- name: vm-placementpolicy-spread
+  properties:
+    description: test-description
+    groupPlacementPolicy:
+      availabilityDomainCount: 3
+    name: vm-placementpolicy-spread
+    region: us-west1
+  type: gcp-types/compute-v1:resourcePolicies
+- name: compute-disk-1
+  properties:
+    description: a sample encrypted, blank disk
+    physicalBlockSizeBytes: 4096
+    sizeGb: 1
+    type: zones/us-west1-a/diskTypes/pd-ssd
+    zone: us-west1-a
+  type: gcp-types/compute-v1:disks
+- name: compute-disk-2
+  properties:
+    sizeGb: 1
+    type: zones/us-west1-a/diskTypes/pd-ssd
+    zone: us-west1-a
+  type: gcp-types/compute-v1:disks
+- name: compute-network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+  type: gcp-types/compute-v1:networks
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-subnetwork
+  properties:
+    ipCidrRange: 10.2.0.0/16
+    logConfig:
+      enable: false
+    network: $(ref.compute-network.selfLink)
+    region: us-west1
+    secondaryIpRanges:
+    - ipCidrRange: 10.3.16.0/20
+      rangeName: cloudrange
+  type: gcp-types/compute-v1:subnetworks
+- metadata:
+    dependsOn:
+    - compute-disk-1
+    - compute-disk-2
+    - compute-subnetwork
+    - vm-placementpolicy-spread
+  name: compute-instance
+  properties:
+    canIpForward: false
+    disks:
+    - autoDelete: false
+      boot: true
+      initializeParams:
+        diskSizeGb: 24
+        diskType: zones/us-west1-a/diskTypes/pd-ssd
+        sourceImage: projects/debian-cloud/global/images/family/debian-11
+        labels:
+          data-source: external
+          schema-type: auto-junk
+    - deviceName: proxycontroldisk
+      mode: READ_ONLY
+      source: $(ref.compute-disk-1.selfLink)
+    - deviceName: persistentdisk
+      mode: READ_WRITE
+      source: $(ref.compute-disk-2.selfLink)
+    labels:
+      created-from: image
+      network-type: subnetwork
+    metadata:
+      items:
+      - key: foo
+        value: bar
+    resourcePolicies:
+    - $(ref.vm-placementpolicy-spread.selfLink)
+    machineType: zones/us-west1-a/machineTypes/n1-standard-1
+    networkInterfaces:
+    - aliasIpRanges:
+      - ipCidrRange: /24
+        subnetworkRangeName: cloudrange
+      subnetwork: $(ref.compute-subnetwork.selfLink)
+    zone: us-west1-a
+    tags:
+      items:
+      - sap-hanaexpress-public-1-tcp-22
+    scheduling:
+      automaticRestart: false
+      preemptible: true
+      provisioningModel: SPOT
+      instanceTerminationAction: STOP
+    shieldedInstanceConfig:
+      enableSecureBoot: false
+      enableVtpm: true
+      enableIntegrityMonitoring: false
+    displayDevice:
+      enableDisplay: false
+  type: gcp-types/compute-v1:instances
+- name: compute-instance-1
+  properties:
+    disks:
+    - autoDelete: false
+      boot: true
+      initializeParams:
+        diskSizeGb: 24
+        diskType: zones/us-west1-a/diskTypes/pd-ssd
+        sourceImage: projects/debian-cloud/global/images/family/debian-11
+    machineType: zones/us-west1-a/machineTypes/n2-standard-32
+    minCpuPlatform: Intel Cascade Lake
+    networkInterfaces:
+    - aliasIpRanges:
+      - ipCidrRange: /24
+    reservationAffinity:
+      consumeReservationType: SPECIFIC_RESERVATION
+      key: compute.googleapis.com/reservation-name
+      values:
+      - reservation-01
+    zone: us-west1-a
+  type: gcp-types/compute-v1:instances
+- name: compute-instance-2
+  properties:
+    confidentialInstanceConfig:
+      enableConfidentialCompute: true
+    disks:
+    - autoDelete: false
+      boot: true
+      initializeParams:
+        diskSizeGb: 24
+        diskType: zones/us-west1-a/diskTypes/pd-ssd
+        sourceImage: projects/debian-cloud/global/images/family/debian-11
+    machineType: zones/us-west1-a/machineTypes/n2d-standard-2
+    minCpuPlatform: AMD Rome
+    networkInterfaces:
+    - aliasIpRanges:
+      - ipCidrRange: /24
+    scheduling:
+      automaticRestart: true
+      nodeAffinities: []
+      onHostMaintenance: TERMINATE
+      preemptible: false
+    zone: us-west1-a
+  type: gcp-types/compute-v1:instances
+- name: compute-instance-3
+  properties:
+    advancedMachineFeatures:
+      enableNestedVirtualization: true
+      threadsPerCore: 1
+      visibleCoreCount: 1
+    disks:
+    - autoDelete: false
+      boot: true
+      initializeParams:
+        diskSizeGb: 24
+        diskType: zones/us-west1-a/diskTypes/pd-ssd
+        sourceImage: projects/debian-cloud/global/images/family/debian-11
+    machineType: zones/us-west1-a/machineTypes/n2d-standard-2
+    minCpuPlatform: AMD Rome
+    networkInterfaces:
+    - aliasIpRanges:
+      - ipCidrRange: /24
+    zone: us-west1-a
+  type: gcp-types/compute-v1:instances
+- name: compute-instance-4
+  properties:
+    disks:
+    - autoDelete: false
+      boot: true
+      initializeParams:
+        diskSizeGb: 24
+        diskType: zones/us-west1-a/diskTypes/pd-ssd
+        sourceImage: https://www.googleapis.com/compute/beta/projects/debian-cloud/global/images/debian-11-bullseye-v20230629
+    machineType: zones/us-west1-a/machineTypes/n2-standard-32
+    minCpuPlatform: Intel Cascade Lake
+    networkInterfaces:
+    - accessConfigs:
+      - name: external-nat
+        network: https://compute.googleapis.com/compute/v1/projects/my-project/global/networks/default
+        nicType: GVNIC
+        type: ONE_TO_ONE_NAT
+    networkPerformanceConfig:
+      totalEgressBandwidthTier: TIER_1
+    zone: us-west1-a
+  type: gcp-types/compute-v1:instances
+- name: compute-network-1
+  properties:
+    autoCreateSubnetworks: false
+  type: gcp-types/compute-v1:networks
+- metadata:
+    dependsOn:
+    - compute-network-1
+  name: compute-subnetwork-1
+  properties:
+    ipCidrRange: 10.1.0.0/20
+    ipv6AccessType: EXTERNAL
+    network: $(ref.compute-network.selfLink)
+    region: us-west1
+    stackType: IPV4_IPV6
+  type: gcp-types/compute-v1:subnetworks
+- metadata:
+    dependsOn:
+    - compute-subnetwork-1
+    - compute-network-1
+  name: compute-instance-5
+  properties:
+    disks:
+    - autoDelete: false
+      boot: true
+      initializeParams:
+        diskSizeGb: 24
+        diskType: zones/us-west1-a/diskTypes/pd-ssd
+        sourceImage: https://www.googleapis.com/compute/beta/projects/debian-cloud/global/images/debian-11-bullseye-v20230629
+    machineType: zones/us-west1-a/machineTypes/n2-standard-32
+    minCpuPlatform: Intel Cascade Lake
+    networkInterfaces:
+    - accessConfigs:
+      - networkTier: PREMIUM
+      ipv6AccessConfigs:
+      - networkTier: PREMIUM
+        publicPtrDomainName: test.com
+        type: DIRECT_IPV6
+      network: $(ref.compute-network.selfLink)
+      queueCount: 1
+      stackType: IPV4_IPV6
+      subnetwork: $(ref.compute-subnetwork.selfLink)
+    zone: us-west1-a
+  type: gcp-types/compute-v1:instances
+- name: compute-instance-6
+  properties:
+    disks:
+    - autoDelete: true
+      boot: true
+      initializeParams:
+        diskSizeGb: 24
+        diskType: zones/us-west1-a/diskTypes/pd-ssd
+        sourceImage: projects/debian-cloud/global/images/family/debian-11
+    machineType: zones/us-west1-a/machineTypes/n1-standard-1
+    networkInterfaces:
+    - aliasIpRanges:
+      - ipCidrRange: /24
+    scheduling:
+      automaticRestart: true
+      nodeAffinities:
+      - key: color
+        operator: IN
+        values:
+        - blue
+      onHostMaintenance: TERMINATE
+      preemptible: false
+    zone: us-west1-a
+  type: gcp-types/compute-v1:instances

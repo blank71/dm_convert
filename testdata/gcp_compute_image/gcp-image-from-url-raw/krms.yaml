@@ -1,0 +1,13 @@
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeImage
+metadata:
+  labels:
+    image-type: stemcell
+  name: compute-image
+spec:
+  description: A sample image created from URL to a raw TAR disk image
+  family: ubuntu-custom
+  rawDisk:
+    containerType: TAR
+    sha1: 819b7e9c17423f4539f09687eaa13687afa2fe32
+    source: https://storage.googleapis.com/bosh-gce-raw-stemcells/bosh-stemcell-97.98-google-kvm-ubuntu-xenial-go_agent-raw-1557960142.tar.gz

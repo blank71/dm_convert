@@ -1,0 +1,7 @@
+resources:
+- name: iam-serviceaccount
+  properties:
+    accountId: iam-serviceaccount
+    displayName: Example Service Account
+    name: projects/test-project/serviceAccounts/svg-account@test.iam.gserviceaccount.com
+  type: iam.v1.serviceAccount

@@ -1,0 +1,4 @@
+module "some_engine"{
+    some_property = "something"
+    source = "./modules/engine"
+}

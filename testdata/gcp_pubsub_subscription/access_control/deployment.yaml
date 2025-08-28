@@ -1,0 +1,16 @@
+resources:
+- name: pubsub
+  type: gcp-types/pubsub-v1:projects.subscriptions
+  properties:
+    subscription: my-pubsub-subscription
+    topic: my-pubsub-topic
+  accessControl:
+    gcpIamPolicy:
+      bindings:
+      - members:
+        - user:user1@google.com
+        - user:user2@google.com
+        role: roles/pubsub.editor
+      - members:
+        - serviceAccount:test@test.iam.gserviceaccount.com
+        role: roles/pubsub.publisher

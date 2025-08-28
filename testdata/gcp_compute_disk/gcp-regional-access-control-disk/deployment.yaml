@@ -1,0 +1,23 @@
+resources:
+- type: gcp-types/compute-v1:regionDisks
+  name: compute-region-disk-access-control-test
+  properties:
+    machineType: f1-micro
+    sizeGb: 200
+    region: us-west1
+    replicaZones:
+    - zones/us-west1-a
+    - zones/us-west1-b
+    sourceImage: projects/debian-cloud/global/images/family/debian-10
+  accessControl:
+    gcpIamPolicy:
+      bindings:
+      - members:
+        - user:user1@google.com
+        - user:user2@google.com
+        role: roles/compute.storageAdmin
+      - members:
+        - serviceAccount:test@test.iam.gserviceaccount.com
+        role: roles/compute.viewer
+      - members: []
+        role: roles/compute.admin

@@ -1,0 +1,6 @@
+resources:
+- name: resource-type-not-yet-supported
+  properties:
+    description: This is a waiter
+    name: waiter
+  type: gcp-types/runtimeconfig-v1beta1:projects.configs.waiters

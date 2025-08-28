@@ -1,0 +1,147 @@
+resources:
+- name: bigquerydataset
+  properties:
+    access:
+    - role: OWNER
+      userByEmail: thomasrodgers@google.com
+    datasetReference:
+      datasetId: bigquerydataset
+      projectId: tjr-dm-test-1
+    defaultTableExpirationMs: 3600000
+    location: us-west1
+  type: gcp-types/bigquery-v2:datasets
+- metadata:
+    dependsOn:
+    - bigquerydataset
+  name: bigquerytable
+  properties:
+    datasetId: $(ref.bigquerydataset.datasetReference.datasetId)
+    encryptionConfiguration:
+      kmsKeyName: $(ref.kms-crypto-key.name)
+    labels:
+      data-source: external
+      schema-type: auto-junk
+    tableReference:
+      projectId: tjr-dm-test-1
+      tableId: bigquerytable
+    clustering:
+      fields:
+      - time_generated
+    timePartitioning:
+      field: time_generated
+      expirationMs: 100
+    rangePartitioning:
+      field: created_by
+      range:
+        start: 10
+        end: 200
+        interval: 20
+    view:
+      query: SELECT * FROM view
+      useLegacySql: false
+    materializedView:
+      query: SELECT * FROM materializedView
+      enableRefresh: true
+      refreshIntervalMs: 1800000
+    externalDataConfiguration:
+      sourceUris:
+      - "https://docs.google.com/spreadsheets/d/123456789012345"
+      - "https://docs.google.com/spreadsheets/d/abc"
+      sourceFormat: GOOGLE_SHEETS
+      maxBadRecords: 10
+      autodetect: true
+      ignoreUnknownValues: true
+      compression: GZIP
+      schema:
+        fields:
+        - mode: NULLABLE
+          name: name
+          type: STRING
+        - mode: NULLABLE
+          name: date
+          type: DATE
+      csvOptions:
+        fieldDelimiter: ","
+        skipLeadingRows: 123
+        quote: ""
+        allowQuotedNewlines: true
+        allowJaggedRows: true
+        encoding: UTF-8
+      googleSheetsOptions:
+        range: sheet1!A1:B20
+        skipLeadingRows: 100
+      hivePartitioningOptions:
+        mode: CUSTOM
+        sourceUriPrefix: gs://bucket/path_to_table/{dt:DATE}/{country:STRING}/{id:INTEGER}
+        requirePartitionFilter: false
+
+  type: gcp-types/bigquery-v2:tables
+- name: test_deploymentdataset-test
+  properties:
+    datasetReference:
+      datasetId: test_deploymentdataset
+  type: gcp-types/bigquery-v2:datasets
+- metadata:
+    dependsOn:
+    - test_deploymentdataset-test
+  name: test_deploymenttable-test
+  properties:
+    datasetId: $(ref.test_deploymentdataset-test.datasetReference.datasetId)
+    expirationTime: 1700000000000
+    externalDataConfiguration:
+      avroOptions:
+        useAvroLogicalTypes: true
+      schema:
+        fields:
+        - mode: NULLABLE
+          name: name
+          type: STRING
+        - mode: NULLABLE
+          name: date
+          type: DATE
+      sourceFormat: GOOGLE_SHEETS
+      sourceUris:
+      - https://docs.google.com/spreadsheets/d/123456789012345
+      - https://docs.google.com/spreadsheets/d/abc
+    schema:
+      fields:
+      - mode: NULLABLE
+        name: name
+        type: STRING
+      - mode: NULLABLE
+        name: date
+        type: DATE
+    tableReference:
+      tableId: test_deploymenttable
+  type: gcp-types/bigquery-v2:tables
+- name: test_deploymentdataset-test-1
+  properties:
+    datasetReference:
+      datasetId: test_deploymentdataset_1
+  type: gcp-types/bigquery-v2:datasets
+- metadata:
+    dependsOn:
+    - test_deploymentdataset-test-1
+    - kms-crypto-key
+  name: test_deploymenttable-test-1
+  properties:
+    datasetId: $(ref.test_deploymentdataset-test-1.datasetReference.datasetId)
+    encryptionConfiguration:
+      kmsKeyName: $(ref.kms-crypto-key.name)
+    tableReference:
+      tableId: test_deploymenttable-1
+  type: gcp-types/bigquery-v2:tables
+- metadata:
+    dependsOn:
+    - kms-key-ring
+  name: kms-crypto-key
+  properties:
+    cryptoKeyId: kms-crypto-key
+    parent: $(ref.kms-key-ring.name)
+    purpose: ENCRYPT_DECRYPT
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings.cryptoKeys
+- name: kms-key-ring
+  properties:
+    keyRingId: kms-key-ring
+    parent: projects/tjr-dm-test-1/locations/global
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings

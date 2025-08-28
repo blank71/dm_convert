@@ -1,0 +1,46 @@
+{%- import 'tf_macros.jinja' as macros %}
+
+{%- macro write_field_name(dm_field_name, tf_field_name) %}
+  {%- if 'parent' in properties %}
+  {{ tf_field_name }} = "{{ properties['parent'].split('/')[-1] }}"
+  {%- else %}
+  {{- macros.fields(properties, {
+    dm_field_name: tf_field_name,
+  }, ' ' * 2) }}
+  {%- endif %}
+{%- endmacro %}
+
+  {%- block body %}
+  {%- endblock %}
+  {{- macros.fields(properties, {
+    'destination': 'destination',
+    'filter': 'filter',
+    'description': 'description',
+    'disabled': 'disabled',
+    'writerIdentity': 'writer_identity',
+    'includeChildren': 'include_children',
+  }, ' ' * 2) }}
+  {%- if 'sink' in properties %}
+  name = "{{ properties['sink'] }}"
+  {%- elif 'name' in properties%}
+  name = "{{ properties['name'] }}"
+  {%- endif %}
+
+  {{- macros.dict(properties, {
+    'exclusions': {
+      'name': 'name',
+      'description': 'description',
+      'filter': 'filter',
+      'disabled': 'disabled'
+    },
+  }) | indent(2) }}
+
+  {{- macros.dict(properties, {
+    'bigqueryOptions': {
+      'dict_name': 'bigquery_options',
+      'usePartitionedTables': 'use_partitioned_tables'
+    },
+  }) | indent(2) }}
+
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}

@@ -1,0 +1,26 @@
+resources:
+- name: bigtable-instance
+  properties:
+    clusters:
+      bigtable-cluster-1:
+        serveNodes: 3
+        location: projects/tjr-dm-test-1/locations/us-central1-a
+      bigtable-cluster-2:
+        serveNodes: 3
+        location: projects/tjr-dm-test-1/locations/us-west1-a
+    instance:
+      displayName: BigtableSample
+    instanceId: bigtable-instance
+    parent: projects/tjr-dm-test-1
+  type: gcp-types/bigtableadmin-v2:projects.instances
+- metadata:
+    dependsOn:
+    - bigtable-instance
+  name: bigtable-appprofile
+  properties:
+    appProfileId: bigtable-appprofile
+    description: Automatically routes requests to the nearest available cluster in
+      an instance.
+    multiClusterRoutingUseAny: {}
+    parent: $(ref.bigtable-instance.name)
+  type: gcp-types/bigtableadmin-v2:projects.instances.appProfiles

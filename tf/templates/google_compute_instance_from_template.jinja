@@ -1,0 +1,34 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+resource "google_compute_instance_from_template" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.write_labels(properties) }}
+  name = "{{ resource.get('name') }}"
+  {{- macros.fields(properties, {
+    'zone': 'zone',
+    'sourceInstanceTemplate': 'source_instance_template',
+    'tags': 'tags',
+    'serviceAccount': 'service_account',
+    'scratchDisk': 'scratch_disk',
+    'resourcePolicies': 'resource_policies',
+    'project': 'project',
+    'minCpuPlatform': 'min_cpu_platform',
+    'metadataStartupScript': 'metadata_startup_script',
+    'metadata': 'metadata',
+    'machineType': 'machine_type',
+    'hostname': 'hostname',
+    'guestAccelerator': 'guest_accelerator',
+    'enableDisplay': 'enable_display',
+    'desiredStatus': 'desired_status',
+    'description': 'description',
+    'deletionProtection': 'deletion_protection',
+    'canIpForward': 'can_ip_forward',
+    'attachedDisk': 'attached_disk',
+    'allowStoppingForUpdate': 'allow_stopping_for_update',
+  }, ' ' * 2) }}
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}
+
+{#-
+1. [TF] This resource does not support import.
+#}

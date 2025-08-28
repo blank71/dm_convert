@@ -1,0 +1,15 @@
+apiVersion: storage.cnrm.cloud.google.com/v1beta1
+kind: StorageBucket
+metadata:
+  name: tjr-dm-test-1-bucket
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeBackendBucket
+metadata:
+  labels:
+    label-one: value-one
+  name: compute-backendbucket
+spec:
+  bucketRef:
+    name: tjr-dm-test-1-bucket
+  description: contains a reference to a bucket for use with HTTP(S) load-balancing

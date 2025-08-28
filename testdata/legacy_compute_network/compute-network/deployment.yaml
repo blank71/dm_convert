@@ -1,0 +1,9 @@
+resources:
+- name: compute-network
+  properties:
+    autoCreateSubnetworks: true
+    labels:
+      label-one: value-one
+    routingConfig:
+      routingMode: REGIONAL
+  type: compute.v1.network

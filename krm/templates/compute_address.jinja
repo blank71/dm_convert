@@ -1,0 +1,38 @@
+{%- import 'macros.jinja' as macros %}
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeAddress
+metadata:
+{%- set properties = resource.get('properties', {}) %}
+{{- macros.fields(properties, {'labels': 'labels'}, ' ' * 2) }}
+{%- if 'name' in properties %}
+  name: {{ properties['name'] | arbitrary_reference }}
+{%- else %}
+  name: {{ resource['name'] | arbitrary_reference }}
+{%- endif %}
+{%- if properties | set_difference(['labels', 'name', 'project']) %}
+{# At least one field of properties was not converted to metadata and will be converted to spec. #}
+spec:
+  {{- macros.fields(properties, {
+    'address': 'address',
+    'addressType': 'addressType',
+    'description': 'description',
+    'ipVersion': 'ipVersion',
+    'network': 'networkRef',
+    'networkTier': 'networkTier',
+    'prefixLength': 'prefixLength',
+    'purpose': 'purpose',
+    'subnetwork': 'subnetworkRef',
+  }, ' ' * 2) }}
+  {%- if 'region' in properties %}
+  location: {{ properties['region'] | arbitrary_reference }}
+  {%- else %}
+  location: global
+  {%- endif %}
+{%- endif %}
+{%- set unconvertable = properties | missing_fields((
+  'labelFingerprint',
+)) %}
+{%- if unconvertable %}
+# Unconvertable fields found:
+{{ unconvertable | join('\n# ') }}
+{%- endif %}

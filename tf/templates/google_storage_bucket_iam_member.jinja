@@ -1,0 +1,13 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set bucket = macros.hydrate_ref(properties['bucket']) -%}
+#tfimport-terraform import google_storage_bucket_iam_member.{{ macros.get_name(resource, properties) }}  "b/{{ bucket }} {{ properties['role'] }} {{ properties['member'] }}"
+resource "google_storage_bucket_iam_member" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.fields(properties, {
+    'bucket': 'bucket',
+    'role': 'role',
+    'member': 'member',
+  }, ' ' * 2) }}
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}

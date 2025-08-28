@@ -1,0 +1,21 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set resource_name = resource.get('name') -%}
+#tfimport-terraform import google_compute_network.{{ macros.get_name(resource, properties) }}  __project__/{{- resource_name }}
+resource "google_compute_network" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  name = "{{- resource_name }}"
+  {{- macros.fields(properties, {
+    'description': 'description',
+    'autoCreateSubnetworks': 'auto_create_subnetworks',
+    'mtu': 'mtu',
+    'enableUlaInternalIpv6': 'enable_ula_internal_ipv6',
+    'project': 'project',
+    'networkFirewallPolicyEnforcementOrder': 'network_firewall_policy_enforcement_order',
+    'internalIpv6Range': 'internal_ipv6_range',
+    'deleteDefaultRoutesOnCreate': 'delete_default_routes_on_create',
+  }, ' ' * 2) }}
+  {%- if 'routingConfig' in properties %}
+    {{- macros.fields(properties['routingConfig'], {'routingMode': 'routing_mode'}, ' ' * 2) }}
+  {%- endif %}
+}

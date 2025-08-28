@@ -1,0 +1,22 @@
+resources:
+- name: spanner-instance
+  properties:
+    instance:
+      config: projects/dm-convert-prow/instanceConfigs/regional-us-west1
+      displayName: Spanner Database Dependency
+      labels:
+        label-one: value-one
+      nodeCount: 2
+    instanceId: spanner-instance
+    parent: projects/dm-convert-prow
+  type: gcp-types/spanner-v1:projects.instances
+- metadata:
+    dependsOn:
+    - spanner-instance
+  name: spanner-database
+  properties:
+    databaseId: spanner-database
+    extraStatements:
+    - CREATE TABLE t1 (t1 INT64 NOT NULL,) PRIMARY KEY(t1)
+    parent: projects/dm-convert-prow/instances/spanner-instance
+  type: gcp-types/spanner-v1:projects.instances.databases

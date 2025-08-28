@@ -1,0 +1,18 @@
+resources:
+- name: bigquerydataset
+  properties:
+    datasetReference:
+      datasetId: bigquerydataset
+      projectId: tjr-dm-test-1
+    location: us-west1
+  type: gcp-types/bigquery-v2:datasets
+- metadata:
+    dependsOn:
+    - bigquerydataset
+  name: logging-sink
+  properties:
+    destination: $(ref.bigquerydataset.datasetId)
+    filter: resource.type="bigquery_project" AND logName:"cloudaudit.googleapis.com"
+    name: logging-sink
+    parent: folders/613349442449
+  type: gcp-types/logging-v2:folders.sinks

@@ -1,0 +1,28 @@
+apiVersion: storage.cnrm.cloud.google.com/v1beta1
+kind: StorageBucket
+metadata:
+  name: tjr-dm-test-1-bucket
+spec:
+  location: US
+  versioning:
+    enabled: true
+---
+apiVersion: storage.cnrm.cloud.google.com/v1beta1
+kind: StorageBucketAccessControl
+metadata:
+  name: combined-accesscontrols-storage-bucket-access-control
+spec:
+  bucketRef:
+    name: tjr-dm-test-1-bucket
+  entity: allAuthenticatedUsers
+  role: READER
+---
+apiVersion: storage.cnrm.cloud.google.com/v1beta1
+kind: StorageDefaultObjectAccessControl
+metadata:
+  name: combined-accesscontrols-storage-default-object-access-control
+spec:
+  bucketRef:
+    name: tjr-dm-test-1-bucket
+  entity: allAuthenticatedUsers
+  role: READER

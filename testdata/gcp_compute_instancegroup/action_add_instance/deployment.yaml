@@ -1,0 +1,73 @@
+resources:
+- name: compute-disk-1
+  properties:
+    description: a sample encrypted, blank disk
+    diskEncryptionKey:
+      rawKey: SGVsbG8gZnJvbSBHb29nbGUgAAxvdWQgUGxhdGZvcm0=
+    physicalBlockSizeBytes: 4096
+    sizeGb: 1
+    type: zones/us-west1-a/diskTypes/pd-ssd
+    zone: us-west1-a
+  type: gcp-types/compute-v1:disks
+- name: compute-disk-2
+  properties:
+    description: a sample encrypted, blank disk-2
+    diskEncryptionKey:
+      rawKey: SGVsbG8gZnJvbSBHb29nbGUgAAxvdWQgUGxhdGZ1110=
+    physicalBlockSizeBytes: 4096
+    sizeGb: 1
+    type: zones/us-west1-a/diskTypes/pd-ssd
+    zone: us-west1-a
+  type: gcp-types/compute-v1:disks
+- metadata:
+    dependsOn:
+    - compute-disk-1
+  name: vm-1
+  type: compute.v1.instance
+  properties:
+    zone: us-central1-a
+    machineType: zones/us-central1-a/machineTypes/n1-standard-1
+    disks:
+    - deviceName: boot
+      boot: true
+      diskEncryptionKey:
+        rawKey: SGVsbG8gZnJvbSBHb29nbGUgAAxvdWQgUGxhdGZvcm0=
+      mode: READ_ONLY
+      source: $(ref.compute-disk-1.selfLink)
+    networkInterfaces:
+    - network: global/networks/default
+- metadata:
+    dependsOn:
+    - compute-disk-2
+  name: vm-2
+  type: compute.v1.instance
+  properties:
+    zone: us-central1-a
+    machineType: zones/us-central1-a/machineTypes/n1-standard-1
+    disks:
+    - deviceName: boot
+      boot: true
+      diskEncryptionKey:
+        rawKey: SGVsbG8gZnJvbSBHb29nbGUgAAxvdWQgUGxhdGZ1110=
+      mode: READ_ONLY
+      source: $(ref.compute-disk-2.selfLink)
+    networkInterfaces:
+    - network: global/networks/default
+- metadata:
+    dependsOn:
+    - compute-disk-1
+    - compute-disk-2
+    - vm-1
+    - vm-2
+  name: instancegroup
+  properties:
+    zone: us-central1-f
+  type: compute.v1.instanceGroup
+- action: gcp-types/compute-v1:compute.instanceGroups.addInstances
+  name: action-addinstances
+  properties:
+    instanceGroup: instancegroup
+    instances:
+    - instance: $(ref.vm-1.selfLink)
+    - instance: $(ref.vm-2.selfLink)
+    zone: us-central1-f

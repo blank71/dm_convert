@@ -1,0 +1,98 @@
+resources:
+- name: compute-disk
+  properties:
+    description: a sample encrypted, blank disk
+    physicalBlockSizeBytes: 4096
+    sizeGb: 1
+    type: zones/us-west1-c/diskTypes/pd-ssd
+    zone: us-west1-c
+  type: gcp-types/compute-v1:disks
+- metadata:
+    dependsOn:
+    - compute-disk
+  name: compute-image
+  properties:
+    description: A sample image created from an empty disk resource
+    sourceDisk: $(ref.compute-disk.selfLink)
+  type: gcp-types/compute-v1:images
+- name: compute-network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+  type: gcp-types/compute-v1:networks
+- metadata:
+    dependsOn:
+    - compute-network
+  name: compute-subnetwork
+  properties:
+    description: a sample subnetwork
+    ipCidrRange: 10.2.0.0/16
+    logConfig:
+      aggregationInterval: INTERVAL_10_MIN
+      enable: true
+      filterExpr: 'true'
+      flowSampling: 0.5
+      metadata: INCLUDE_ALL_METADATA
+    network: $(ref.compute-network.selfLink)
+    privateIpGoogleAccess: false
+    region: us-west1
+  type: gcp-types/compute-v1:subnetworks
+- metadata:
+    dependsOn:
+    - compute-disk
+    - compute-image
+    - compute-network
+    - compute-subnetwork
+  name: compute-instancetemplate
+  properties:
+    description: a sample instance template
+    properties:
+      description: a sample instance created from the sample instance template
+      disks:
+      - autoDelete: false
+        boot: true
+        interface: SCSI
+        source: $(ref.compute-disk.name)
+      - autoDelete: true
+        deviceName: attachment
+        initializeParams:
+          diskName: sample-attached-disk
+          diskSizeGb: 10
+          diskType: pd-ssd
+          sourceImage: $(ref.compute-image.selfLink)
+        interface: SCSI
+        type: PERSISTENT
+      guestAccelerators:
+      - acceleratorCount: 1
+        acceleratorType: nvidia-tesla-k80
+      labels:
+        env: dev
+      machineType: n1-standard-1
+      minCpuPlatform: Intel Skylake
+      networkInterfaces:
+      - aliasIpRanges:
+        - ipCidrRange: /16
+          subnetworkRangeName: sub-range
+        network: $(ref.compute-network.selfLink)
+        networkIP: 10.2.0.1
+        subnetwork: $(ref.compute-subnetwork.selfLink)
+      scheduling:
+        automaticRestart: true
+        onHostMaintenance: MIGRATE
+        preemptible: false
+      serviceAccounts:
+      - email: cnrm-system@tjr-dm-test-1.iam.gserviceaccount.com
+        scopes:
+        - https://www.googleapis.com/auth/compute.readonly
+        - https://www.googleapis.com/auth/devstorage.read_only
+        - https://www.googleapis.com/auth/userinfo.email
+      shieldedInstanceConfig:
+        enableIntegrityMonitoring: true
+        enableSecureBoot: false
+        enableVtpm: true
+      tags:
+        items:
+        - foo
+        - bar
+  type: gcp-types/compute-v1:instanceTemplates

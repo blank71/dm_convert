@@ -1,0 +1,61 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set resource_name = resource.get('name') -%}
+{%- set import_resource = [macros.import_project(properties['project']), properties['zone'], resource_name] | join("/") -%}
+#tfimport-terraform import google_compute_disk.{{ macros.get_name(resource, properties) }}  {{ import_resource }}
+resource "google_compute_disk" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  name = "{{ resource_name }}"
+  {{- macros.fields(properties, {
+    'description': 'description',
+    'sizeGb': 'size',
+    'zone': 'zone',
+    'sourceImage': 'image',
+    'sourceSnapshot': 'snapshot',
+    'physicalBlockSizeBytes': 'physical_block_size_bytes',
+    'project': 'project',
+    'diskEncryptionKey': {
+      'map_name': 'disk_encryption_key',
+      'kmsKeyServiceAccount': 'kms_key_service_account',
+      'kmsKeyName': 'kms_key_self_link',
+      'rawKey': 'raw_key',
+    },
+    'sourceSnapshotEncryptionKey': {
+      'map_name': 'source_snapshot_encryption_key',
+      'kmsKeyServiceAccount': 'kms_key_service_account',
+      'kmsKeyName': 'kms_key_self_link',
+      'rawKey': 'raw_key',
+    },
+    'sourceImageEncryptionKey': {
+      'map_name': 'source_image_encryption_key',
+      'kmsKeyServiceAccount': 'kms_key_service_account',
+      'kmsKeyName': 'kms_key_self_link',
+      'rawKey': 'raw_key',
+    },
+    'storagePool': 'storage_pool',
+    'sourceDisk': 'source_disk',
+    'snapshot': 'snapshot',
+    'size': 'size',
+    'provisionedThroughput': 'provisioned_throughput',
+    'provisionedIops': 'provisioned_iops',
+    'licenses': 'licenses',
+    'image': 'image',
+    'enableConfidentialCompute': 'enable_confidential_compute',
+    'accessMode': 'access_mode',
+  }, ' ' * 2) }}
+  {%- if 'type' in properties %}
+  {%- if '/' in properties['type'] %}
+  {%- set segments = properties['type'].split('/') %}
+  type = "{{ segments[-1] }}"
+  {%- else %}
+  {{- macros.fields(properties, {'type': 'type'}, ' ' * 2) }}
+  {%- endif %}
+  {%- endif %}
+  {{- macros.write_labels(properties, indent_width=2) }}
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}
+{{- macros.convert_access_control("google_compute_disk", macros.get_name(resource, properties), resource.get('accessControl', {}), import_resource) }}
+
+{#-
+1. logic for type property is temporary until TF team fixes bug - b/200292248, https://github.com/hashicorp/terraform-provider-google/issues/10428
+#}

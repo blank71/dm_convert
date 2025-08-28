@@ -1,0 +1,38 @@
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeNetwork
+metadata:
+  name: fake-network
+spec:
+  autoCreateSubnetworks: false
+  routingMode: REGIONAL
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeSubnetwork
+metadata:
+  name: compute-subnetwork-access-control-test
+spec:
+  description: Test subnet
+  ipCidrRange: 192.168.0.0/24
+  networkRef:
+    name: fake-network
+  region: us-west1
+---
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMPolicy
+metadata:
+  name: iam-policy-for-compute-subnetwork-access-control-test
+spec:
+  bindings:
+  - members:
+    - user:user1@google.com
+    - user:user2@google.com
+    role: roles/compute.instanceAdminV1
+  - members:
+    - serviceAccount:test@test.iam.gserviceaccount.com
+    role: roles/compute.networkViewer
+  - members: []
+    role: roles/compute.admin
+  resourceRef:
+    apiVersion: compute.cnrm.cloud.google.com/v1beta1
+    kind: ComputeSubnetwork
+    name: compute-subnetwork-access-control-test

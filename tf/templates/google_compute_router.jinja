@@ -1,0 +1,146 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set compute_router_resource_name = macros.get_name(resource, properties) -%}
+{%- set name_value = macros.if_null('name', properties, resource) -%}
+#tfimport-terraform import google_compute_router.{{ compute_router_resource_name }}  {{ macros.import_project(properties['project']) }}/{{ properties['region'] }}/{{ name_value | replace("\"", "")}}
+resource "google_compute_router" "{{ compute_router_resource_name }}" {
+  {{- macros.write_provider() }}
+  name = {{ name_value }}
+  {{- macros.fields(properties, {
+    'description': 'description',
+    'network': 'network',
+    'region': 'region',
+    'project': 'project',
+    'encryptedInterconnectRouter': 'encrypted_interconnect_router',
+  }, ' ' * 2) }}
+
+  {%- if 'bgp' in properties %}
+  bgp {
+    {%- set bgp = properties['bgp']%}
+    {{- macros.fields(bgp, {
+      'asn': 'asn',
+      'advertiseMode': 'advertise_mode',
+      'advertisedGroups': 'advertised_groups'
+    }, ' ' * 4) }}
+    {{- macros.unroll_dict(bgp.get('advertisedIpRanges'), 'advertised_ip_ranges', {
+      'range': 'range',
+      'description': 'description'
+    }) | indent(2) }}
+  }
+  {%- endif %}
+
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}
+
+{%- if 'interfaces' in properties %}
+{%- for interface in properties['interfaces'] %}
+resource "google_compute_router_interface" "{{ macros.get_name(interface, none) }}" {
+  {{- macros.fields(interface, {
+    'name': 'name',
+    'ipRange': 'ip_range',
+    'linkedVpnTunnel': 'vpn_tunnel',
+    'linkedInterconnectAttachment': 'interconnect_attachment'
+  }, ' ' * 2) }}
+
+  router = google_compute_router.{{ compute_router_resource_name }}.name
+
+  {{- macros.fields(properties, {
+    'region': 'region',
+    'project': 'project',
+  }, ' ' * 2) }}
+
+  depends_on = [
+    google_compute_router.{{ compute_router_resource_name }}
+  ]
+}
+{%- endfor %}
+{%- endif %}
+
+{%- if 'bgpPeers' in properties %}
+{%- for peer in properties['bgpPeers'] %}
+{%- if peer.get('enable') %}
+resource "google_compute_router_peer" "{{ macros.get_name(peer, none) }}" {
+  {{- macros.fields(peer, {
+    'name': 'name',
+    'interfaceName': 'interface',
+    'peerIpAddress': 'peer_ip_address',
+    'peerAsn': 'peer_asn',
+    'advertisedRoutePriority': 'advertised_route_priority',
+    'advertiseMode': 'advertise_mode',
+    'advertisedGroups': 'advertised_groups',
+  }, ' ' * 2) }}
+
+  {{- macros.unroll_dict(peer.get('advertisedIpRanges'), 'advertised_ip_ranges', {
+    'range': 'range',
+    'description': 'description'
+  }) | indent(4) }}
+
+  router = google_compute_router.{{ compute_router_resource_name }}.name
+
+  {{- macros.fields(properties, {
+    'region': 'region',
+    'project': 'project',
+  }, ' ' * 2) }}
+
+  depends_on = [
+    google_compute_router.{{ compute_router_resource_name }}
+  ]
+}
+{%- endif %}
+{%- endfor %}
+{%- endif %}
+
+{%- if 'nats' in properties %}
+{%- for nat in properties['nats'] %}
+resource "google_compute_router_nat" "{{ macros.get_name(nat, none) }}" {
+  {{- macros.fields(nat, {
+    'name': 'name',
+    'sourceSubnetworkIpRangesToNat': 'source_subnetwork_ip_ranges_to_nat',
+    'natIps': 'nat_ips',
+    'drainNatIps': 'drain_nat_ips',
+    'natIpAllocateOption': 'nat_ip_allocate_option',
+    'minPortsPerVm': 'min_ports_per_vm',
+    'udpIdleTimeoutSec': 'udp_idle_timeout_sec',
+    'icmpIdleTimeoutSec': 'icmp_idle_timeout_sec',
+    'tcpEstablishedIdleTimeoutSec': 'tcp_established_idle_timeout_sec',
+    'tcpTransitoryIdleTimeoutSec': 'tcp_transitory_idle_timeout_sec',
+    'enableEndpointIndependentMapping': 'enable_endpoint_independent_mapping',
+  }, ' ' * 2) }}
+
+  {{- macros.dict(nat, {
+    'logConfig': {
+      'dict_name': 'log_config',
+      'enable': 'enable',
+      'filter': 'filter'
+    }
+  }) | indent(2) }}
+
+  {{- macros.unroll_dict(nat.get('subnetworks'), 'subnetwork', {
+      'name': 'name',
+      'sourceIpRangesToNat': 'source_ip_ranges_to_nat',
+      'secondaryIpRangeNames': 'secondary_ip_range_names',
+  }) }}
+
+  {{- macros.unroll_dict(nat.get('advertisedIpRanges'), 'advertised_ip_ranges', {
+    'range': 'range',
+    'description': 'description'
+  }) | indent(4) }}
+
+  router = google_compute_router.{{ compute_router_resource_name }}.name
+
+  {{- macros.fields(properties, {
+    'region': 'region',
+    'project': 'project',
+  }, ' ' * 2) }}
+
+  depends_on = [
+    google_compute_router.{{ compute_router_resource_name }}
+  ]
+}
+{%- endfor %}
+{%- endif %}
+
+{#-
+1. [DM] bgp.keepaliveInterval no such field in TF
+2. [TF] encrypted_interconnect_router in beta only
+#}

@@ -1,0 +1,15 @@
+resources:
+- name: bigquerydataset
+  properties:
+    access:
+    - role: OWNER
+      specialGroup: projectOwners
+    - role: OWNER
+      specialGroup: projectWriters
+    datasetReference:
+      datasetId: bigquerydataset
+      projectId: tjr-dm-test-1
+    defaultTableExpirationMs: 3600000
+    description: That's a bug
+    location: us-west1
+  type: gcp-types/bigquery-v2:datasets

@@ -1,0 +1,22 @@
+apiVersion: dns.cnrm.cloud.google.com/v1beta1
+kind: DNSManagedZone
+metadata:
+  name: dns-managed-zone
+spec:
+  description: A sample managed zone.
+  dnsName: secure.tjr-dm-test-1-dns.com.
+  dnssecConfig:
+    state: 'on'
+---
+apiVersion: dns.cnrm.cloud.google.com/v1beta1
+kind: DNSRecordSet
+metadata:
+  name: dns-record-set
+spec:
+  managedZoneRef:
+    name: dns-managed-zone
+  name: host.secure.tjr-dm-test-1-dns.com.
+  rrdatas:
+  - 2 1 123456789abcdef67890123456789abcdef67890
+  ttl: 300
+  type: SSHFP

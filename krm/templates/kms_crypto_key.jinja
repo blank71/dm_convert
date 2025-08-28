@@ -1,0 +1,29 @@
+{%- import 'macros.jinja' as macros %}
+apiVersion: kms.cnrm.cloud.google.com/v1beta1
+kind: KMSCryptoKey
+metadata:
+{%- set properties = resource.get('properties', {}) %}
+{%- if 'project' in properties %}
+  annotations:
+    cnrm.cloud.google.com/project-id: {{ properties['project'] | arbitrary_reference }}
+{%- endif %}
+{{- macros.fields(properties, {'labels': 'labels'}, ' ' * 2) }}
+{%- if 'cryptoKeyId' in properties %}
+  name: {{ properties['cryptoKeyId'] }}
+{%- else %}
+  name: {{ resource['name'] }}
+{%- endif %}
+spec:
+{{- macros.fields(properties, {
+  'parent': 'keyRingRef',
+  'purpose': 'purpose',
+  'versionTemplate': 'versionTemplate',
+}, ' ' * 2) }}
+{%- set unconvertable = properties | missing_fields((
+  'nextRotationTime',
+  'location',
+)) %}
+{%- if unconvertable %}
+# Unconvertable fields found:
+{{ unconvertable | join('\n# ') }}
+{%- endif %}

@@ -1,0 +1,13 @@
+resources:
+- name: monitoring-notificationchannel
+  properties:
+    description: A channel that sends notifications via Short Message Service (SMS).
+    displayName: monitoring-notificationchannel
+    enabled: true
+    labels:
+      number: '12025550196'
+    type: sms
+    userLabels:
+      response-priority: intervention
+      target-user: on-call
+  type: gcp-types/monitoring-v3:projects.notificationChannels

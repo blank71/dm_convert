@@ -1,0 +1,91 @@
+apiVersion: dns.cnrm.cloud.google.com/v1beta1
+kind: DNSManagedZone
+metadata:
+  name: dns-managed-zone
+spec:
+  description: A sample managed zone.
+  dnsName: tjr-dm-test-1-dns.com.
+---
+apiVersion: dns.cnrm.cloud.google.com/v1beta1
+kind: DNSRecordSet
+metadata:
+  name: dns-record-set-1
+spec:
+  managedZoneRef:
+    name: dns-managed-zone
+  name: cname.tjr-dm-test-1-dns.com.
+  rrdatas:
+  - www.tjr-dm-test-1-dns.com.
+  ttl: 300
+  type: CNAME
+---
+apiVersion: dns.cnrm.cloud.google.com/v1beta1
+kind: DNSRecordSet
+metadata:
+  name: dns-record-set-2
+spec:
+  managedZoneRef:
+    name: dns-managed-zone
+  name: www.tjr-dm-test-1-dns.com.
+  rrdatas:
+  - '8888:8888:8888:8888::'
+  ttl: 300
+  type: AAAA
+---
+apiVersion: dns.cnrm.cloud.google.com/v1beta1
+kind: DNSRecordSet
+metadata:
+  name: dns-record-set-3
+spec:
+  managedZoneRef:
+    name: dns-managed-zone
+  name: mail.tjr-dm-test-1-dns.com.
+  rrdatas:
+  - 5 gmr-stmp-in.l.google.com.
+  - 10 alt1.gmr-stmp-in.l.google.com.
+  - 10 alt2.gmr-stmp-in.l.google.com.
+  - 10 alt3.gmr-stmp-in.l.google.com.
+  - 10 alt4.gmr-stmp-in.l.google.com.
+  ttl: 300
+  type: MX
+---
+apiVersion: dns.cnrm.cloud.google.com/v1beta1
+kind: DNSRecordSet
+metadata:
+  name: dns-record-set-4
+spec:
+  managedZoneRef:
+    name: dns-managed-zone
+  name: www.tjr-dm-test-1-dns.com.
+  rrdatas:
+  - 8.8.8.8
+  ttl: 300
+  type: A
+---
+apiVersion: dns.cnrm.cloud.google.com/v1beta1
+kind: DNSRecordSet
+metadata:
+  name: dns-record-set-5
+spec:
+  managedZoneRef:
+    name: dns-managed-zone
+  name: tjr-dm-test-1-dns.com.
+  rrdatas:
+  - '"This is a sample DNS text record string"'
+  - Text records are normally split on spaces
+  - To prevent this, "quote your text like this"
+  ttl: 300
+  type: TXT
+---
+apiVersion: dns.cnrm.cloud.google.com/v1beta1
+kind: DNSRecordSet
+metadata:
+  name: dns-record-set-6
+spec:
+  managedZoneRef:
+    name: dns-managed-zone
+  name: tjr-dm-test-1-dns.tcp.tjr-dm-test-1-dns.com.
+  rrdatas:
+  - 0 0 9 tcpserver.cnrm-dns-tjr-dm-test-1-dns.com.
+  ttl: 300
+  type: SRV

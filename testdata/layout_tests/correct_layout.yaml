@@ -1,0 +1,34 @@
+resources:
+- name: foo
+  properties:
+    machineType: foomachine
+    zone: foozone
+  resources:
+  - name: abc
+    resources:
+    - name: abc_leaf
+      type: leaf_type
+    type: abc_template.py
+  - name: xyz
+    type: xyz_type
+  - name: tree
+    resources:
+    - name: branch
+      type: branch_type
+    type: tree_template.py
+  type: foo_template.py
+- name: bar
+  properties:
+    machineType: barmachine
+    zone: barzone
+  resources:
+  - name: def
+    type: def_type
+  type: bar_template.py
+- name: baz
+  resources:
+  - name: cat
+    type: cat_type
+  type: baz_template.py
+- name: qux
+  type: qux_type

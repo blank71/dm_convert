@@ -1,0 +1,46 @@
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeNetwork
+metadata:
+  name: compute-network
+spec:
+  autoCreateSubnetworks: false
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeSubnetwork
+metadata:
+  name: compute-subnetwork
+spec:
+  ipCidrRange: 10.2.0.0/16
+  networkRef:
+    name: compute-network
+  region: us-west1
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeInstance
+metadata:
+  name: compute-instance
+spec:
+  bootDisk:
+    autoDelete: false
+    initializeParams:
+      sourceImageRef:
+        external: projects/debian-cloud/global/images/family/debian-11
+  canIpForward: false
+  machineType: n1-standard-1
+  networkInterface:
+  - networkRef:
+      name: compute-network
+    subnetworkRef:
+      name: compute-subnetwork
+  zone: us-west1-a
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeTargetInstance
+metadata:
+  name: compute-targetinstance
+spec:
+  description: Target instance, containing a VM instance which will have no NAT applied
+    to it and can be used for protocol forwarding.
+  instanceRef:
+    name: compute-instance
+  zone: us-west1-a

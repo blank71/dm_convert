@@ -1,0 +1,19 @@
+resources:
+- name: pubsub-topic
+  properties:
+    topic: pubsub-topic
+  type: pubsub.v1.topic
+- metadata:
+    dependsOn:
+    - pubsub-topic
+  name: pubsub-subscription
+  properties:
+    ackDeadlineSeconds: 15
+    filter: attributes.domain = "com"
+    labels:
+      label-one: value-one
+    messageRetentionDuration: 86400s
+    retainAckedMessages: false
+    subscription: pubsub-subscription
+    topic: $(ref.pubsub-topic.name)
+  type: pubsub.v1.subscription

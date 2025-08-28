@@ -1,0 +1,19 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+resource "google_storage_notification" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  {{- macros.fields(properties, {
+    'bucket': 'bucket',
+    'topic': 'topic',
+    'event_types': 'event_types',
+    'payload_format': 'payload_format',
+    'object_name_prefix': 'object_name_prefix',
+    'custom_attributes': 'custom_attributes'
+  }, ' ' * 2) }}
+
+  {{- macros.format_dependencies(resource) | indent(2) }}
+}
+
+{#-
+1. [TF] terraform import requires notification_id attribute which is generated only on creation.
+#}

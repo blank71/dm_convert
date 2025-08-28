@@ -1,0 +1,38 @@
+resources:
+- name: autoscaler-sample
+  properties:
+    autoscalingPolicy:
+      cpuUtilization:
+        utilizationTarget: 0.6
+      maxNumReplicas: 10
+      minNumReplicas: 3
+    region: us-central1
+    target: ref_to_app
+  type: compute.v1.regionAutoscalers
+- name: instance-template
+  properties:
+    properties:
+      disks:
+      - autoDelete: true
+        boot: true
+        deviceName: boot
+        initializeParams:
+          diskName: disk
+          sourceImage: projects/debian-cloud/global/images/debian-7-wheezy-v20140619
+        mode: READ_WRITE
+        type: PERSISTENT
+      machineType: f1-micro
+      networkInterfaces:
+      - network: global/networks/default
+  type: compute.v1.instanceTemplates
+- metadata:
+    dependsOn:
+    - instance-template
+  name: region-instance-group-managers
+  properties:
+    baseInstanceName: base-instance
+    instanceTemplate: $(ref.instance-template.selfLink)
+    region: us-west1
+    size: 1
+    targetSize: 1
+  type: compute.v1.regionInstanceGroupManagers
