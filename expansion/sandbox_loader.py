@@ -33,8 +33,8 @@ the user provided dictionary of imports.
 """
 
 import builtins
-import imp
 import importlib
+import importlib.util
 import io
 from os import sep
 import os.path
@@ -65,7 +65,8 @@ class AllowedImportsLoader(object):
     if name in AllowedImportsLoader.user_modules:
       return AllowedImportsLoader.user_modules[name]
 
-    module = imp.new_module(name)
+    spec = importlib.util.spec_from_loader(name, loader=None)
+    module = importlib.util.module_from_spec(spec)
 
     try:
       data = FileAccessRedirector.allowed_imports[self.get_filename(name)]
