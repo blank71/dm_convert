@@ -4,6 +4,6 @@ protoc --proto_path=. --python_out=. clientanalytics_dmc.proto timestamp.proto c
 # Install dependencies without updating lock file.
 uv sync --locked
 
-# Exec endpoint.
+# Exec entry point.
 uv run dm_convert.py
 ```
