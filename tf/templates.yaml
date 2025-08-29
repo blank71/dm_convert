@@ -40,6 +40,7 @@ gcp-types/dns-v1:resourceRecordSets: google_dns_record_set
 gcp-types/iam-v1:projects.serviceAccounts: google_service_account
 gcp-types/pubsub-v1:projects.subscriptions: google_pubsub_subscription
 gcp-types/pubsub-v1:projects.topics: google_pubsub_topic
+gcp-types/redis-v1:projects.locations.instances: google_redis_instance
 gcp-types/storage-v1:bucketAccessControls: google_storage_bucket_access_control
 gcp-types/storage-v1:defaultObjectAccessControls: google_storage_default_object_access_control
 gcp-types/storage-v1:buckets: google_storage_bucket
