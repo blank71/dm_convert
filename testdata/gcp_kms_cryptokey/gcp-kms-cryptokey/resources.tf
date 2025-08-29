@@ -10,7 +10,6 @@ resource "google_kms_key_ring" "kms_keyring" {
 }
 #tfimport-terraform import google_kms_key_ring.kms_keyring __project__/us-central1/kms-keyring
 
-#tfimport-terraform import google_kms_crypto_key.kms_cryptokey kms-keyring/kms-cryptokey
 resource "google_kms_crypto_key" "kms_cryptokey" {
   provider = google-beta
 
@@ -29,3 +28,4 @@ resource "google_kms_crypto_key" "kms_cryptokey" {
     google_kms_key_ring.kms_keyring
   ]
 }
+#tfimport-terraform import google_kms_crypto_key.kms_cryptokey kms-keyring/cryptoKeys/kms-cryptokey
