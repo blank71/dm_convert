@@ -21,9 +21,21 @@ resource "google_monitoring_alert_policy" "{{ macros.get_name(resource, properti
     }
   }) | indent(2) }}
 
+  {%- if 'alertStrategy' in properties %}
+  alert_strategy {
+  {%- set alert_strategy = properties['alertStrategy'] %}
+  {{- macros.dict(alert_strategy, {
+    'notificationRateLimit': 'notification_rate_limit ',
+    'autoClose': 'auto_close',
+    'notificationPrompts': 'notification_prompts',
+    'notificationChannelStrategy': 'notification_channel_strategy'
+  }) | indent(2) }}
+  }
+  {%- endif %}
+
   {%- if 'conditions' in properties %}
+  {%- for condition in properties['conditions'] %}
   conditions {
-    {%- for condition in properties['conditions'] %}
     {%- if 'displayName' in condition %}
       {%- set _ = glob.update({'condition_display_name': condition['displayName'] }) %}
     {%- endif %}
@@ -86,6 +98,9 @@ resource "google_monitoring_alert_policy" "{{ macros.get_name(resource, properti
         'query': 'query',
         'duration': 'duration'
       }, ' ' * 6) }}
+      {%- if not 'duration' in query %}
+      duration = "60s"
+      {%- endif %}
       {{- macros.dict(query, {
         'trigger': {
           'count': 'count',
@@ -94,11 +109,24 @@ resource "google_monitoring_alert_policy" "{{ macros.get_name(resource, properti
       }) | indent(6) }}
     }
     {%- endif %}
-    {%- endfor %}
     display_name = "{{ glob['condition_display_name'] }}"
   }
+  {%- endfor %}
   {%- endif %}
 }
+{%- if properties.get('notificationChannels') and properties['notificationChannels']|length > 0 %}
+{%- set project_value = properties['notificationChannels'][0].split('/')[1]%}
+{%- else %}
+{%- set project_value = properties.get('project', '') %}
+{%- endif %}
+{%- set project_value = macros.import_project(project_value) %}
+{%- set DISPLAY_NAME = resource.get('name') %}
+#tfimport-PROJECT_ID="{{ project_value }}"
+#tfimport-FILE="${PROJECT_ID}.json"
+#tfimport-DISPLAY_NAME="{{ DISPLAY_NAME }}"
+#tfimport-if [[ ! -f "${FILE}" ]]; then gcloud alpha monitoring policies list --project="${PROJECT_ID}" --format=json > "${FILE}"; fi
+#tfimport-ID=$(cat "${FILE}" | jq -r --arg display_name "${DISPLAY_NAME}" '.[] | select(.displayName == $display_name) | .name' )
+#tfimport-terraform import google_monitoring_alert_policy.{{ macros.get_name(resource, properties) }} ${ID}
 
 {#-
 1. [TF] name is computed field

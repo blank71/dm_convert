@@ -11,7 +11,6 @@ resource "google_compute_network" "compute_network" {
   routing_mode = "REGIONAL"
 }
 
-#tfimport-terraform import google_compute_global_address.compute_globaladdress  __project__/compute-globaladdress
 resource "google_compute_global_address" "compute_globaladdress" {
   provider = google-beta
 
@@ -27,3 +26,4 @@ resource "google_compute_global_address" "compute_globaladdress" {
     google_compute_network.compute_network
   ]
 }
+#tfimport-terraform import google_compute_global_address.compute_globaladdress  projects/__project__/global/addresses/compute-globaladdress
