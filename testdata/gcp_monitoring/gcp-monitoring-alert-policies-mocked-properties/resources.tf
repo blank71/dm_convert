@@ -67,6 +67,9 @@ EOT
         per_series_aligner = "ALIGN_RATE"
       }
     }
+    display_name = "condition-Threshold"
+  }
+  conditions {
     condition_absent {
       filter = <<-EOT
 resource.type="gce_instance"
@@ -90,6 +93,9 @@ EOT
         per_series_aligner = "ALIGN_RATE"
       }
     }
+    display_name = "condition-Absent"
+  }
+  conditions {
     condition_monitoring_query_language {
       query = <<-EOT
 SELECT * FROM tmp WHERE a > b
@@ -104,3 +110,9 @@ EOT
     display_name = "condition-Query"
   }
 }
+#tfimport-PROJECT_ID="my-project"
+#tfimport-FILE="${PROJECT_ID}.json"
+#tfimport-DISPLAY_NAME="monitoring-instance-uptime-check"
+#tfimport-if [[ ! -f "${FILE}" ]]; then gcloud alpha monitoring policies list --project="${PROJECT_ID}" --format=json > "${FILE}"; fi
+#tfimport-ID=$(cat "${FILE}" | jq -r --arg display_name "${DISPLAY_NAME}" '.[] | select(.displayName == $display_name) | .name' )
+#tfimport-terraform import google_monitoring_alert_policy.monitoring_instance_uptime_check ${ID}
