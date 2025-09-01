@@ -27,16 +27,18 @@ EOT
     {%- for dm_name, terraform_name in dmToTfMapping.items() %}
         {%- if dm_name in base %}
             {%- if base[dm_name] is mapping %}
-              {%- if terraform_name is mapping %}
+              {%- if base[dm_name] | length > 0 %}
+                {%- if terraform_name is mapping %}
 {{ variables['indent'] + terraform_name.pop('map_name', dm_name) }} {
 {{- fields(base[dm_name], terraform_name, indent + ' ' * 2) }}
 {{ variables['indent'] }}}
-              {%- else %}
+                {%- else %}
 {{ variables['indent'] + terraform_name }} {
-                {%- for key, value in base[dm_name].items() %}
+                  {%- for key, value in base[dm_name].items() %}
 {{ variables['indent'] + ' ' * 2 + key }} = {{ normalize(value) }}
 {{ variables['indent'] }}}
-                {%- endfor %}
+                  {%- endfor %}
+                {%- endif %}
               {%- endif %}
             {%- elif base[dm_name] | is_list %}
 {{ variables['indent'] + terraform_name }} = [
