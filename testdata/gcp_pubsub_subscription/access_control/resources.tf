@@ -2,13 +2,13 @@ provider "google-beta" {
   project = "None"
 }
 
-#tfimport-terraform import google_pubsub_subscription.pubsub  __project__/my-pubsub-subscription
 resource "google_pubsub_subscription" "pubsub" {
   provider = google-beta
 
   name = "my-pubsub-subscription"
   topic = "my-pubsub-topic"
 }
+#tfimport-terraform import google_pubsub_subscription.pubsub  projects/__project__/subscriptions/my-pubsub-subscription
 
 data "google_iam_policy" "pubsub_iam_policy" {
   binding {

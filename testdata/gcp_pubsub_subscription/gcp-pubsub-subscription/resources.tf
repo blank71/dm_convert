@@ -19,7 +19,6 @@ resource "google_pubsub_topic" "pubsub_dead_letter_topic" {
   name = "pubsub-dead-letter-topic"
 }
 
-#tfimport-terraform import google_pubsub_subscription.pubsub_subscription_1  __project__/pubsub-subscription-1
 resource "google_pubsub_subscription" "pubsub_subscription_1" {
   provider = google-beta
 
@@ -30,8 +29,8 @@ resource "google_pubsub_subscription" "pubsub_subscription_1" {
     google_pubsub_topic.pubsub_topic
   ]
 }
+#tfimport-terraform import google_pubsub_subscription.pubsub_subscription_1  projects/__project__/subscriptions/pubsub-subscription-1
 
-#tfimport-terraform import google_pubsub_subscription.pubsub_subscription_2  __project__/pubsub-subscription-2
 resource "google_pubsub_subscription" "pubsub_subscription_2" {
   provider = google-beta
 
@@ -50,3 +49,4 @@ resource "google_pubsub_subscription" "pubsub_subscription_2" {
     google_pubsub_topic.pubsub_topic
   ]
 }
+#tfimport-terraform import google_pubsub_subscription.pubsub_subscription_2  projects/__project__/subscriptions/pubsub-subscription-2
