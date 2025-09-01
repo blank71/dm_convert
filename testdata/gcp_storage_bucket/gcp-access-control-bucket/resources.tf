@@ -2,7 +2,6 @@ provider "google-beta" {
   project = "None"
 }
 
-#tfimport-terraform import google_storage_bucket.gcp_storage_bucket_access_control_test  __project__/gcp-storage-bucket-access-control-test
 resource "google_storage_bucket" "gcp_storage_bucket_access_control_test" {
   provider = google-beta
 
@@ -18,6 +17,7 @@ resource "google_storage_bucket" "gcp_storage_bucket_access_control_test" {
     }
   }
 }
+#tfimport-terraform import google_storage_bucket.gcp_storage_bucket_access_control_test  __project__/gcp-storage-bucket-access-control-test
 
 data "google_iam_policy" "gcp_storage_bucket_access_control_test_iam_policy" {
   binding {

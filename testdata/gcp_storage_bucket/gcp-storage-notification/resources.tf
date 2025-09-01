@@ -13,7 +13,6 @@ resource "google_storage_notification" "notification_sample" {
   payload_format = "JSON_API_V1"
 }
 
-#tfimport-terraform import google_storage_bucket.bucket_svc_resource  __project__/bucket-svc-resource
 resource "google_storage_bucket" "bucket_svc_resource" {
   provider = google-beta
 
@@ -23,3 +22,4 @@ resource "google_storage_bucket" "bucket_svc_resource" {
     enabled = false
   }
 }
+#tfimport-terraform import google_storage_bucket.bucket_svc_resource  __project__/bucket-svc-resource

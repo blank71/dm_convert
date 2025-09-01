@@ -2,7 +2,6 @@ provider "google-beta" {
   project = "None"
 }
 
-#tfimport-terraform import google_storage_bucket.tjr_dm_test_1_bucket  __project__/tjr-dm-test-1-bucket
 resource "google_storage_bucket" "tjr_dm_test_1_bucket" {
   provider = google-beta
 
@@ -12,6 +11,7 @@ resource "google_storage_bucket" "tjr_dm_test_1_bucket" {
     enabled = true
   }
 }
+#tfimport-terraform import google_storage_bucket.tjr_dm_test_1_bucket  __project__/tjr-dm-test-1-bucket
 resource "google_storage_bucket_acl" "tjr_dm_test_1_bucket_acl" {
   provider = google-beta
 

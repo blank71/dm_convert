@@ -1,7 +1,6 @@
 {%- import 'tf_macros.jinja' as macros %}
 {%- set properties = resource.get('properties', {}) -%}
 {%- set resource_name = macros.get_name(resource, properties) -%}
-#tfimport-terraform import google_storage_bucket.{{ resource_name }}  {{macros.import_project(properties['projectNumber'])}}/{{ resource['name'] }}
 resource "google_storage_bucket" "{{ resource_name }}" {
   {{- macros.write_provider() }}
   name = "{{ resource["name"] }}"
@@ -79,6 +78,9 @@ resource "google_storage_bucket" "{{ resource_name }}" {
   {{- macros.format_lifecycle_directive(resource) }}
   {{- macros.format_dependencies(resource) | indent(2) }}
 }
+{%- set project_value = properties.get('project', '') %}
+{%- set project_value = macros.import_project(project_value) %}
+#tfimport-terraform import google_storage_bucket.{{ resource_name }}  {{ project_value }}/{{ resource['name'] }}
 
 {%- if "acl" in properties %}
 resource "google_storage_bucket_acl" "{{ resource_name }}_acl" {

@@ -9,7 +9,6 @@ resource "google_pubsub_topic" "pubsub_topic" {
   name = "pubsub-topic"
 }
 
-#tfimport-terraform import google_storage_bucket.insert_action_test_actual_bucket_name  __project__/insert-action-test-actual-bucket-name
 resource "google_storage_bucket" "insert_action_test_actual_bucket_name" {
   provider = google-beta
 
@@ -59,3 +58,4 @@ resource "google_storage_bucket" "insert_action_test_actual_bucket_name" {
     google_pubsub_topic.pubsub_topic
   ]
 }
+#tfimport-terraform import google_storage_bucket.insert_action_test_actual_bucket_name  __project__/insert-action-test-actual-bucket-name
