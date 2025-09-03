@@ -84,6 +84,7 @@ class TerraformConverter(base_converter.BaseConverter):
     self.tf_import_file = tf_import_file
 
     self.jinja_env.globals['get_tf_provider'] = provider
+    self.jinja_env.globals['get_project_id'] = self._project_id if self._project_id != "None" else base_converter._IMPORT_PROJECT_PLACEHOLDER
 
     self.layout_file = layout_file
 
