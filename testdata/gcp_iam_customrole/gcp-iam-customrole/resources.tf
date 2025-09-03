@@ -16,7 +16,6 @@ resource "google_service_account" "iam_serviceaccount" {
 }
 #tfimport-terraform import google_service_account.iam_serviceaccount  projects/__project__/serviceAccounts/iam-serviceaccount@__project__.iam.gserviceaccount.com
 
-#tfimport-terraform import google_project_iam_custom_role.iamrole projects/__project__/roles/iamrole
 resource "google_project_iam_custom_role" "iamrole" {
   provider = google-beta
 
@@ -30,3 +29,4 @@ resource "google_project_iam_custom_role" "iamrole" {
   title = "Example Custom Role"
   project = "tjr-dm-test-1"
 }
+#tfimport-terraform import google_project_iam_custom_role.iamrole projects/tjr-dm-test-1/roles/iamrole

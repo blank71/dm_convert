@@ -1,6 +1,5 @@
 {%- import 'tf_macros.jinja' as macros %}
 {%- set properties = resource.get('properties', {}) -%}
-#tfimport-terraform import google_project_iam_custom_role.{{ macros.get_name(resource, properties) }} projects/__project__/roles/{{ properties['roleId'] }}
 resource "google_project_iam_custom_role" "{{ macros.get_name(resource, properties) }}" {
   {{- macros.write_provider() }}
   {{- macros.fields(properties, {
@@ -19,3 +18,8 @@ resource "google_project_iam_custom_role" "{{ macros.get_name(resource, properti
 
   {{- macros.format_dependencies(resource) | indent(2) }}
 }
+{%- if 'parent' in properties %}
+{%- set project_value = properties.parent.split('/')[-1] %}
+{%- endif %}
+{%- set project_value = macros.import_project(project_value) %}
+#tfimport-terraform import google_project_iam_custom_role.{{ macros.get_name(resource, properties) }} projects/{{ project_value }}/roles/{{ properties['roleId'] }}
