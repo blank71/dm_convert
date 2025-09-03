@@ -16,4 +16,5 @@ resource "google_kms_key_ring" "{{ macros.get_name(resource, properties) }}" {
   location = "{{ location_value }}"
   {%- endif %}
 }
-#tfimport-terraform import google_kms_key_ring.{{ macros.get_name(resource, properties) }} __project__/{{ location_value }}/{{ name_value }}
+{%- set project_value = macros.import_project(properties.parent) %}
+#tfimport-terraform import google_kms_key_ring.{{ macros.get_name(resource, properties) }} {{ project_value }}/keyRings/{{ name_value }}
