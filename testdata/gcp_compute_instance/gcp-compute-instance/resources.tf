@@ -36,7 +36,6 @@ resource "google_compute_disk" "compute_disk_2" {
   type = "pd-ssd"
 }
 
-#tfimport-terraform import google_compute_network.compute_network  __project__/compute-network
 resource "google_compute_network" "compute_network" {
   provider = google-beta
 
@@ -44,6 +43,7 @@ resource "google_compute_network" "compute_network" {
   auto_create_subnetworks = false
   routing_mode = "REGIONAL"
 }
+#tfimport-terraform import google_compute_network.compute_network  projects/__project__/global/networks/compute-network
 
 #tfimport-terraform import google_compute_subnetwork.compute_subnetwork __project__/us-west1/compute-subnetwork
 resource "google_compute_subnetwork" "compute_subnetwork" {
@@ -258,13 +258,13 @@ resource "google_compute_instance" "compute_instance_4" {
   }
 }
 
-#tfimport-terraform import google_compute_network.compute_network_1  __project__/compute-network-1
 resource "google_compute_network" "compute_network_1" {
   provider = google-beta
 
   name = "compute-network-1"
   auto_create_subnetworks = false
 }
+#tfimport-terraform import google_compute_network.compute_network_1  projects/__project__/global/networks/compute-network-1
 
 #tfimport-terraform import google_compute_subnetwork.compute_subnetwork_1 __project__/us-west1/compute-subnetwork-1
 resource "google_compute_subnetwork" "compute_subnetwork_1" {

@@ -2,7 +2,6 @@ provider "google-beta" {
   project = "None"
 }
 
-#tfimport-terraform import google_compute_network.fake_network  __project__/fake-network
 resource "google_compute_network" "fake_network" {
   provider = google-beta
 
@@ -10,6 +9,7 @@ resource "google_compute_network" "fake_network" {
   auto_create_subnetworks = false
   routing_mode = "REGIONAL"
 }
+#tfimport-terraform import google_compute_network.fake_network  projects/__project__/global/networks/fake-network
 
 #tfimport-terraform import google_compute_subnetwork.compute_subnetwork_access_control_test __project__/us-west1/compute-subnetwork-access-control-test
 resource "google_compute_subnetwork" "compute_subnetwork_access_control_test" {
