@@ -10,7 +10,6 @@ resource "google_compute_network" "compute_network" {
   auto_create_subnetworks = false
 }
 
-#tfimport-terraform import google_compute_firewall.compute_firewall_1  __project__/compute-firewall-1
 resource "google_compute_firewall" "compute_firewall_1" {
   provider = google-beta
 
@@ -31,8 +30,8 @@ resource "google_compute_firewall" "compute_firewall_1" {
     google_compute_network.compute_network
   ]
 }
+#tfimport-terraform import google_compute_firewall.compute_firewall_1  projects/__project__/global/firewalls/compute-firewall-1
 
-#tfimport-terraform import google_compute_firewall.compute_firewall_2  __project__/compute-firewall-2
 resource "google_compute_firewall" "compute_firewall_2" {
   provider = google-beta
 
@@ -65,3 +64,4 @@ resource "google_compute_firewall" "compute_firewall_2" {
     google_compute_network.compute_network
   ]
 }
+#tfimport-terraform import google_compute_firewall.compute_firewall_2  projects/__project__/global/firewalls/compute-firewall-2
