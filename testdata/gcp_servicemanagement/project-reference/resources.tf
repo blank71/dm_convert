@@ -27,4 +27,4 @@ resource "google_project_service" "service_management_enable_action" {
     google_project.test_project
   ]
 }
-#tfimport-terraform import google_project_service.service_management_enable_action  test-project-id/cloudbuild.googleapis.com
+#tfimport-terraform import google_project_service.service_management_enable_action  None/cloudbuild.googleapis.com

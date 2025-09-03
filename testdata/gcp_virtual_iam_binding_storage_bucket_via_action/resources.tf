@@ -2,7 +2,6 @@ provider "google-beta" {
   project = "None"
 }
 
-#tfimport-terraform import google_storage_bucket.my_test_bucket_2  __project__/my-test-bucket-2
 resource "google_storage_bucket" "my_test_bucket_2" {
   provider = google-beta
 
@@ -10,6 +9,7 @@ resource "google_storage_bucket" "my_test_bucket_2" {
   location = "US"
   storage_class = "STANDARD"
 }
+#tfimport-terraform import google_storage_bucket.my_test_bucket_2  __project__/my-test-bucket-2
 
 #tfimport-terraform import google_storage_bucket_iam_member.virtual_iam_member_binding_storage_bucket  "b/my-test-bucket roles/storage.objectViewer user:user1@google.com"
 resource "google_storage_bucket_iam_member" "virtual_iam_member_binding_storage_bucket" {
