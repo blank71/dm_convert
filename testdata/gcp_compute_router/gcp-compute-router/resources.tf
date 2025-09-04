@@ -2,7 +2,6 @@ provider "google-beta" {
   project = "None"
 }
 
-#tfimport-terraform import google_compute_network.compute_network  __project__/compute-network
 resource "google_compute_network" "compute_network" {
   provider = google-beta
 
@@ -10,8 +9,8 @@ resource "google_compute_network" "compute_network" {
   auto_create_subnetworks = false
   routing_mode = "REGIONAL"
 }
+#tfimport-terraform import google_compute_network.compute_network  projects/__project__/global/networks/compute-network
 
-#tfimport-terraform import google_compute_router.compute_router  __project__/us-west1/compute-router
 resource "google_compute_router" "compute_router" {
   provider = google-beta
 
@@ -19,6 +18,7 @@ resource "google_compute_router" "compute_router" {
   description = "example router description"
   network = google_compute_network.compute_network.id
   region = "us-west1"
+  project = "__project__"
   bgp {
     asn = 64514
     advertise_mode = "CUSTOM"
@@ -35,3 +35,4 @@ resource "google_compute_router" "compute_router" {
     google_compute_network.compute_network
   ]
 }
+#tfimport-terraform import google_compute_router.compute_router  projects/__project__/regions/us-west1/routers/compute-router

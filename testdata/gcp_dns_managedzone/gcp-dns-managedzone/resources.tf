@@ -2,13 +2,13 @@ provider "google-beta" {
   project = "None"
 }
 
-#tfimport-terraform import google_compute_network.compute_network  __project__/compute-network
 resource "google_compute_network" "compute_network" {
   provider = google-beta
 
   name = "compute-network"
   auto_create_subnetworks = false
 }
+#tfimport-terraform import google_compute_network.compute_network  projects/__project__/global/networks/compute-network
 
 #tfimport-terraform import google_dns_managed_zone.dns_managedzone __project__/dns-managedzone
 resource "google_dns_managed_zone" "dns_managedzone" {

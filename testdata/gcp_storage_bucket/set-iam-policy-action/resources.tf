@@ -2,7 +2,6 @@ provider "google-beta" {
   project = "None"
 }
 
-#tfimport-terraform import google_storage_bucket.storage_bucket  __project__/storage-bucket
 resource "google_storage_bucket" "storage_bucket" {
   provider = google-beta
 
@@ -12,6 +11,7 @@ resource "google_storage_bucket" "storage_bucket" {
     enabled = true
   }
 }
+#tfimport-terraform import google_storage_bucket.storage_bucket  __project__/storage-bucket
 
 data "google_iam_policy" "bucket_set_iam_policy_iam_policy" {
   binding {

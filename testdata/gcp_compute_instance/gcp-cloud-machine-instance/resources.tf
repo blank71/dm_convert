@@ -2,7 +2,6 @@ provider "google-beta" {
   project = "None"
 }
 
-#tfimport-terraform import google_compute_resource_policy.vm_placementpolicy_spread  __project__/us-east1/vm-placementpolicy-spread
 resource "google_compute_resource_policy" "vm_placementpolicy_spread" {
   provider = google-beta
 
@@ -13,6 +12,7 @@ resource "google_compute_resource_policy" "vm_placementpolicy_spread" {
     availability_domain_count = 3
   }
 }
+#tfimport-terraform import google_compute_resource_policy.vm_placementpolicy_spread projects/__project__/regions/us-east1/resourcePolicies/vm-placementpolicy-spread
 
 #tfimport-terraform import google_compute_disk.compute_disk_1  __project__/us-west1-a/compute-disk-1
 resource "google_compute_disk" "compute_disk_1" {
@@ -39,7 +39,6 @@ resource "google_compute_disk" "compute_disk_2" {
   type = "pd-ssd"
 }
 
-#tfimport-terraform import google_compute_network.compute_network  __project__/compute-network
 resource "google_compute_network" "compute_network" {
   provider = google-beta
 
@@ -47,8 +46,8 @@ resource "google_compute_network" "compute_network" {
   auto_create_subnetworks = false
   routing_mode = "REGIONAL"
 }
+#tfimport-terraform import google_compute_network.compute_network  projects/__project__/global/networks/compute-network
 
-#tfimport-terraform import google_compute_subnetwork.compute_subnetwork __project__/us-west1/compute-subnetwork
 resource "google_compute_subnetwork" "compute_subnetwork" {
   provider = google-beta
 
@@ -65,6 +64,7 @@ resource "google_compute_subnetwork" "compute_subnetwork" {
     google_compute_network.compute_network
   ]
 }
+#tfimport-terraform import google_compute_subnetwork.compute_subnetwork projects/__project__/regions/us-west1/subnetworks/compute-subnetwork
 
 
 

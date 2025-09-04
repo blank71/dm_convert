@@ -1,7 +1,6 @@
 {%- import 'tf_macros.jinja' as macros %}
 {%- set properties = resource.get('properties', {}) -%}
 {%- set resource_name = resource.get('name') -%}
-#tfimport-terraform import google_compute_network.{{ macros.get_name(resource, properties) }}  __project__/{{- resource_name }}
 resource "google_compute_network" "{{ macros.get_name(resource, properties) }}" {
   {{- macros.write_provider() }}
   name = "{{- resource_name }}"
@@ -19,3 +18,4 @@ resource "google_compute_network" "{{ macros.get_name(resource, properties) }}" 
     {{- macros.fields(properties['routingConfig'], {'routingMode': 'routing_mode'}, ' ' * 2) }}
   {%- endif %}
 }
+#tfimport-terraform import google_compute_network.{{ macros.get_name(resource, properties) }}  projects/{{ get_project_id }}/global/networks/{{- resource_name }}

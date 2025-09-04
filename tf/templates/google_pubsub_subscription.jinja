@@ -1,7 +1,5 @@
 {%- import 'tf_macros.jinja' as macros -%}
 {%- set properties = resource.get('properties', {}) -%}
-{%- set import_resource = "__project__/" + properties['subscription'] -%}
-#tfimport-terraform import google_pubsub_subscription.{{ macros.get_name(resource, properties) }}  {{ import_resource }}
 resource "google_pubsub_subscription" "{{ macros.get_name(resource, properties) }}" {
   {{- macros.write_provider() }}
   {{- macros.write_labels(properties) }}
@@ -25,4 +23,9 @@ resource "google_pubsub_subscription" "{{ macros.get_name(resource, properties) 
   {{- macros.format_lifecycle_directive(resource) }}
   {{- macros.format_dependencies(resource) | indent(2) }}
 }
+{%- set project_value = properties.get('project', '') %}
+{%- set project_value = macros.import_project(project_value) %}
+#tfimport-terraform import google_pubsub_subscription.{{ macros.get_name(resource, properties) }}  projects/{{ project_value }}/subscriptions/{{ properties['subscription'] }}
+
+{%- set import_resource = project_value + "/" + properties['subscription'] -%}
 {{- macros.convert_access_control("google_pubsub_subscription", macros.get_name(resource, properties), resource.get('accessControl', {}), import_resource) }}

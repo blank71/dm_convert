@@ -2,7 +2,7 @@
 {%- set properties = resource.get('properties', {}) -%}
 {%- set compute_router_resource_name = macros.get_name(resource, properties) -%}
 {%- set name_value = macros.if_null('name', properties, resource) -%}
-#tfimport-terraform import google_compute_router.{{ compute_router_resource_name }}  {{ macros.import_project(properties['project']) }}/{{ properties['region'] }}/{{ name_value | replace("\"", "")}}
+{%- set project_value = properties['project'] if 'project' in properties else get_project_id %}
 resource "google_compute_router" "{{ compute_router_resource_name }}" {
   {{- macros.write_provider() }}
   name = {{ name_value }}
@@ -13,6 +13,9 @@ resource "google_compute_router" "{{ compute_router_resource_name }}" {
     'project': 'project',
     'encryptedInterconnectRouter': 'encrypted_interconnect_router',
   }, ' ' * 2) }}
+  {%- if not 'project' in properties %}
+  project = "{{ get_project_id }}"
+  {%- endif %}
 
   {%- if 'bgp' in properties %}
   bgp {
@@ -31,6 +34,8 @@ resource "google_compute_router" "{{ compute_router_resource_name }}" {
 
   {{- macros.format_dependencies(resource) | indent(2) }}
 }
+{%- set import_resource = ['projects', project_value, 'regions', properties['region'], 'routers', (name_value | replace("\"", ""))] | join("/") %}
+#tfimport-terraform import google_compute_router.{{ macros.get_name(resource, properties) }}  {{ import_resource }}
 
 {%- if 'interfaces' in properties %}
 {%- for interface in properties['interfaces'] %}
@@ -48,11 +53,16 @@ resource "google_compute_router_interface" "{{ macros.get_name(interface, none) 
     'region': 'region',
     'project': 'project',
   }, ' ' * 2) }}
+  {%- if not 'project' in properties %}
+  project = "{{ get_project_id }}"
+  {%- endif %}
 
   depends_on = [
     google_compute_router.{{ compute_router_resource_name }}
   ]
 }
+{%- set import_resource = [project_value, properties['region'], (name_value | replace("\"", "")), interface.name ] | join("/") %}
+#tfimport-terraform import google_compute_router_interface.{{ macros.get_name(interface, none) }}  {{ import_resource }}
 {%- endfor %}
 {%- endif %}
 
@@ -81,11 +91,16 @@ resource "google_compute_router_peer" "{{ macros.get_name(peer, none) }}" {
     'region': 'region',
     'project': 'project',
   }, ' ' * 2) }}
+  {%- if not 'project' in properties %}
+  project = "{{ get_project_id }}"
+  {%- endif %}
 
   depends_on = [
     google_compute_router.{{ compute_router_resource_name }}
   ]
 }
+{%- set import_resource = ['projects', project_value, 'regions', properties['region'], 'routers', (name_value | replace("\"", "")), peer.name ] | join("/") %}
+#tfimport-terraform import google_compute_router_peer.{{ macros.get_name(peer, none) }}  {{ import_resource }}
 {%- endif %}
 {%- endfor %}
 {%- endif %}
@@ -132,11 +147,16 @@ resource "google_compute_router_nat" "{{ macros.get_name(nat, none) }}" {
     'region': 'region',
     'project': 'project',
   }, ' ' * 2) }}
+  {%- if not 'project' in properties %}
+  project = "{{ get_project_id }}"
+  {%- endif %}
 
   depends_on = [
     google_compute_router.{{ compute_router_resource_name }}
   ]
 }
+{%- set import_resource = ['projects', project_value, 'regions', properties['region'], 'routers', (name_value | replace("\"", "")), nat.name ] | join("/") %}
+#tfimport-terraform import google_compute_router_nat.{{ macros.get_name(nat, none) }}  {{ import_resource }}
 {%- endfor %}
 {%- endif %}
 

@@ -1,8 +1,6 @@
 {%- import 'tf_macros.jinja' as macros %}
 {%- set properties = resource.get('properties', {}) -%}
 {%- set resource_name = resource.get('name') -%}
-{%- set import_resource = [macros.import_project(properties['project']), properties['region'], resource_name] | join("/") -%}
-#tfimport-terraform import google_compute_subnetwork.{{ macros.get_name(resource, properties) }} {{ import_resource }}
 resource "google_compute_subnetwork" "{{ macros.get_name(resource, properties) }}" {
   {{- macros.write_provider() }}
   name = "{{ resource_name }}"
@@ -29,14 +27,16 @@ resource "google_compute_subnetwork" "{{ macros.get_name(resource, properties) }
   {{ 'network = ' + macros.normalize(network) }}
   {%- endif %}
   {%- endif %}
-  {%- set secondary_ip_ranges = resource['properties']['secondaryIpRanges'] %}
-  {{- macros.lists(properties, {
-    'secondaryIpRanges': {
-      'list_name': 'secondary_ip_range',
+  {%- if 'secondaryIpRanges' in properties %}
+  {%- for range in properties['secondaryIpRanges'] %}
+  secondary_ip_range {
+    {{- macros.fields(range, {
       'ipCidrRange': 'ip_cidr_range',
       'rangeName': 'range_name',
-    }
-  }, ' ' * 2) }}
+    }, ' ' * 4) }}
+  }
+  {%- endfor %}
+  {%- endif %}
   {%- if 'logConfig' in properties
         and 'enable' in resource['properties']['logConfig']
         and resource['properties']['logConfig']['enable'] %}
@@ -53,6 +53,9 @@ resource "google_compute_subnetwork" "{{ macros.get_name(resource, properties) }
   {%- endif %}
   {{- macros.format_dependencies(resource) | indent(2) }}
 }
+{%- set project_value = properties['project'] if 'project' in properties else get_project_id %}
+{%- set import_resource = ['projects', project_value, 'regions', properties['region'], 'subnetworks', resource_name] | join("/") %}
+#tfimport-terraform import google_compute_subnetwork.{{ macros.get_name(resource, properties) }} {{ import_resource }}
 {{- macros.convert_access_control("google_compute_subnetwork", macros.get_name(resource, properties), resource.get('accessControl', {}), import_resource) }}
 
 {%- set unconvertible_fields = resource | match_missing_fields([

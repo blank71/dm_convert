@@ -1,8 +1,6 @@
 {%- import 'tf_macros.jinja' as macros %}
 {%- set properties = resource.get('properties', {}) -%}
 {%- set resource_name = resource.get('name') -%}
-{%- set import_resource = [macros.import_project(properties['project']), properties['region'], resource_name] | join("/") -%}
-#tfimport-terraform import google_compute_region_disk.{{ macros.get_name(resource, properties) }}  {{ import_resource }}
 resource "google_compute_region_disk" "{{ macros.get_name(resource, properties) }}" {
   {{- macros.write_provider() }}
   name = "{{ resource_name }}"
@@ -11,7 +9,6 @@ resource "google_compute_region_disk" "{{ macros.get_name(resource, properties) 
     'replicaZones': 'replica_zones',
     'description': 'description',
     'sizeGb': 'size',
-    'zone': 'zone',
     'type': 'type',
     'sourceSnapshot': 'snapshot',
     'physicalBlockSizeBytes': 'physical_block_size_bytes',
@@ -36,4 +33,7 @@ resource "google_compute_region_disk" "{{ macros.get_name(resource, properties) 
   {{- macros.fields(properties, {'labels': 'labels ='}, ' ' * 2) }}
   {{- macros.format_dependencies(resource) | indent(2) }}
 }
+{%- set project_value = properties['project'] if 'project' in properties else get_project_id %}
+{%- set import_resource = ['projects', project_value, 'regions', properties['region'], 'disks', resource_name] | join("/") %}
+#tfimport-terraform import google_compute_region_disk.{{ macros.get_name(resource, properties) }}  {{ import_resource }}
 {{- macros.convert_access_control("google_compute_region_disk", macros.get_name(resource, properties), resource.get('accessControl', {}), import_resource) }}

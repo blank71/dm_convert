@@ -1,7 +1,6 @@
 {%- import 'tf_macros.jinja' as macros %}
 {%- set properties = resource.get('properties', {}) -%}
 {%- set resource_name = resource.get('name') -%}
-#tfimport-terraform import google_monitoring_uptime_check_config.{{ macros.get_name(resource, properties) }}  {{macros.import_project(properties['project'])}}/{{properties['region']}}/{{ resource_name }}
 resource "google_monitoring_uptime_check_config" "{{ macros.get_name(resource, properties) }}" {
   {{- macros.write_provider() }}
   {{- macros.write_labels(properties) }}
@@ -51,3 +50,17 @@ resource "google_monitoring_uptime_check_config" "{{ macros.get_name(resource, p
   {%- endif %}
   {{- macros.format_dependencies(resource) | indent(2) }}
 }
+{%- set project_value = properties['project'] if 'project' in properties else get_project_id %}
+{%- set DISPLAY_NAME = properties.get('displayName') %}
+#tfimport-PROJECT_ID="{{ project_value }}"
+#tfimport-FILE="${PROJECT_ID}_monitoring_uptime_check_config.json"
+#tfimport-DISPLAY_NAME="{{ DISPLAY_NAME }}"
+#tfimport-if [[ ! -f "${FILE}" ]]; then gcloud monitoring uptime list-configs --project="${PROJECT_ID}" --format="json(displayName,name)" > "${FILE}"; fi
+#tfimport-ID=$(cat "${FILE}" | jq -r --arg display_name "${DISPLAY_NAME}" '.[] | select(.displayName == $display_name) | .name' )
+#tfimport-terraform import google_monitoring_uptime_check_config.{{ macros.get_name(resource, properties) }} ${ID}
+
+{# 
+
+{%- set project_value = properties.get('project', get_project_id) %}
+{%- set trigger_name = properties.get('name', resource.get('name', '__name__')) %}
+#tfimport-terraform import google_monitoring_uptime_check_config.{{ macros.get_name(resource, properties) }}  {{ project_value }}/{{ resource_name }} #}

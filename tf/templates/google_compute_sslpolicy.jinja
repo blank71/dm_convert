@@ -1,0 +1,15 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set resource_name = resource.get('name') -%}
+resource "google_compute_ssl_policy" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  name = "{{ resource_name }}"
+  {{- macros.fields(properties, {
+    'description': 'description',
+    'minTlsVersion': 'min_tls_version',
+    'profile': 'profile',
+    'customFeatures': 'custom_features',
+    'project': 'project'
+  }, ' ' * 2) }}
+}
+#tfimport-terraform import google_compute_ssl_policy.{{ macros.get_name(resource, properties) }}  projects/{{ get_project_id }}/global/sslPolicies/{{- resource_name }}

@@ -2,7 +2,6 @@ provider "google-beta" {
   project = "None"
 }
 
-#tfimport-terraform import google_compute_network.compute_network  __project__/compute-network
 resource "google_compute_network" "compute_network" {
   provider = google-beta
 
@@ -10,8 +9,8 @@ resource "google_compute_network" "compute_network" {
   auto_create_subnetworks = false
   routing_mode = "REGIONAL"
 }
+#tfimport-terraform import google_compute_network.compute_network  projects/__project__/global/networks/compute-network
 
-#tfimport-terraform import google_compute_router.compute_router  my-test-project/us-west1/compute-router
 resource "google_compute_router" "compute_router" {
   provider = google-beta
 
@@ -37,6 +36,7 @@ resource "google_compute_router" "compute_router" {
     google_compute_network.compute_network
   ]
 }
+#tfimport-terraform import google_compute_router.compute_router  projects/my-test-project/regions/us-west1/routers/compute-router
 resource "google_compute_router_interface" "test_interface_1" {
   name = "test-interface-1"
   ip_range = "123.456.789.0"
@@ -50,6 +50,7 @@ resource "google_compute_router_interface" "test_interface_1" {
     google_compute_router.compute_router
   ]
 }
+#tfimport-terraform import google_compute_router_interface.test_interface_1  my-test-project/us-west1/compute-router/test-interface-1
 resource "google_compute_router_interface" "test_interface_2" {
   name = "test-interface-2"
   ip_range = "9.9.9.9"
@@ -63,6 +64,7 @@ resource "google_compute_router_interface" "test_interface_2" {
     google_compute_router.compute_router
   ]
 }
+#tfimport-terraform import google_compute_router_interface.test_interface_2  my-test-project/us-west1/compute-router/test-interface-2
 resource "google_compute_router_peer" "peer_2" {
   name = "peer-2"
   interface = "test-interface-1"
@@ -83,6 +85,7 @@ resource "google_compute_router_peer" "peer_2" {
     google_compute_router.compute_router
   ]
 }
+#tfimport-terraform import google_compute_router_peer.peer_2  projects/my-test-project/regions/us-west1/routers/compute-router/peer-2
 resource "google_compute_router_nat" "nat_1" {
   name = "nat-1"
   source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
@@ -124,3 +127,4 @@ resource "google_compute_router_nat" "nat_1" {
     google_compute_router.compute_router
   ]
 }
+#tfimport-terraform import google_compute_router_nat.nat_1  projects/my-test-project/regions/us-west1/routers/compute-router/nat-1

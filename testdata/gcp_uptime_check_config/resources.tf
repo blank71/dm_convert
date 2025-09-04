@@ -2,7 +2,6 @@ provider "google-beta" {
   project = "None"
 }
 
-#tfimport-terraform import google_monitoring_uptime_check_config.my_uptime_check_config  __project__//my-uptime-check-config
 resource "google_monitoring_uptime_check_config" "my_uptime_check_config" {
   provider = google-beta
 
@@ -30,3 +29,9 @@ resource "google_monitoring_uptime_check_config" "my_uptime_check_config" {
     }
   }
 }
+#tfimport-PROJECT_ID="__project__"
+#tfimport-FILE="${PROJECT_ID}_monitoring_uptime_check_config.json"
+#tfimport-DISPLAY_NAME="My uptime check config"
+#tfimport-if [[ ! -f "${FILE}" ]]; then gcloud monitoring uptime list-configs --project="${PROJECT_ID}" --format="json(displayName,name)" > "${FILE}"; fi
+#tfimport-ID=$(cat "${FILE}" | jq -r --arg display_name "${DISPLAY_NAME}" '.[] | select(.displayName == $display_name) | .name' )
+#tfimport-terraform import google_monitoring_uptime_check_config.my_uptime_check_config ${ID}

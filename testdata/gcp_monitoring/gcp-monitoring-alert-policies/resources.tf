@@ -52,3 +52,9 @@ EOT
     display_name = "Uptime check for GCE INSTANCE - Platform"
   }
 }
+#tfimport-PROJECT_ID="__project__"
+#tfimport-FILE="${PROJECT_ID}_monitoring_alert_policy.json"
+#tfimport-DISPLAY_NAME="rax-mgcp-monitoring-instance-uptime-check"
+#tfimport-if [[ ! -f "${FILE}" ]]; then gcloud alpha monitoring policies list --project="${PROJECT_ID}" --format="json(displayName,name)" > "${FILE}"; fi
+#tfimport-ID=$(cat "${FILE}" | jq -r --arg display_name "${DISPLAY_NAME}" '.[] | select(.displayName == $display_name) | .name' )
+#tfimport-terraform import google_monitoring_alert_policy.monitoring_instance_uptime_check ${ID}

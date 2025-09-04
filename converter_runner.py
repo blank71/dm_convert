@@ -20,7 +20,8 @@ class ConverterRunner(object):
   def __init__(self, config_file: pathlib.Path,
                output_file: Optional[pathlib.Path], namespace: str,
                project_id: str, project_number: int, deployment_name: str,
-               converter: base_converter.BaseConverter):
+               converter: base_converter.BaseConverter, 
+               output_expanded_yaml: Optional[pathlib.Path] = None):
     self._converter = converter
     self._config_file = config_file
     self._output_file = output_file
@@ -28,6 +29,7 @@ class ConverterRunner(object):
     self._project_id = project_id
     self._project_number = project_number
     self._deployment_name = deployment_name
+    self._output_expanded_yaml = output_expanded_yaml
 
   def _load_config(self) -> str:
     logging.info('Reading DM config from file: %s', self._config_file)
@@ -67,6 +69,13 @@ class ConverterRunner(object):
       # meaning expansion will not redefine `open` in `sandbox_loader.py`
       expanded = expansion.Expand(
           config_string, imports, env=env, restrict_open=False)
+      
+      # Save expanded YAML if output file is specified
+      if self._output_expanded_yaml:
+        logging.info('Saving expanded YAML to file: %s', self._output_expanded_yaml)
+        with open(self._output_expanded_yaml, 'wt') as f:
+          f.write(expanded)
+      
       yaml_content = yaml.safe_load(expanded)
       return yaml_content.get('config'), yaml_content.get('layout')
     except Exception as e:

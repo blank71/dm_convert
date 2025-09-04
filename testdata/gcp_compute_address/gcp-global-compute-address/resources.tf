@@ -2,7 +2,6 @@ provider "google-beta" {
   project = "None"
 }
 
-#tfimport-terraform import google_compute_network.compute_network  __project__/compute-network
 resource "google_compute_network" "compute_network" {
   provider = google-beta
 
@@ -10,8 +9,8 @@ resource "google_compute_network" "compute_network" {
   auto_create_subnetworks = false
   routing_mode = "REGIONAL"
 }
+#tfimport-terraform import google_compute_network.compute_network  projects/__project__/global/networks/compute-network
 
-#tfimport-terraform import google_compute_global_address.compute_globaladdress  __project__/compute-globaladdress
 resource "google_compute_global_address" "compute_globaladdress" {
   provider = google-beta
 
@@ -27,3 +26,4 @@ resource "google_compute_global_address" "compute_globaladdress" {
     google_compute_network.compute_network
   ]
 }
+#tfimport-terraform import google_compute_global_address.compute_globaladdress  projects/__project__/global/addresses/compute-globaladdress

@@ -2,6 +2,7 @@
 # gcp v1/v2 types
 gcp-types/appengine-v1:apps.services.versions: google_app_engine
 gcp-types/cloudresourcemanager-v1:projects: google_project
+gcp-types/cloudbuild-v1:projects.triggers: google_cloudbuild_trigger
 gcp-types/cloudkms-v1:projects.locations.keyRings: google_kms_key_ring
 gcp-types/cloudkms-v1:projects.locations.keyRings.cryptoKeys: google_kms_crypto_key
 gcp-types/container-v1:projects.locations.clusters: google_container_cluster
@@ -30,6 +31,7 @@ gcp-types/compute-v1:resourcePolicies: google_compute_resource_policy
 gcp-types/compute-v1:routes: google_compute_route
 gcp-types/compute-v1:routers: google_compute_router
 gcp-types/compute-v1:subnetworks: google_compute_subnetwork
+gcp-types/compute-v1:sslPolicies: google_compute_sslpolicy
 gcp-types/compute-v1:targetInstances: google_compute_target_instance
 gcp-types/compute-v1:targetPools: google_compute_target_pool
 gcp-types/compute-v1:targetVpnGateways: google_compute_vpn_gateway
@@ -40,6 +42,7 @@ gcp-types/dns-v1:resourceRecordSets: google_dns_record_set
 gcp-types/iam-v1:projects.serviceAccounts: google_service_account
 gcp-types/pubsub-v1:projects.subscriptions: google_pubsub_subscription
 gcp-types/pubsub-v1:projects.topics: google_pubsub_topic
+gcp-types/redis-v1:projects.locations.instances: google_redis_instance
 gcp-types/storage-v1:bucketAccessControls: google_storage_bucket_access_control
 gcp-types/storage-v1:defaultObjectAccessControls: google_storage_default_object_access_control
 gcp-types/storage-v1:buckets: google_storage_bucket
@@ -144,11 +147,13 @@ compute.v1.regionInstanceGroupManager: google_compute_region_instance_group_mana
 compute.v1.regionInstanceGroupManagers: google_compute_region_instance_group_manager
 compute.v1.regionTargetHttpProxies: google_compute_region_target_http_proxy
 compute.v1.regionUrlMaps: google_compute_region_url_map
+compute.v1.resourcePolicies: google_compute_resource_policy
 compute.v1.route: google_compute_route
 compute.v1.routes: google_compute_route
 compute.v1.router: google_compute_router
 compute.v1.routers: google_compute_router
 compute.v1.sslCertificate: google_compute_sslcertificate
+compute.v1.sslPolicies: google_compute_sslpolicy
 compute.v1.subnetwork: google_compute_subnetwork
 compute.v1.subnetworks: google_compute_subnetwork
 compute.v1.targetHttpProxies: google_compute_target_http_proxy
@@ -196,6 +201,7 @@ compute.beta.regionAutoscaler: google_compute_region_autoscaler
 compute.beta.regionDisk: google_compute_region_disk
 compute.beta.regionHealthCheck: google_compute_region_health_check
 compute.beta.regionInstanceGroupManager: google_compute_region_instance_group_manager
+compute.beta.router: google_compute_router
 compute.beta.sslCertificate: gcp_compute_sslcertificate
 compute.beta.targetInstance: google_compute_target_instance
 compute.beta.targetVpnGateway: google_compute_vpn_gateway

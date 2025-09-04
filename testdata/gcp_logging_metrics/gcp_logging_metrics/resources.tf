@@ -2,7 +2,6 @@ provider "google-beta" {
   project = "None"
 }
 
-#tfimport-terraform import google_logging_metric.my_metric __project__ my_metric
 resource "google_logging_metric" "my_metric" {
   provider = google-beta
 
@@ -43,3 +42,4 @@ resource "google_logging_metric" "my_metric" {
     "project_name" = "EXTRACT(resource.labels.project_id)"
   }
 }
+#tfimport-terraform import google_logging_metric.my_metric "__project__ my_metric"

@@ -9,7 +9,6 @@ resource "google_pubsub_topic" "pubsub_topic" {
   name = "pubsub-topic"
 }
 
-#tfimport-terraform import google_pubsub_subscription.gcp_pubsub_subscription_insert_action_test  __project__/test-subscription-name
 resource "google_pubsub_subscription" "gcp_pubsub_subscription_insert_action_test" {
   provider = google-beta
 
@@ -41,3 +40,4 @@ resource "google_pubsub_subscription" "gcp_pubsub_subscription_insert_action_tes
     google_pubsub_topic.pubsub_topic
   ]
 }
+#tfimport-terraform import google_pubsub_subscription.gcp_pubsub_subscription_insert_action_test  projects/__project__/subscriptions/test-subscription-name

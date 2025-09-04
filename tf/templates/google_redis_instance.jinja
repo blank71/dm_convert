@@ -1,0 +1,33 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set instance_name = resource['properties']['instanceId'] %}
+{%- set resource_name = resource.get('name') -%}
+resource "google_redis_instance" "{{ macros.get_name(resource, properties) }}" {
+  {{- macros.write_provider() }}
+  name = "{{ instance_name }}"
+  {%- if 'tier' in properties %}
+  tier = "{{ properties['tier'] }}"
+  {%- endif %}
+  memory_size_gb = {{ properties['memorySizeGb'] }}
+  {{- macros.write_labels(properties) }}
+  {{ macros.fields(properties, {
+    'displayName': "display_name",
+    'locationId': "location_id",
+    'alternativeLocationId': "alternative_location_id",
+    'authEnabled': "auth_enabled",
+    'authorizedNetwork': "authorized_network",
+    'connectMode': "connect_mode",
+  }, ' ' * 2)}}
+  {%- if 'redisConfigs' in properties %}
+  redis_configs = {{ macros.normalize(properties['redisConfigs']) }}
+  {%- endif %}
+  {{- macros.fields(properties, {
+    'redisVersion': "redis_version",
+    'transitEncryptionMode': "transit_encryption_mode"
+  }, ' ' * 2)}}
+}
+{%- if 'parent' in properties %}
+#tfimport-terraform import google_redis_instance.{{ macros.get_name(resource, properties) }}  {{ properties['parent'] }}/instances/{{ instance_name }}
+{% else %}
+#tfimport-terraform import google_redis_instance.{{ macros.get_name(resource, properties) }}  __parent__/instances/{{ instance_name }}
+{%- endif %}

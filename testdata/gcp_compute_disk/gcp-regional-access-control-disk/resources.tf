@@ -2,7 +2,6 @@ provider "google-beta" {
   project = "None"
 }
 
-#tfimport-terraform import google_compute_region_disk.compute_region_disk_access_control_test  __project__/us-west1/compute-region-disk-access-control-test
 resource "google_compute_region_disk" "compute_region_disk_access_control_test" {
   provider = google-beta
 
@@ -14,6 +13,7 @@ resource "google_compute_region_disk" "compute_region_disk_access_control_test" 
   ]
   size = 200
 }
+#tfimport-terraform import google_compute_region_disk.compute_region_disk_access_control_test  projects/__project__/regions/us-west1/disks/compute-region-disk-access-control-test
 
 data "google_iam_policy" "compute_region_disk_access_control_test_iam_policy" {
   binding {
@@ -36,7 +36,7 @@ data "google_iam_policy" "compute_region_disk_access_control_test_iam_policy" {
   }
 }
 
-#tfimport-terraform import google_compute_region_disk_iam_policy.compute_region_disk_access_control_test_policy __project__/us-west1/compute-region-disk-access-control-test
+#tfimport-terraform import google_compute_region_disk_iam_policy.compute_region_disk_access_control_test_policy projects/__project__/regions/us-west1/disks/compute-region-disk-access-control-test
 resource "google_compute_region_disk_iam_policy" "compute_region_disk_access_control_test_policy" {
   project        = google_compute_region_disk.compute_region_disk_access_control_test.project
   region         = google_compute_region_disk.compute_region_disk_access_control_test.region

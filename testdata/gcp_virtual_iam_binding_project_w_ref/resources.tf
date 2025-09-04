@@ -11,7 +11,7 @@ resource "google_project" "test_gcp_project" {
   folder_id = "223456789101"
 }
 
-#tfimport-terraform import google_project_iam_member.iam_member_001  "test-gcp-project-1234 roles/storage.admin serviceAccount:$(ref.test-gcp-project.projectNumber)@cloudservices.gserviceaccount.com"
+#tfimport-terraform import google_project_iam_member.iam_member_001  "None roles/storage.admin serviceAccount:$(ref.test-gcp-project.projectNumber)@cloudservices.gserviceaccount.com"
 resource "google_project_iam_member" "iam_member_001" {
   provider = google-beta
 

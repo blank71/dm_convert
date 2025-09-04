@@ -1,6 +1,5 @@
 {%- import 'tf_macros.jinja' as macros %}
 {%- set properties = resource.get('properties', {}) %}
-#tfimport-terraform import google_logging_metric.{{ macros.get_name(resource, properties) }} {{ macros.import_project(properties['parent']) }} {{ properties['metric'] }}
 resource "google_logging_metric" "{{ macros.get_name(resource, properties) }}" {
   {{- macros.write_provider() }}
   {{- macros.fields(properties, {
@@ -13,6 +12,7 @@ resource "google_logging_metric" "{{ macros.get_name(resource, properties) }}" {
     'disabled': 'disabled',
     'bucketName': 'bucket_name',
   }, ' ' * 2) }}
+  {%- if properties.get('metricDescriptor') %}
   metric_descriptor {
   {{- macros.fields(properties.get('metricDescriptor'), {
     'metricKind': 'metric_kind',
@@ -27,6 +27,7 @@ resource "google_logging_metric" "{{ macros.get_name(resource, properties) }}" {
       'valueType': 'value_type'
   }) | indent(2) }}
   }
+  {%- endif %}
 
   {{- macros.dict(properties, {
     'bucketOptions': {
@@ -54,6 +55,9 @@ resource "google_logging_metric" "{{ macros.get_name(resource, properties) }}" {
 
   {{- macros.format_dependencies(resource) | indent(2) }}
 }
+{%- set project_value = properties['project'] %}
+{%- set project_value = macros.import_project(project_value) %}
+#tfimport-terraform import google_logging_metric.{{ macros.get_name(resource, properties) }} "{{ project_value }} {{ properties['metric'] }}"
 
 {#-
 1. [DM] launchStage is missing in TF

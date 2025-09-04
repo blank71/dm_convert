@@ -1,0 +1,228 @@
+{%- import 'tf_macros.jinja' as macros %}
+{%- set properties = resource.get('properties', {}) -%}
+{%- set resource_name = macros.get_name(resource, properties) -%}
+resource "google_cloudbuild_trigger" "{{ resource_name }}" {
+  {{- macros.write_provider() }}
+  
+  name = "{{ properties['name'] if 'name' in properties else resource['name'] }}"
+  
+  {{- macros.fields(properties, {
+    'project': 'project',
+    'location': 'location',
+    'description': 'description',
+    'tags': 'tags',
+    'disabled': 'disabled',
+    'serviceAccount': 'service_account',
+    'includeBuildLogs': 'include_build_logs',
+    'includeLogWithStatus': 'include_log_with_status',
+    'filename': 'filename',
+    'ignoredFiles': 'ignored_files',
+    'includedFiles': 'included_files',
+    'filter': 'filter',
+  }, ' ' * 2) }}
+
+  {%- if 'substitutions' in properties %}
+  substitutions = {
+    {%- for key, value in properties['substitutions'].items() %}
+    {{ key }} = "{{ value }}"
+    {%- endfor %}
+  }
+  {%- endif %}
+
+  {%- if 'triggerTemplate' in properties %}
+  trigger_template {
+    {{- macros.fields(properties['triggerTemplate'], {
+      'projectId': 'project_id',
+      'repoName': 'repo_name',
+      'branchName': 'branch_name',
+      'tagName': 'tag_name',
+      'commitSha': 'commit_sha',
+      'dir': 'dir',
+      'invertRegex': 'invert_regex',
+    }, ' ' * 4) }}
+  }
+  {%- endif %}
+
+  {%- if 'github' in properties %}
+  github {
+    {{- macros.fields(properties['github'], {
+      'owner': 'owner',
+      'name': 'name',
+    }, ' ' * 4) }}
+    
+    {%- if 'push' in properties['github'] %}
+    push {
+      {{- macros.fields(properties['github']['push'], {
+        'branch': 'branch',
+        'tag': 'tag',
+        'invertRegex': 'invert_regex',
+      }, ' ' * 6) }}
+    }
+    {%- endif %}
+    
+    {%- if 'pullRequest' in properties['github'] %}
+    pull_request {
+      {{- macros.fields(properties['github']['pullRequest'], {
+        'branch': 'branch',
+        'commentControl': 'comment_control',
+        'invertRegex': 'invert_regex',
+      }, ' ' * 6) }}
+    }
+    {%- endif %}
+  }
+  {%- endif %}
+
+  {%- if 'pubsubConfig' in properties %}
+  pubsub_config {
+    {{- macros.fields(properties['pubsubConfig'], {
+      'topic': 'topic',
+      'subscription': 'subscription',
+      'serviceAccountEmail': 'service_account_email',
+      'state': 'state',
+    }, ' ' * 4) }}
+  }
+  {%- endif %}
+
+  {%- if 'webhookConfig' in properties %}
+  webhook_config {
+    {{- macros.fields(properties['webhookConfig'], {
+      'secret': 'secret',
+      'state': 'state',
+    }, ' ' * 4) }}
+  }
+  {%- endif %}
+
+  {%- if 'repositoryEventConfig' in properties %}
+  repository_event_config {
+    {{- macros.fields(properties['repositoryEventConfig'], {
+      'repository': 'repository',
+      'repositoryType': 'repository_type',
+    }, ' ' * 4) }}
+    
+    {%- if 'push' in properties['repositoryEventConfig'] %}
+    push {
+      {{- macros.fields(properties['repositoryEventConfig']['push'], {
+        'branch': 'branch',
+        'tag': 'tag',
+        'invertRegex': 'invert_regex',
+      }, ' ' * 6) }}
+    }
+    {%- endif %}
+    
+    {%- if 'pullRequest' in properties['repositoryEventConfig'] %}
+    pull_request {
+      {{- macros.fields(properties['repositoryEventConfig']['pullRequest'], {
+        'branch': 'branch',
+        'commentControl': 'comment_control',
+        'invertRegex': 'invert_regex',
+      }, ' ' * 6) }}
+    }
+    {%- endif %}
+  }
+  {%- endif %}
+
+  {%- if 'sourceToBuild' in properties %}
+  source_to_build {
+    {{- macros.fields(properties['sourceToBuild'], {
+      'uri': 'uri',
+      'ref': 'ref',
+      'repoType': 'repo_type',
+    }, ' ' * 4) }}
+  }
+  {%- endif %}
+
+  {%- if 'gitFileSource' in properties %}
+  git_file_source {
+    {{- macros.fields(properties['gitFileSource'], {
+      'path': 'path',
+      'uri': 'uri',
+      'revision': 'revision',
+      'repoType': 'repo_type',
+    }, ' ' * 4) }}
+  }
+  {%- endif %}
+
+  {%- if 'build' in properties %}
+  build {
+    {{- macros.fields(properties['build'], {
+      'images': 'images',
+      'tags': 'tags',
+      'timeout': 'timeout',
+      'machineType': 'machine_type',
+      'logsBucket': 'logs_bucket',
+      'queueTtl': 'queue_ttl',
+    }, ' ' * 4) }}
+    
+    {%- if 'steps' in properties['build'] %}
+    {%- for step in properties['build']['steps'] %}
+    step {
+      {{- macros.fields(step, {
+        'name': 'name',
+        'args': 'args',
+        'env': 'env',
+        'dir': 'dir',
+        'id': 'id',
+        'waitFor': 'wait_for',
+        'entrypoint': 'entrypoint',
+        'secretEnv': 'secret_env',
+        'timeout': 'timeout',
+        'script': 'script',
+      }, ' ' * 6) }}
+    }
+    {%- endfor %}
+    {%- endif %}
+    
+    {%- if 'options' in properties['build'] %}
+    options {
+      {{- macros.fields(properties['build']['options'], {
+        'sourceProvenanceHash': 'source_provenance_hash',
+        'requestedVerifyOption': 'requested_verify_option',
+        'machineType': 'machine_type',
+        'diskSizeGb': 'disk_size_gb',
+        'substitutionOption': 'substitution_option',
+        'dynamicSubstitutions': 'dynamic_substitutions',
+        'logStreamingOption': 'log_streaming_option',
+        'workerPool': 'worker_pool',
+        'logging': 'logging',
+        'env': 'env',
+        'secretEnv': 'secret_env',
+      }, ' ' * 6) }}
+    }
+    {%- endif %}
+    
+    {%- if 'secrets' in properties['build'] %}
+    {%- for secret in properties['build']['secrets'] %}
+    secret {
+      {{- macros.fields(secret, {
+        'kmsKeyName': 'kms_key_name',
+        'secretEnv': 'secret_env',
+      }, ' ' * 6) }}
+    }
+    {%- endfor %}
+    {%- endif %}
+    
+    {%- if 'availableSecrets' in properties['build'] %}
+    available_secrets {
+      {%- if 'secretManager' in properties['build']['availableSecrets'] %}
+      {%- for sm in properties['build']['availableSecrets']['secretManager'] %}
+      secret_manager {
+        {{- macros.fields(sm, {
+          'versionName': 'version_name',
+          'env': 'env',
+        }, ' ' * 8) }}
+      }
+      {%- endfor %}
+      {%- endif %}
+    }
+    {%- endif %}
+  }
+  {%- endif %}
+
+  {{- macros.write_labels(properties) }}
+}
+
+{%- set project_value = properties.get('project', get_project_id) %}
+{%- set location_value = properties.get('location', 'global') %}
+{%- set trigger_name = properties.get('name', resource.get('name', '__name__')) %}
+{%- set import_resource = ['projects', project_value, 'locations', location_value, 'triggers', trigger_name] | join("/") %}
+#tfimport-terraform import google_cloudbuild_trigger.{{ resource_name }} {{ import_resource }}

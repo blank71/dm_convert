@@ -145,7 +145,6 @@ resource "google_bigquery_table" "test_deploymenttable_test_1" {
   ]
 }
 
-#tfimport-terraform import google_kms_crypto_key.kms_crypto_key kms-key-ring/kms-crypto-key
 resource "google_kms_crypto_key" "kms_crypto_key" {
   provider = google-beta
 
@@ -157,6 +156,7 @@ resource "google_kms_crypto_key" "kms_crypto_key" {
     google_kms_key_ring.kms_key_ring
   ]
 }
+#tfimport-terraform import google_kms_crypto_key.kms_crypto_key kms-key-ring/cryptoKeys/kms-crypto-key
 
 resource "google_kms_key_ring" "kms_key_ring" {
   provider = google-beta
@@ -164,4 +164,4 @@ resource "google_kms_key_ring" "kms_key_ring" {
   name = "kms-key-ring"
   location = "global"
 }
-#tfimport-terraform import google_kms_key_ring.kms_key_ring __project__/global/kms-key-ring
+#tfimport-terraform import google_kms_key_ring.kms_key_ring projects/tjr-dm-test-1/locations/global/keyRings/kms-key-ring

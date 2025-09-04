@@ -2,7 +2,6 @@ provider "google-beta" {
   project = "None"
 }
 
-#tfimport-terraform import google_compute_network.compute_network  __project__/compute-network
 resource "google_compute_network" "compute_network" {
   provider = google-beta
 
@@ -10,8 +9,8 @@ resource "google_compute_network" "compute_network" {
   auto_create_subnetworks = false
   routing_mode = "REGIONAL"
 }
+#tfimport-terraform import google_compute_network.compute_network  projects/__project__/global/networks/compute-network
 
-#tfimport-terraform import google_compute_subnetwork.compute_subnetwork __project__/us-west1/compute-subnetwork
 resource "google_compute_subnetwork" "compute_subnetwork" {
   provider = google-beta
 
@@ -32,8 +31,8 @@ resource "google_compute_subnetwork" "compute_subnetwork" {
     google_compute_network.compute_network
   ]
 }
+#tfimport-terraform import google_compute_subnetwork.compute_subnetwork projects/__project__/regions/us-west1/subnetworks/compute-subnetwork
 
-#tfimport-terraform import google_compute_subnetwork.compute_subnetworks __project__/us-west1/compute-subnetworks
 resource "google_compute_subnetwork" "compute_subnetworks" {
   provider = google-beta
 
@@ -54,3 +53,4 @@ resource "google_compute_subnetwork" "compute_subnetworks" {
     google_compute_network.compute_network
   ]
 }
+#tfimport-terraform import google_compute_subnetwork.compute_subnetworks projects/__project__/regions/us-west1/subnetworks/compute-subnetworks
