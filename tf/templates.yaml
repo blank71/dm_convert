@@ -2,6 +2,7 @@
 # gcp v1/v2 types
 gcp-types/appengine-v1:apps.services.versions: google_app_engine
 gcp-types/cloudresourcemanager-v1:projects: google_project
+gcp-types/cloudbuild-v1:projects.triggers: google_cloudbuild_trigger
 gcp-types/cloudkms-v1:projects.locations.keyRings: google_kms_key_ring
 gcp-types/cloudkms-v1:projects.locations.keyRings.cryptoKeys: google_kms_crypto_key
 gcp-types/container-v1:projects.locations.clusters: google_container_cluster
