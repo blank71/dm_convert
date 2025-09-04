@@ -11,7 +11,6 @@ resource "google_compute_network" "compute_network" {
 }
 #tfimport-terraform import google_compute_network.compute_network  projects/__project__/global/networks/compute-network
 
-#tfimport-terraform import google_compute_router.compute_router  __project__/us-west1/compute-router
 resource "google_compute_router" "compute_router" {
   provider = google-beta
 
@@ -19,6 +18,7 @@ resource "google_compute_router" "compute_router" {
   description = "example router description"
   network = "projects/tjr-dm-test-1/global/networks/compute-network"
   region = "us-west1"
+  project = "__project__"
   bgp {
     asn = 64514
     advertise_mode = "CUSTOM"
@@ -35,8 +35,8 @@ resource "google_compute_router" "compute_router" {
     google_compute_network.compute_network
   ]
 }
+#tfimport-terraform import google_compute_router.compute_router  projects/__project__/regions/us-west1/routers/compute-router
 
-#tfimport-terraform import google_compute_router.compute_routers  __project__/us-west1/compute-routers
 resource "google_compute_router" "compute_routers" {
   provider = google-beta
 
@@ -44,6 +44,7 @@ resource "google_compute_router" "compute_routers" {
   description = "example router description"
   network = "projects/tjr-dm-test-1/global/networks/compute-network"
   region = "us-west1"
+  project = "__project__"
   bgp {
     asn = 64514
     advertise_mode = "CUSTOM"
@@ -60,3 +61,4 @@ resource "google_compute_router" "compute_routers" {
     google_compute_network.compute_network
   ]
 }
+#tfimport-terraform import google_compute_router.compute_routers  projects/__project__/regions/us-west1/routers/compute-routers

@@ -11,12 +11,12 @@ resource "google_compute_network" "compute_network" {
 }
 #tfimport-terraform import google_compute_network.compute_network  projects/__project__/global/networks/compute-network
 
-#tfimport-terraform import google_compute_router.compute_router  __project__//router-sample
 resource "google_compute_router" "compute_router" {
   provider = google-beta
 
   name = "router-sample"
   network = google_compute_network.compute_network.id
+  project = "__project__"
   bgp {
     asn = 16550
   }
@@ -25,6 +25,7 @@ resource "google_compute_router" "compute_router" {
     google_compute_network.compute_network
   ]
 }
+#tfimport-terraform import google_compute_router.compute_router  projects/__project__/regions//routers/router-sample
 
 #tfimport-terraform import google_compute_interconnect_attachment.compute_interconnect_attachment  __project__//interconnect-sample
 resource "google_compute_interconnect_attachment" "compute_interconnect_attachment" {
