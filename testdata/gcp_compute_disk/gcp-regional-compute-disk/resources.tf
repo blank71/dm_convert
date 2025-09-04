@@ -2,7 +2,6 @@ provider "google-beta" {
   project = "None"
 }
 
-#tfimport-terraform import google_compute_region_disk.compute_regiondisk  __project__/us-west1/compute-regiondisk
 resource "google_compute_region_disk" "compute_regiondisk" {
   provider = google-beta
 
@@ -19,3 +18,4 @@ resource "google_compute_region_disk" "compute_regiondisk" {
     extra-gb = "100"
   }
 }
+#tfimport-terraform import google_compute_region_disk.compute_regiondisk  projects/__project__/regions/us-west1/disks/compute-regiondisk
