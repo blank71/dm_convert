@@ -19,6 +19,6 @@ resource "google_compute_global_address" "{{ macros.get_name(resource, propertie
   {%- endif %}
   {{- macros.format_dependencies(resource) | indent(2) }}
 }
-{%- set project_value = properties['project'] %}
+{%- set project_value = properties['project'] if 'project' in properties else get_project_id %}
 {%- set project_value = macros.import_project(project_value) %}
 #tfimport-terraform import google_compute_global_address.{{ macros.get_name(resource, properties) }}  projects/{{ project_value }}/global/addresses/{{- resource_name }}
