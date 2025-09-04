@@ -2,7 +2,6 @@ provider "google-beta" {
   project = "None"
 }
 
-#tfimport-terraform import google_compute_resource_policy.compute_resource_policy  __project__/us-central1/compute-resource-policy
 resource "google_compute_resource_policy" "compute_resource_policy" {
   provider = google-beta
 
@@ -39,3 +38,4 @@ resource "google_compute_resource_policy" "compute_resource_policy" {
     }
   }
 }
+#tfimport-terraform import google_compute_resource_policy.compute_resource_policy projects/__project__/regions/us-central1/resourcePolicies/compute-resource-policy
