@@ -199,6 +199,7 @@ compute.beta.regionAutoscaler: google_compute_region_autoscaler
 compute.beta.regionDisk: google_compute_region_disk
 compute.beta.regionHealthCheck: google_compute_region_health_check
 compute.beta.regionInstanceGroupManager: google_compute_region_instance_group_manager
+compute.beta.router: google_compute_router
 compute.beta.sslCertificate: gcp_compute_sslcertificate
 compute.beta.targetInstance: google_compute_target_instance
 compute.beta.targetVpnGateway: google_compute_vpn_gateway
