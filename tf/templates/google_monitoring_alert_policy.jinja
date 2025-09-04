@@ -111,6 +111,17 @@ resource "google_monitoring_alert_policy" "{{ macros.get_name(resource, properti
   {%- endfor %}
   {%- endif %}
 }
+{%- set project_value = properties['project'] if 'project' in properties else get_project_id %}
+{%- set DISPLAY_NAME = properties.get('displayName') %}
+#tfimport-PROJECT_ID="{{ project_value }}"
+#tfimport-FILE="${PROJECT_ID}_monitoring_alert_policy.json"
+#tfimport-DISPLAY_NAME="{{ DISPLAY_NAME }}"
+#tfimport-if [[ ! -f "${FILE}" ]]; then gcloud alpha monitoring policies list --project="${PROJECT_ID}" --format="json(displayName,name)" > "${FILE}"; fi
+#tfimport-ID=$(cat "${FILE}" | jq -r --arg display_name "${DISPLAY_NAME}" '.[] | select(.displayName == $display_name) | .name' )
+#tfimport-terraform import google_monitoring_alert_policy.{{ macros.get_name(resource, properties) }} ${ID}
+
+{# # aaa
+
 {%- if properties.get('notificationChannels') and properties['notificationChannels']|length > 0 %}
 {%- set project_value = properties['notificationChannels'][0].split('/')[1]%}
 {%- else %}
@@ -123,7 +134,7 @@ resource "google_monitoring_alert_policy" "{{ macros.get_name(resource, properti
 #tfimport-DISPLAY_NAME="{{ DISPLAY_NAME }}"
 #tfimport-if [[ ! -f "${FILE}" ]]; then gcloud alpha monitoring policies list --project="${PROJECT_ID}" --format=json > "${FILE}"; fi
 #tfimport-ID=$(cat "${FILE}" | jq -r --arg display_name "${DISPLAY_NAME}" '.[] | select(.displayName == $display_name) | .name' )
-#tfimport-terraform import google_monitoring_alert_policy.{{ macros.get_name(resource, properties) }} ${ID}
+#tfimport-terraform import google_monitoring_alert_policy.{{ macros.get_name(resource, properties) }} ${ID} #}
 
 {#-
 1. [TF] name is computed field
