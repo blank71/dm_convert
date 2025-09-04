@@ -129,6 +129,15 @@ _OPT_OUT_DATA_COLLECTION = flags.DEFINE_bool(
     'Set to true in order to opt out usage data collection from the tool.',
 )
 
+_OUTPUT_EXPANDED_YAML = flags.DEFINE_string(
+    'output_expanded_yaml',
+    None,
+    (
+        'Optional destination file for expanded YAML before conversion.'
+        ' If empty, expanded YAML is not saved to file.'
+    ),
+)
+
 _SKIP_UNSUPPORTED_FIELDS = flags.DEFINE_bool(
     'skip_unsupported_fields',
     False,
@@ -377,6 +386,10 @@ def main(argv) -> None:
   if _OUTPUT_FILE.value:
     output_file = pathlib.Path(_OUTPUT_FILE.value).resolve(strict=False)
 
+  output_expanded_yaml = None
+  if _OUTPUT_EXPANDED_YAML.value:
+    output_expanded_yaml = pathlib.Path(_OUTPUT_EXPANDED_YAML.value).resolve(strict=False)
+
   runner = ConverterRunner(
       config_file=pathlib.Path(_CONFIG.value).resolve(),
       output_file=output_file,
@@ -384,7 +397,8 @@ def main(argv) -> None:
       project_id=_PROJECT_ID.value,
       project_number=_PROJECT_NUMBER.value,
       deployment_name=_DEPLOYMENT_NAME.value,
-      converter=converter)
+      converter=converter,
+      output_expanded_yaml=output_expanded_yaml)
   runner.run()
 
 
