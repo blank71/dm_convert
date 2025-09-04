@@ -30,6 +30,7 @@ gcp-types/compute-v1:resourcePolicies: google_compute_resource_policy
 gcp-types/compute-v1:routes: google_compute_route
 gcp-types/compute-v1:routers: google_compute_router
 gcp-types/compute-v1:subnetworks: google_compute_subnetwork
+gcp-types/compute-v1:sslPolicies: google_compute_sslpolicy
 gcp-types/compute-v1:targetInstances: google_compute_target_instance
 gcp-types/compute-v1:targetPools: google_compute_target_pool
 gcp-types/compute-v1:targetVpnGateways: google_compute_vpn_gateway
@@ -150,6 +151,7 @@ compute.v1.routes: google_compute_route
 compute.v1.router: google_compute_router
 compute.v1.routers: google_compute_router
 compute.v1.sslCertificate: google_compute_sslcertificate
+compute.v1.sslPolicies: google_compute_sslpolicy
 compute.v1.subnetwork: google_compute_subnetwork
 compute.v1.subnetworks: google_compute_subnetwork
 compute.v1.targetHttpProxies: google_compute_target_http_proxy
