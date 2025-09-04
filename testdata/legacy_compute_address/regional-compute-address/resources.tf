@@ -26,7 +26,6 @@ resource "google_compute_subnetwork" "compute_subnetwork" {
 }
 #tfimport-terraform import google_compute_subnetwork.compute_subnetwork projects/__project__/regions/us-west1/subnetworks/compute-subnetwork
 
-#tfimport-terraform import google_compute_address.compute_address  __project__/us-west1/compute-address
 resource "google_compute_address" "compute_address" {
   provider = google-beta
 
@@ -41,3 +40,4 @@ resource "google_compute_address" "compute_address" {
     google_compute_subnetwork.compute_subnetwork
   ]
 }
+#tfimport-terraform import google_compute_address.compute_address  projects/__project__/regions/us-west1/addresses/compute-address

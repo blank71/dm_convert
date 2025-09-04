@@ -26,7 +26,6 @@ resource "google_compute_disk" "compute_disk" {
   type = "pd-ssd"
 }
 
-#tfimport-terraform import google_compute_address.compute_address  __project__/us-west1/compute-address
 resource "google_compute_address" "compute_address" {
   provider = google-beta
 
@@ -34,6 +33,7 @@ resource "google_compute_address" "compute_address" {
   description = "a sample external address"
   region = "us-west1"
 }
+#tfimport-terraform import google_compute_address.compute_address  projects/__project__/regions/us-west1/addresses/compute-address
 
 resource "google_compute_subnetwork" "compute_subnetwork" {
   provider = google-beta

@@ -2,7 +2,6 @@ provider "google-beta" {
   project = "None"
 }
 
-#tfimport-terraform import google_compute_address.compute_address  __project__/us-west1/compute-address
 resource "google_compute_address" "compute_address" {
   provider = google-beta
 
@@ -13,6 +12,7 @@ resource "google_compute_address" "compute_address" {
   description = "a test regional address"
   region = "us-west1"
 }
+#tfimport-terraform import google_compute_address.compute_address  projects/__project__/regions/us-west1/addresses/compute-address
 
 resource "google_compute_network" "compute_network" {
   provider = google-beta
