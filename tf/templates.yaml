@@ -147,6 +147,7 @@ compute.v1.regionInstanceGroupManager: google_compute_region_instance_group_mana
 compute.v1.regionInstanceGroupManagers: google_compute_region_instance_group_manager
 compute.v1.regionTargetHttpProxies: google_compute_region_target_http_proxy
 compute.v1.regionUrlMaps: google_compute_region_url_map
+compute.v1.resourcePolicies: google_compute_resource_policy
 compute.v1.route: google_compute_route
 compute.v1.routes: google_compute_route
 compute.v1.router: google_compute_router
