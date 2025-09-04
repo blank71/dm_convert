@@ -11,7 +11,6 @@ resource "google_compute_network" "fake_network" {
 }
 #tfimport-terraform import google_compute_network.fake_network  projects/__project__/global/networks/fake-network
 
-#tfimport-terraform import google_compute_subnetwork.compute_subnetwork_access_control_test __project__/us-west1/compute-subnetwork-access-control-test
 resource "google_compute_subnetwork" "compute_subnetwork_access_control_test" {
   provider = google-beta
 
@@ -21,6 +20,7 @@ resource "google_compute_subnetwork" "compute_subnetwork_access_control_test" {
   region = "us-west1"
   network = google_compute_network.fake_network.id
 }
+#tfimport-terraform import google_compute_subnetwork.compute_subnetwork_access_control_test projects/__project__/regions/us-west1/subnetworks/compute-subnetwork-access-control-test
 
 data "google_iam_policy" "compute_subnetwork_access_control_test_iam_policy" {
   binding {
@@ -43,7 +43,7 @@ data "google_iam_policy" "compute_subnetwork_access_control_test_iam_policy" {
   }
 }
 
-#tfimport-terraform import google_compute_subnetwork_iam_policy.compute_subnetwork_access_control_test_policy __project__/us-west1/compute-subnetwork-access-control-test
+#tfimport-terraform import google_compute_subnetwork_iam_policy.compute_subnetwork_access_control_test_policy projects/__project__/regions/us-west1/subnetworks/compute-subnetwork-access-control-test
 resource "google_compute_subnetwork_iam_policy" "compute_subnetwork_access_control_test_policy" {
   project        = google_compute_subnetwork.compute_subnetwork_access_control_test.project
   region         = google_compute_subnetwork.compute_subnetwork_access_control_test.region

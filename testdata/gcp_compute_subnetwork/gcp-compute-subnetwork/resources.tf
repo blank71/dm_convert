@@ -11,7 +11,6 @@ resource "google_compute_network" "compute_network" {
 }
 #tfimport-terraform import google_compute_network.compute_network  projects/__project__/global/networks/compute-network
 
-#tfimport-terraform import google_compute_subnetwork.compute_subnetwork __project__/us-west1/compute-subnetwork
 resource "google_compute_subnetwork" "compute_subnetwork" {
   provider = google-beta
 
@@ -32,8 +31,8 @@ resource "google_compute_subnetwork" "compute_subnetwork" {
     google_compute_network.compute_network
   ]
 }
+#tfimport-terraform import google_compute_subnetwork.compute_subnetwork projects/__project__/regions/us-west1/subnetworks/compute-subnetwork
 
-#tfimport-terraform import google_compute_subnetwork.compute_subnetwork_1 __project__/us-west1/compute-subnetwork-1
 resource "google_compute_subnetwork" "compute_subnetwork_1" {
   provider = google-beta
 
@@ -58,8 +57,8 @@ resource "google_compute_subnetwork" "compute_subnetwork_1" {
     google_compute_network.compute_network
   ]
 }
+#tfimport-terraform import google_compute_subnetwork.compute_subnetwork_1 projects/__project__/regions/us-west1/subnetworks/compute-subnetwork-1
 
-#tfimport-terraform import google_compute_subnetwork.compute_subnetwork_2 __project__/us-west1/compute-subnetwork-2
 resource "google_compute_subnetwork" "compute_subnetwork_2" {
   provider = google-beta
 
@@ -75,8 +74,8 @@ resource "google_compute_subnetwork" "compute_subnetwork_2" {
     google_compute_network.compute_network
   ]
 }
+#tfimport-terraform import google_compute_subnetwork.compute_subnetwork_2 projects/__project__/regions/us-west1/subnetworks/compute-subnetwork-2
 
-#tfimport-terraform import google_compute_subnetwork.compute_subnetwork_3 __project__/us-west1/compute-subnetwork-3
 resource "google_compute_subnetwork" "compute_subnetwork_3" {
   provider = google-beta
 
@@ -85,6 +84,7 @@ resource "google_compute_subnetwork" "compute_subnetwork_3" {
   region = "us-west1"
   network = "default"
 }
+#tfimport-terraform import google_compute_subnetwork.compute_subnetwork_3 projects/__project__/regions/us-west1/subnetworks/compute-subnetwork-3
 
 resource "google_compute_network" "compute_network_2" {
   provider = google-beta
@@ -95,7 +95,6 @@ resource "google_compute_network" "compute_network_2" {
 }
 #tfimport-terraform import google_compute_network.compute_network_2  projects/__project__/global/networks/compute-network-2
 
-#tfimport-terraform import google_compute_subnetwork.compute_subnetwork_4 __project__/us-central1/compute-subnetwork-4
 resource "google_compute_subnetwork" "compute_subnetwork_4" {
   provider = google-beta
 
@@ -115,3 +114,4 @@ resource "google_compute_subnetwork" "compute_subnetwork_4" {
     google_compute_network.compute_network_2
   ]
 }
+#tfimport-terraform import google_compute_subnetwork.compute_subnetwork_4 projects/__project__/regions/us-central1/subnetworks/compute-subnetwork-4
